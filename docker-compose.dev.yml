@@ -1,0 +1,113 @@
+version: "3"
+services:
+  ################################
+  #   Setup React-admin container
+  ################################
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: a4_frontend
+    env_file:
+      - ./env/.env.dev
+    # environment:
+    #   # - CHOKIDAR_USEPOLLING=${CHOKIDAR_USEPOLLING}
+    #   # - WATCHPACK_POLLING=${WATCHPACK_POLLING}
+    #   # - REACT_APP_NODE_ENV=${REACT_APP_NODE_ENV}
+    #   # - REACT_APP_HOST_GRAPHAL=${REACT_APP_HOST_GRAPHAL}:${GRAPHQL_PORT}
+    #   # - FRONTEND_PORT=${FRONTEND_PORT}
+    #   # - PORT=${FRONTEND_PORT}
+    #   # - REACT_APP_GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+    #   # - REACT_APP_GOOGLE_ANALYTICS4=${REACT_APP_GOOGLE_ANALYTICS4}
+    #   # - REACT_APP_FACEBOOK_APPID=448400870781752
+    ports:
+      - "80:3000"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./uploads:/var/storage
+    networks:
+      - a4
+  ################################
+  
+  ################################
+  #   Setup Api Graphql container
+  ################################
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile.dev   
+    container_name: a4_backend          
+    ports:
+      - "4000:4000"
+    env_file:
+      - ./env/.env.dev
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # set can run docker inside ex. run docker backup db(a4_mongo)
+      - ./backend/src:/app/src        
+      - ./uploads:/app/uploads    
+    # environment:
+    #   - DOCKER_HOST=unix:///var/run/docker.sock
+    #   # - CHOKIDAR_USEPOLLING=${CHOKIDAR_USEPOLLING}
+    #   # - WATCHPACK_POLLING=${WATCHPACK_POLLING}
+    #   # - RA_HOST=${RA_HOST}:${GRAPHQL_PORT}/
+    #   # - GRAPHQL_PORT=${GRAPHQL_PORT}
+    #   # - JWT_SECRET=${JWT_SECRET}
+    #   # - MONGO_URI=mongodb://${MONGO_INITDB_USERNAME}:${MONGO_INITDB_PASSWORD}@mongo:${MONGO_PORT}/${MONGO_INITDB_DATABASE}?authMechanism=DEFAULT
+    #   # - MONGO_URI=mongodb://${MONGO_INITDB_USERNAME}:${MONGO_INITDB_PASSWORD}@mongo:${MONGO_PORT}/${MONGO_INITDB_DATABASE}
+    #   # - GITHUB_URL_OAUTH_ACCESS_TOKEN=${GITHUB_URL_OAUTH_ACCESS_TOKEN}
+    #   # - GITHUB_URL_OAUTH_USER=${GITHUB_URL_OAUTH_USER}
+    #   # - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+    #   # - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET} 
+    networks:
+      - a4
+  ################################
+
+  ################################
+  #   Setup Api Mongo and mongo-express container
+  ################################
+  # mongo:
+  #   image: mongo:${MONGO_VERSION}
+  #   command: mongod --port ${MONGO_PORT}
+  #   expose:
+  #     - ${MONGO_PORT}
+  #   ports:
+  #     - "${MONGO_PORT}:${MONGO_PORT}"
+  #     - 29102:${MONGO_PORT}
+  #   volumes:
+  #     - ./mongo-single/data:/data/db
+  #     - ./mongo-single/restore:/mongo-single/restore
+  #     - ./mongo-single/mongod.conf:/etc/mongod.conf
+  #   restart: always
+  #   networks:
+  #     - nodejs
+
+  ################################
+  #   Setup Api Mongo and mongo-express container
+  ################################ 
+  mongo:
+    image: mongo:6.0.1
+    container_name: a4_mongo
+    command: mongod --auth --port 29102
+    # command: mongod --port 29102
+    expose:
+      - 29102
+    ports:
+      - 29102:29102
+    # ports:
+    #   - 27017:27017
+    environment:
+      - MONGO_MAX_CONNECTIONS=100
+    volumes:
+    #   - ./mongo-single/data:/data/db
+    #   - ./mongo-single/restore:/mongo-single/restore
+    #   - ./mongo-single/mongod.conf:/etc/mongod.conf
+      - ./mongo/mongod.conf:/etc/mongod.conf
+      # - ./mongo/db:/data/db
+      - ./mongo/backups:/app/src/backups
+    restart: always
+    networks:
+      - a4
+networks:
+  a4:
+    external: true 
+    name: a4-network

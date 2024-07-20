@@ -1,0 +1,13 @@
+.App {
+  font-family: sans-serif;
+  text-align: center;
+}
+
+/* .scrollbar-container ps, ul.inline, li{
+  width: 100%;
+} */
+
+.cs-message-list{
+  min-height: 100px;
+  height: 400px !important;
+}
