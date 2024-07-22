@@ -25,6 +25,7 @@ import DateLotteryModel from "./DateLotteryModel"
 import ContactUsModel from "./ContactUsModel"
 import TestModel from "./TestModel"
 import ManageLotteryModel from "./ManageLotteryModel"
+import LogUserAccessModel from './LogUserAccessModel'
 
 
 import MemberModel from "./MemberModel"
@@ -62,4 +63,5 @@ module.exports =  {
 
     Member: MemberModel,
     MLM: MLMModel,
+    LogUserAccess: LogUserAccessModel,
 };

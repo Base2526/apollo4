@@ -8,10 +8,17 @@ const { WebSocketServer } = require('ws');
 const { useServer } = require('graphql-ws/lib/use/ws');
 const { PubSub } = require('graphql-subscriptions');
 const cors = require('cors');
+
+import jwt from 'jsonwebtoken';
+import cryptojs from "crypto-js";
+import bodyParser from "body-parser";
+import _ from "lodash";
+
 import typeDefs from "./typeDefs";
 import resolvers from "./resolvers";
+import * as Utils from "./utils"
 
-import bodyParser from "body-parser";
+require('./cron-jobs.js');
 
 const pubsub = new PubSub();
 
@@ -104,14 +111,18 @@ server.start().then(() => {
   useServer(
     {
       schema,
-      onConnect: (ctx) => {
+      onConnect: async(ctx) => {
         const { connectionParams, extra } = ctx;
-        console.log('Client connected : ', connectionParams, extra.request.headers);
+        // console.log('Client connected : ', connectionParams, extra.request.headers, extra.request.headers['sec-websocket-key']);
         pubsub.publish('USER_CONNECTED', { userConnected: 'A user connected' });
+
+        await Utils.logUserAccess(0, ctx);
+        
       },
-      onDisconnect: (ctx, code, reason) => {
-        const { connectionParams, extra } = ctx;
-        console.log('Client disconnected :', connectionParams, extra.request.headers);
+      onDisconnect: async(ctx, code, reason) => {
+        // const { connectionParams, extra } = ctx;
+        // console.log('Client disconnected :', connectionParams, extra.request.headers);
+        await Utils.logUserAccess(1, ctx);
       },
     },
     wsServer

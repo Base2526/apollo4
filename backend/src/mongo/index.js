@@ -322,6 +322,17 @@ const modelExists =()=>{
       await Model.MLM.deleteMany({})
     }
   });
+
+  // LogUserAccess
+  Model.LogUserAccess.find({}, async(err, result)=> {
+    if (result.length > 0) {
+    } else {
+      let newLogUserAccess = new Model.LogUserAccess({current:{ websocketKey: "test", userId: new mongoose.Types.ObjectId() }});
+      
+      await newLogUserAccess.save();
+      await Model.LogUserAccess.deleteMany({})
+    }
+  });
 }
 
 // TODO: initial and connect to MongoDB

@@ -1,6 +1,7 @@
 import _ from "lodash"
 import { toast } from 'react-toastify';
 import UniversalCookie from 'universal-cookie';
+import axios from 'axios';
 
 import i18n from '../translations/i18n';
  
@@ -18,6 +19,18 @@ export const getCookie = (name) => {
 
 export const removeCookie = (name, options = { path: '/', maxAge: 2147483647 }) => {
   cookies.remove(name, options);
+};
+
+export const fetchIpAddress = async () => {
+  try {
+    let response = await axios.get('https://api.ipify.org?format=json');
+    if(response?.status == 200){
+      return response?.data?.ip
+    }
+  } catch (error) {
+    console.error('Error fetching the IP address:', error);
+    return;
+  }
 };
 
 /**

@@ -874,6 +874,70 @@ export const mlmCal = async(parentId, level) =>{
     return convertToTreeNode(result) //result
 }
 
+export const logUserAccess = async (mode, ctx) =>{
+    const { connectionParams, extra } = ctx;
+    switch(mode){
+        case 0: {
+            let request = {...extra.request.headers, ip: connectionParams?.ip, }
+            if(connectionParams?.authToken){
+                var sessionId   = cryptojs.AES.decrypt(connectionParams?.authToken, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8);
+                let session     = await Model.Session.findOne({_id: sessionId});
+                // console.log("checkAuth #  session @1 : ", session)
+                if(!_.isEmpty(session)){
+                    var expiredDays = parseInt((session.expired - new Date())/ (1000 * 60 * 60 * 24));
+
+                    // code
+                    // -1 : force logout
+                    //  0 : anonymums
+                    //  1 : OK
+                    if(expiredDays >= 0){
+                        let userId  = jwt.verify(session.token, process.env.JWT_SECRET);
+                        let current_user = await getMember({_id: userId}) 
+
+                        let userAccess = await Model.LogUserAccess.findOne({"current.userId": current_user?._id })
+
+                        if(_.isNull(userAccess)){
+                            await Model.LogUserAccess.create({"current.websocketKey": extra?.request?.headers['sec-websocket-key'], "current.userId": current_user?._id, "current.request": request, "current.connectTime": Date.now()});
+                        }else{
+                            await Model.LogUserAccess.updateOne({"current.userId": current_user?._id }, {"current.websocketKey": extra?.request?.headers['sec-websocket-key'], "current.request": request, "current.connectTime": Date.now(), "current.disconnectTime": null, history: revision(userAccess) });
+                        }
+                    }
+                }
+            }
+
+            break;
+        }
+
+        case 1: {
+            if(connectionParams?.authToken){
+                var sessionId   = cryptojs.AES.decrypt(connectionParams?.authToken, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8);
+                let session     = await Model.Session.findOne({_id: sessionId});
+                // console.log("checkAuth #  session @1 : ", session)
+                if(!_.isEmpty(session)){
+                    var expiredDays = parseInt((session.expired - new Date())/ (1000 * 60 * 60 * 24));
+        
+                    // code
+                    // -1 : force logout
+                    //  0 : anonymums
+                    //  1 : OK
+                    if(expiredDays >= 0){
+                        let userId  = jwt.verify(session.token, process.env.JWT_SECRET);
+                        // let current_user = await Utils.getMember({_id: userId}) //await Model.User.findOne({_id: userId});
+        
+                        let userAccess = await Model.LogUserAccess.findOne({"current.websocketKey": extra?.request?.headers['sec-websocket-key'] })
+        
+                        if(!_.isNull(userAccess)){
+                            await Model.LogUserAccess.updateOne({"current.websocketKey": extra?.request?.headers['sec-websocket-key'] }, { "current.disconnectTime": Date.now() });
+                        }
+                    }
+                }
+            }
+
+            break;
+        }
+    }
+}
+
 export const revision = (model) =>{
     // Save the current version to history
     const current = model?.current;

@@ -12,7 +12,7 @@ import { onError } from '@apollo/client/link/error';
 import { store } from "../redux/Redux";
 import { ws_status } from "../redux/actions/ws";
 import * as Constants from "../constants"
-import { getCookie } from "../util"
+import { getCookie, fetchIpAddress } from "../util"
 
 /////////////////////////
 
@@ -76,8 +76,9 @@ const wsLink = new GraphQLWsLink(createClient({
     //     };
     // },
 
-    connectionParams: () => ({
+    connectionParams: async() => ({
         authToken: getCookie('usida') /*localStorage.getItem('usida')*/ ,
+        ip: await fetchIpAddress()
     }),
     on: {
         // 

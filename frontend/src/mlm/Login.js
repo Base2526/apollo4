@@ -14,7 +14,7 @@ const Login = (props) => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    let { user, updateProfile } = props
+    let { user, updateProfile, onRefresh } = props
 
     console.log("props :", props)
 
@@ -31,6 +31,7 @@ const Login = (props) => {
             }
 
             navigate("/")
+            onRefresh()
         },
         onError(err){
             console.log("onError :", err)

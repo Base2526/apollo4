@@ -109,7 +109,7 @@ const Home = (props) => {
             <h4>Emai :{ user?.current?.email }</h4>
           </div>
           <div>
-            <button onClick={()=>{ logout() }}>Logout</button>
+            <button onClick={()=>{ logout(); navigate(0); }}>Logout</button>
           </div>
         </div>
         {/* <UserConnected /> */}
@@ -159,6 +159,8 @@ const Layout = (props) => {
 const App = (props) => {
     const client = useApolloClient();
     const location = useLocation();
+    const navigate = useNavigate();
+    
     const { user } = props
 
     const parser = new UAParser();
@@ -192,7 +194,9 @@ const App = (props) => {
         <Route path="/" element={<Layout {...props} />}>
         {/* <button onClick={()=>refetch()}>button</button> */}
           <Route index element={<Home {...props} />} />
-          <Route path="login" element={<Login {...props} />} />
+          <Route path="login" element={<Login {...props} onRefresh={()=>{
+            navigate(0);
+          }} />} />
           {/* <Route path="phoy-detail/:id" element={<PhoyDetail />} />
           <Route path="settings" element={<Settings />} />
           <Route path="limit-number-page" element={<LimitNumberPage />} /> */}
