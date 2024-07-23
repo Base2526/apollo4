@@ -18,37 +18,12 @@ import typeDefs from "./typeDefs";
 import resolvers from "./resolvers";
 import * as Utils from "./utils"
 
+const logger = require("./utils/logger");
+const { graphqlUploadExpress } = require('graphql-upload');
+
 require('./cron-jobs.js');
 
 const pubsub = new PubSub();
-
-// Define your type definitions (schema)
-// const typeDefs = `
-//   type Query {
-//     hello: String,
-//     healthCheck: String
-//   }
-
-//   type Subscription {
-//     userConnected: String
-//   }
-// `;
-
-// // Define your resolvers
-// const resolvers = {
-//   Query: {
-//     hello: () => 'Hello world!',
-//     healthCheck: () => {
-//       console.log("healthCheck :OK")
-//       return 'OK'
-//     },
-//   },
-//   Subscription: {
-//     userConnected: {
-//       subscribe: () => pubsub.asyncIterator(['USER_CONNECTED']),
-//     },
-//   },
-// };
 
 // Create an executable schema
 const schema = makeExecutableSchema({ typeDefs, resolvers });
@@ -56,10 +31,31 @@ const schema = makeExecutableSchema({ typeDefs, resolvers });
 // Create an Express application
 const app = express();
 
+// Create a logging plugin
+const loggingPlugin = {
+  async requestDidStart(requestContext) {
+    // logger.info(`Request started: ${requestContext.request.operationName}`);
+    // logger.info(`Query: ${requestContext.request.query}`);
+    // logger.info(`Variables: ${JSON.stringify(requestContext.request.variables)}`);
+
+    return {
+      async didEncounterErrors(requestContext) {
+        for (const err of requestContext.errors) {
+          logger.error(`Error: ${err.message}`, { err });
+        }
+      },
+      async willSendResponse(requestContext) {
+        // console.log("Response: ", requestContext.response.data)
+        // logger.info(`Response: ${JSON.stringify(requestContext.response.data)}`);
+      },
+    };
+  },
+};
+
 // Create an Apollo Server instance
 const server = new ApolloServer({ 
   schema, 
-  plugins: [ApolloServerPluginLandingPageLocalDefault()],
+  plugins: [ApolloServerPluginLandingPageLocalDefault(), loggingPlugin],
   context: ({ req }) => {
     return { req: req.headers };
   },
@@ -68,6 +64,10 @@ const server = new ApolloServer({
 // Start the server
 server.start().then(() => {
   // server.applyMiddleware({ app });
+
+  // This middleware should be added before calling `applyMiddleware`.
+  app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
+  app.use(express.static("/app/uploads"));
 
   app.use(bodyParser.json());
   app.use(bodyParser.json({ type: "text/*" }));

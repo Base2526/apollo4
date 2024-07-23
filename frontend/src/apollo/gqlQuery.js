@@ -95,3 +95,5 @@ export const mutationTest_addmember   = gql`mutation test_addmember($input: Memb
 export const mutationMlm              = gql`mutation test_addmlm($input: MLMInput) { test_addmlm(input: $input) }`;
 
 export const userConnected            = gql`subscription userConnected { userConnected }`;
+
+export const mutationTest_upload      = gql`mutation test_upload($input: JSON) { test_upload(input: $input) }`;

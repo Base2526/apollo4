@@ -26,7 +26,7 @@ export default {
       let start = Date.now()
       let { req } = context
       
-      let { current_user } =  await Utils.checkAuth(req);
+      // let { current_user } =  await Utils.checkAuth(req);
       // console.log("healthCheck :", req['custom-authorization'], current_user)
 
       return {
@@ -4092,6 +4092,25 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
+
+    async test_upload(parent, args, context, info) {
+      let start = Date.now()
+      let { input } = args
+      let { req } = context
+
+      console.log("test_upload :", input)
+      if(!_.isEmpty(input.files)){
+        for (let i = 0; i < input.files.length; i++) {
+          console.log("i :", i)
+        }
+      }
+
+      return {
+        status: true,
+        message: "test_upload",
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      } 
+    }
   },
   Subscription:{
     me: {

@@ -848,6 +848,7 @@ export default gql`
 
     test_addmember(input: MemberInput): JSON
     test_addmlm(input: MLMInput): JSON
+    test_upload(input: JSON): JSON
   }
 
   type Subscription {

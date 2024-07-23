@@ -5,26 +5,24 @@ const path = require('path');
 const PROJECT_ROOT = path.join(__dirname, '..');
 
 const highlight = require('cli-highlight').highlight;
-const arrow = '\u276F\u276F\u25B6';
-
-const logConfig = {
-  transports: [new winston.transports.Console()],
-  format: winston.format.combine(
-    winston.format.label({
-      label: `Label🏷️`,
-    }),
-    winston.format.timestamp({
-      format: 'DD-MMM-YYYY HH:mm:ss',
-    }),
-    winston.format.align(),
-    winston.format.printf(
-      (info) =>{
-        return `${info.level}: ${info.label} : ${[info.timestamp]}: ${info.message}`
-      } 
-    )
-  ),
-};
-
+// const arrow = '\u276F\u276F\u25B6';
+// const logConfig = {
+//   transports: [new winston.transports.Console()],
+//   format: winston.format.combine(
+//     winston.format.label({
+//       label: `Label🏷️`,
+//     }),
+//     winston.format.timestamp({
+//       format: 'DD-MMM-YYYY HH:mm:ss',
+//     }),
+//     winston.format.align(),
+//     winston.format.printf(
+//       (info) =>{
+//         return `${info.level}: ${info.label} : ${[info.timestamp]}: ${info.message}`
+//       } 
+//     )
+//   ),
+// };
 // const options = {
 //   file: {
 //     level: 'info',
@@ -54,7 +52,6 @@ const logConfig = {
 
 const logger = winston.createLogger({
   // File transport
-
   transports: [
     // Daily Rotation File
     new winston.transports.DailyRotateFile({

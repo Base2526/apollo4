@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Routes, Route, Outlet, Link, useNavigate, Navigate, useLocation } from "react-router-dom";
 import { connect } from "react-redux";
 import _ from "lodash"
-import { useQuery, useApolloClient, useSubscription } from "@apollo/client";
+import { useMutation, useApolloClient, useSubscription } from "@apollo/client";
 
 import UAParser from 'ua-parser-js';
 
@@ -16,7 +16,9 @@ import { update_profile as updateProfile, logout } from "./redux/actions/auth";
 import { checkRole, getHeaders, handlerErrorApollo, showToast, setCookie, getCookie, removeCookie} from "./util";
 import * as Constants from "./constants"
 
-import { healthCheck, userConnected } from "./apollo/gqlQuery"
+import { healthCheck, userConnected, mutationLottery, mutationTest_upload} from "./apollo/gqlQuery"
+
+import AttackFileField from "./components/AttackFileField";
 
 const ProtectedAuthenticatedRoute = ({ user, redirectPath = '/' }) => {
   switch(checkRole(user)){
@@ -41,6 +43,8 @@ const Home = (props) => {
   const navigate = useNavigate();
 
   const client = useApolloClient();
+
+  const [input, setInput]       = useState({files: []});
 
   const { user, logout, refetch } = props
 
@@ -97,6 +101,19 @@ const Home = (props) => {
   //   return () => clearInterval(intervalId); // Cleanup interval on component unmount
   // }, [refetchHealthCheck]);
 
+  const [onMutationLottery, resultLottery] = useMutation(mutationTest_upload, {
+    context: { headers: getHeaders(location) },
+    update: (cache, {data: {test_upload}}) => {
+      console.log("update :", test_upload)
+    },
+    onCompleted(data) {
+        console.log("onCompleted :", data)
+    },
+    onError(error){
+        console.log("onError :", error)
+    }
+  });
+
   if(!_.isEmpty(user)){
     return (
       <div>
@@ -107,6 +124,38 @@ const Home = (props) => {
           </div>
           <div>
             <h4>Emai :{ user?.current?.email }</h4>
+          </div>
+          {/*  onMutationMe({ variables: { input: {  type:'avatar', data: e.target.files[0] } } }) */}
+
+          {/* 
+          
+          let newInput =  {
+                                mode: "NEW",
+                                title: faker.lorem.lines(1),
+                                price: parseInt(makeNumber(3)),
+                                priceUnit: parseInt(makeNumber(2)),
+                                description: faker.lorem.paragraph(),
+                                manageLottery: manageLotterys[randomNumberInRange(0, manageLotterys.length - 1)]?._id,
+                                files: makeFile(5),
+                                condition: parseInt(randomNumberInRange(11, 100)),    // 11-100
+                                category: parseInt(randomNumberInRange(0, 3)),        // money, gold, things, etc
+                                type: parseInt(randomNumberInRange(0, 1)),            // bon, lang
+                                ownerId: users[randomNumberInRange(0, users.length - 1)]?._id,
+                                test: true,
+                            }
+                            onMutationLottery({ variables: { input: newInput } });
+          */}
+
+          <div>
+            <AttackFileField
+              label={"attack_file" + " (อย่างน้อย  1 ไฟล์)"}
+              values={input.files}
+              multiple={true}
+              onChange={(values) =>{ setInput({...input, files: values}) }}
+              onSnackbar={(data) => console.log(data) }/>
+          </div>
+          <div>
+          <button onClick={()=>{ onMutationLottery({ variables: { input } }) }}>Test upload</button>
           </div>
           <div>
             <button onClick={()=>{ logout(); navigate(0); }}>Logout</button>
