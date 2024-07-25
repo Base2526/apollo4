@@ -4098,16 +4098,48 @@ export default {
       let { input } = args
       let { req } = context
 
-      console.log("test_upload :", input)
+      // console.log("test_upload :", input)
+      // if(!_.isEmpty(input.files)){
+      //   for (let i = 0; i < input.files.length; i++) {
+      //     console.log("i :", i)
+      //   }
+      // }
+
+      let newFiles = [];
       if(!_.isEmpty(input.files)){
         for (let i = 0; i < input.files.length; i++) {
-          console.log("i :", i)
+          const { createReadStream, filename, encoding, mimetype } = (await input.files[i]).file //await input.files[i];
+
+          const stream = createReadStream();
+          const assetUniqName = Utils.fileRenamer(filename);
+          let pathName = `/app/uploads/${assetUniqName}`;
+
+          const output = fs.createWriteStream(pathName)
+          stream.pipe(output);
+
+          await new Promise(function (resolve, reject) {
+            output.on('close', () => {
+              resolve();
+            });
+      
+            output.on('error', async(err) => {
+              await Utils.loggerError(req, err.toString());
+
+              reject(err);
+            });
+          });
+
+          // const urlForArray = `${process.env.RA_HOST}${assetUniqName}`;
+          newFiles.push({ url: `images/${assetUniqName}`, filename, encoding, mimetype });
         }
       }
+
+      console.log("newFiles :", newFiles)
 
       return {
         status: true,
         message: "test_upload",
+        newFiles,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       } 
     }

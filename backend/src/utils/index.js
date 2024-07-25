@@ -52,7 +52,7 @@ export const fileRenamer = (filename) => {
 };
 
 export const getSession = async(userId, input) => {  
-    await Model.Session.remove({userId})
+    await Model.Session.deleteOne({userId})
     let session = await Model.Session.create({  ...input, 
                                                 userId, 
                                                 token: jwt.sign(userId.toString(), process.env.JWT_SECRET)});

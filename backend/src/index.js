@@ -9,6 +9,8 @@ const { useServer } = require('graphql-ws/lib/use/ws');
 const { PubSub } = require('graphql-subscriptions');
 const cors = require('cors');
 
+const path = require('path');
+
 import jwt from 'jsonwebtoken';
 import cryptojs from "crypto-js";
 import bodyParser from "body-parser";
@@ -67,7 +69,10 @@ server.start().then(() => {
 
   // This middleware should be added before calling `applyMiddleware`.
   app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
-  app.use(express.static("/app/uploads"));
+  // app.use(express.static("/app/uploads"));
+  // /images       : path call from URL
+  // /app/uploads  : path in container
+  app.use('/images', express.static("/app/uploads"));
 
   app.use(bodyParser.json());
   app.use(bodyParser.json({ type: "text/*" }));
