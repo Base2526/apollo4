@@ -945,3 +945,104 @@ export const revision = (model) =>{
 
     return [...model?.history, { version: version, data: current, updatedAt: new Date() }];
 }
+
+export const saveFile = async(file) =>{
+     // Start a transaction
+     const session = await mongoose.startSession();
+     session.startTransaction()
+ 
+     try {
+        const { createReadStream, filename, encoding, mimetype } = file?.file
+        const stream = createReadStream();
+        const assetUniqName = fileRenamer(filename);
+        let pathName = `/app/uploads/${assetUniqName}`;
+
+        const output = fs.createWriteStream(pathName)
+        stream.pipe(output);
+
+        const resultFile = await new Promise(function (resolve, reject) {
+            output.on('finish', async () => {
+                try {
+                    let file = await Model.File.create({ url: `images/${assetUniqName}`, filename, encoding, mimetype });
+                    resolve(file);
+                } catch (error) {
+                    reject(`Failed to save data to MongoDB: ${error.message}`);
+                }
+            });
+        
+            output.on('error', async(err) => {
+                // await loggerError(req, err.toString());
+                console.log("error")
+
+                reject(err);
+            });
+        });
+
+        // Commit the transaction
+        await session.commitTransaction(); // Replace with your transaction commit logic
+
+        return resultFile;
+     }catch(error){
+         await session.abortTransaction();
+         console.log(`saveFiles Error : ${err}`)
+     }finally {
+         session.endSession();
+     }     
+ 
+     return ;
+}
+
+export const saveFiles = async(files) =>{
+    // Start a transaction
+    const session = await mongoose.startSession();
+    session.startTransaction()
+
+    try {
+        const promises = []; // Array to hold all promises
+        for (let i = 0; i < files.length; i++) {
+            const { createReadStream, filename, encoding, mimetype } = (await files[i]).file
+
+            const stream = createReadStream();
+            const assetUniqName = fileRenamer(filename);
+            let pathName = `/app/uploads/${assetUniqName}`;
+
+            const output = fs.createWriteStream(pathName)
+            stream.pipe(output);
+
+            const promise = await new Promise(function (resolve, reject) {
+                output.on('finish', async () => {
+                    try {
+                        let file = await Model.File.create({ url: `images/${assetUniqName}`, filename, encoding, mimetype });
+                        resolve(file);
+                    } catch (error) {
+                        reject(`Failed to save data to MongoDB: ${error.message}`);
+                    }
+                });
+            
+                output.on('error', async(err) => {
+                    // await loggerError(req, err.toString());
+                    console.log("error")
+
+                    reject(err);
+                });
+            });
+
+            promises.push(promise); // Add the promise to the array
+        }
+
+        // Wait for all promises to resolve
+        let resultFiles =  await Promise.all(promises);
+
+        // Commit the transaction
+        await session.commitTransaction(); // Replace with your transaction commit logic
+
+        return resultFiles;
+    }catch(error){
+        await session.abortTransaction();
+        console.log(`saveFiles Error : ${err}`)
+    }finally {
+        session.endSession();
+    }     
+
+    return [];
+}

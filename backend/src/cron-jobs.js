@@ -16,8 +16,6 @@ const fs = require('fs');
 // const mongoUri = 'mongodb://root:example@localhost:27017/admin';
 const backupDir = path.join(__dirname, 'backups');
 
-console.log(">>>>> cron-jobs :", process.env.MONGO_URI)
-
 // Ensure backup directory exists
 if (!fs.existsSync(backupDir)) {
   fs.mkdirSync(backupDir, { recursive: true });

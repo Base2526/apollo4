@@ -70,7 +70,7 @@ server.start().then(() => {
   // This middleware should be added before calling `applyMiddleware`.
   app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
   // app.use(express.static("/app/uploads"));
-  // /images       : path call from URL
+  // /images       : path call from URL example localhost:4000/images/xxxx.jpg
   // /app/uploads  : path in container
   app.use('/images', express.static("/app/uploads"));
 

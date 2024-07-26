@@ -30,6 +30,7 @@ import LogUserAccessModel from './LogUserAccessModel'
 
 import MemberModel from "./MemberModel"
 import MLMModel from './MLMModel'
+import FileModel from "./FileModel"
 
 module.exports =  {
     Bank:BankModel,
@@ -60,8 +61,8 @@ module.exports =  {
     Test: TestModel,
     ManageLottery: ManageLotteryModel,
 
-
     Member: MemberModel,
     MLM: MLMModel,
     LogUserAccess: LogUserAccessModel,
+    File: FileModel
 };

@@ -4098,12 +4098,8 @@ export default {
       let { input } = args
       let { req } = context
 
-      // console.log("test_upload :", input)
-      // if(!_.isEmpty(input.files)){
-      //   for (let i = 0; i < input.files.length; i++) {
-      //     console.log("i :", i)
-      //   }
-      // }
+      /*
+      const promises = []; // Array to hold all promises
 
       let newFiles = [];
       if(!_.isEmpty(input.files)){
@@ -4117,9 +4113,24 @@ export default {
           const output = fs.createWriteStream(pathName)
           stream.pipe(output);
 
-          await new Promise(function (resolve, reject) {
+          const promise = await new Promise(function (resolve, reject) {
             output.on('close', () => {
-              resolve();
+              resolve("close");
+            });
+
+            output.on('finish', async () => {
+              try {
+                  // Save data to MongoDB after the stream has finished writing
+                  // await saveDataToMongoDB(data, dbUrl, dbName, collectionName);
+                  // console.log("finish : ", { url: `images/${assetUniqName}`, filename, encoding, mimetype })
+                  
+                  // let newInput ={current: { parentId: input?.parentId, childs: [{childId: current_user?._id}]}}  
+                  let file = await Model.File.create({ url: `images/${assetUniqName}`, filename, encoding, mimetype });
+                  // console.log("file ", file)
+                  resolve(file);
+              } catch (error) {
+                  reject(`Failed to save data to MongoDB: ${error.message}`);
+              }
             });
       
             output.on('error', async(err) => {
@@ -4129,17 +4140,27 @@ export default {
             });
           });
 
+          // console.log("arrs :" ,arrs)
+
+          promises.push(promise); // Add the promise to the array
+
           // const urlForArray = `${process.env.RA_HOST}${assetUniqName}`;
-          newFiles.push({ url: `images/${assetUniqName}`, filename, encoding, mimetype });
+          // newFiles.push({ url: `images/${assetUniqName}`, filename, encoding, mimetype });
         }
       }
 
-      console.log("newFiles :", newFiles)
+      // Wait for all promises to resolve
+      let arrs = await Promise.all(promises);
+      console.log("All files processed: ", arrs);
+      // console.log("newFiles :", newFiles)
+      */
 
+      let files  =  await Utils.saveFiles(input.files)
+      console.log("test_upload :", files)
       return {
         status: true,
         message: "test_upload",
-        newFiles,
+        files,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       } 
     }

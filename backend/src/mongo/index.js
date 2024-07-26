@@ -333,6 +333,16 @@ const modelExists =()=>{
       await Model.LogUserAccess.deleteMany({})
     }
   });
+
+  Model.File.find({}, async(err, result)=> {
+    if (result.length > 0) {
+    } else {
+      let newFile = new Model.File({});
+      
+      await newFile.save();
+      await Model.File.deleteMany({})
+    }
+  });
 }
 
 // TODO: initial and connect to MongoDB
