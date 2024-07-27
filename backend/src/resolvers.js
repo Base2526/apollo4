@@ -4155,8 +4155,13 @@ export default {
       // console.log("newFiles :", newFiles)
       */
 
-      let files  =  await Utils.saveFiles(input.files)
-      console.log("test_upload :", files)
+
+      let { current_user } =  await Utils.checkAuth(req);
+      
+      // console.log("test_upload :", input, current_user)
+
+      let files  =  await Utils.saveFiles(current_user, input.files)
+      // console.log("test_upload :", files)
       return {
         status: true,
         message: "test_upload",

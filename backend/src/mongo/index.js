@@ -337,7 +337,7 @@ const modelExists =()=>{
   Model.File.find({}, async(err, result)=> {
     if (result.length > 0) {
     } else {
-      let newFile = new Model.File({});
+      let newFile = new Model.File({ userId: new mongoose.Types.ObjectId() });
       
       await newFile.save();
       await Model.File.deleteMany({})

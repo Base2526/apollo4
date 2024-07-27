@@ -118,7 +118,6 @@ const Home = (props) => {
     return (
       <div>
         {/* <div>Server Status: {serverStatus}</div> */}
-        <div>{window.location.origin}</div>
         <div>
           <div>
             <h4>Display name :{ user?.current?.displayName } ({ user?.current?.roles?.toString() })</h4>

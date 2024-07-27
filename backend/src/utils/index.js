@@ -946,7 +946,7 @@ export const revision = (model) =>{
     return [...model?.history, { version: version, data: current, updatedAt: new Date() }];
 }
 
-export const saveFile = async(file) =>{
+export const saveFile = async(user, file) =>{
      // Start a transaction
      const session = await mongoose.startSession();
      session.startTransaction()
@@ -963,7 +963,7 @@ export const saveFile = async(file) =>{
         const resultFile = await new Promise(function (resolve, reject) {
             output.on('finish', async () => {
                 try {
-                    let file = await Model.File.create({ url: `images/${assetUniqName}`, filename, encoding, mimetype });
+                    let file = await Model.File.create({userId: user?._id,  url: `images/${assetUniqName}`, filename, encoding, mimetype });
                     resolve(file);
                 } catch (error) {
                     reject(`Failed to save data to MongoDB: ${error.message}`);
@@ -984,7 +984,7 @@ export const saveFile = async(file) =>{
         return resultFile;
      }catch(error){
          await session.abortTransaction();
-         console.log(`saveFiles Error : ${err}`)
+         console.log(`saveFiles Error : ${error}`)
      }finally {
          session.endSession();
      }     
@@ -992,7 +992,7 @@ export const saveFile = async(file) =>{
      return ;
 }
 
-export const saveFiles = async(files) =>{
+export const saveFiles = async(user, files) =>{
     // Start a transaction
     const session = await mongoose.startSession();
     session.startTransaction()
@@ -1012,7 +1012,7 @@ export const saveFiles = async(files) =>{
             const promise = await new Promise(function (resolve, reject) {
                 output.on('finish', async () => {
                     try {
-                        let file = await Model.File.create({ url: `images/${assetUniqName}`, filename, encoding, mimetype });
+                        let file = await Model.File.create({userId: user?._id,  url: `images/${assetUniqName}`, filename, encoding, mimetype });
                         resolve(file);
                     } catch (error) {
                         reject(`Failed to save data to MongoDB: ${error.message}`);
@@ -1039,7 +1039,7 @@ export const saveFiles = async(files) =>{
         return resultFiles;
     }catch(error){
         await session.abortTransaction();
-        console.log(`saveFiles Error : ${err}`)
+        console.log(`saveFiles Error : ${error}`)
     }finally {
         session.endSession();
     }     
