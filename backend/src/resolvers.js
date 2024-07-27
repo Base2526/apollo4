@@ -1344,9 +1344,33 @@ export default {
     async members(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
-  
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+
+      // let members = await Model.Member.find({})
+
+      let members =  await Model.Member.aggregate([
+                                                    {
+                                                      $lookup: {
+                                                        localField: "_id",
+                                                        from: "logUserAccess",
+                                                        foreignField: "current.userId",
+                                                        as: "logAccess"
+                                                      }
+                                                    },
+                                                    {
+                                                      $unwind: {
+                                                        path: "$logAccess",
+                                                        preserveNullAndEmptyArrays: true
+                                                      }
+                                                    }
+                                                  ])
+
       return {
         status:true,
+        data: members,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },

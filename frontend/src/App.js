@@ -10,6 +10,9 @@ import FakerPage from "./faker/FakerPage"
 import Login from "./mlm/Login"
 import Mlm from "./mlm/Mlm"
 import Shows from "./mlm/Shows"
+import ReactTable from "./table/ReactTable"
+import DblogPage from "./table/DblogPage"
+import UsersPage from "./table/UsersPage"
 import BreadcsComp from "./components/BreadcsComp";
 
 import { update_profile as updateProfile, logout } from "./redux/actions/auth";
@@ -164,6 +167,9 @@ const Home = (props) => {
         {/* <UserConnected /> */}
         <button onClick={()=>{ navigate('/mlm') }}>เพิ่ม Tree</button>
         <button onClick={()=>{ navigate('/shows') }}>แสดง Tree</button>
+        {/* <button onClick={()=>{ navigate('/react-table') }}>React Table</button> */}
+
+        {/* <button onClick={()=>{ navigate('/dblog') }}>Dblog Page</button> */}
       </div>
     );
   }
@@ -241,19 +247,23 @@ const App = (props) => {
     return (
       <Routes>
         <Route path="/" element={<Layout {...props} />}>
-        {/* <button onClick={()=>refetch()}>button</button> */}
           <Route index element={<Home {...props} />} />
-          <Route path="login" element={<Login {...props} onRefresh={()=>{
-            navigate(0);
-          }} />} />
-          {/* <Route path="phoy-detail/:id" element={<PhoyDetail />} />
+          <Route path="login" element={<Login {...props} onRefresh={()=>{ navigate(0) }} />} />
+          {/* <Route path="react-table" element={<ReactTable />} /> */}
+          
+
+          {/*
           <Route path="settings" element={<Settings />} />
-          <Route path="limit-number-page" element={<LimitNumberPage />} /> */}
+          <Route path="limit-number-page" element={<LimitNumberPage />} /> 
+          */}
+
           <Route element={<ProtectedAuthenticatedRoute user={user} />}>
             <Route path="mlm" element={<Mlm />} />
             <Route path="shows" element={<Shows  {...props}/>} />
           </Route>
           <Route element={<ProtectedAdministratorRoute user={user} />}>
+            <Route path="users" element={<UsersPage />} />
+            <Route path="dblog" element={<DblogPage />} />
             <Route path="faker" element={<FakerPage />} />
           </Route>
           <Route path="*" element={<NoMatch />} />

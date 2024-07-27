@@ -149,7 +149,7 @@ const FakerPage = (props) => {
 
                 <div>
                     <button onClick={()=>{
-                        for ( var i = 0; i < 1; i++ ) {
+                        for ( var i = 0; i < 1000; i++ ) {
                             let name = faker.name.firstName().toLowerCase()
                             let newInput =  {
                                 // username: faker.name.firstName(),

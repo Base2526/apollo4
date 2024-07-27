@@ -60,7 +60,7 @@ const backupMongoDB = () => {
   const date = new Date().toISOString().replace(/T/, '_').replace(/:/g, '-').replace(/\..+/, '');
   const backupPath = path.join(backupDir, `backup_${date}`);
 
-  const command = `docker exec mlm_mongo mongodump --uri="${process.env.MONGO_URI}" --out="${backupPath}"`;
+  const command = `docker exec a4_mongo mongodump --uri="${process.env.MONGO_URI}" --out="${backupPath}"`;
 
   exec(command, (error, stdout, stderr) => {
     if (error) {
