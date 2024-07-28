@@ -61,7 +61,7 @@ chmod +x mongo_backup.sh
         ],
         "isActive" : NumberInt(0),
         "username" : "glen",
-        "password" : "U2FsdGVkX1+0RgSLYG7mvRze6wD8ZePPexww+/rbscw=",
+        "password" : "U2FsdGVkX1/RtuEDunSjMhBLELqYYuqMCFqrVtOGH3g=",
         "email" : "Mohamed97@yahoo.com",
         "displayName" : "Gerry",
         "lastAccess" : ISODate("2024-07-15T07:34:11.102+0000")

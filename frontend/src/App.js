@@ -15,10 +15,10 @@ import UsersPage  from "./mlm/UsersPage"
 import BreadcsComp from "./components/BreadcsComp";
 
 import { update_profile as updateProfile, logout } from "./redux/actions/auth";
-import { checkRole, getHeaders, handlerErrorApollo, showToast, setCookie, getCookie, removeCookie} from "./util";
+import { checkRole, getHeaders } from "./util";
 import * as Constants from "./constants"
 
-import { healthCheck, userConnected, mutationLottery, mutationTest_upload} from "./apollo/gqlQuery"
+import { healthCheck, userConnected } from "./apollo/gqlQuery"
 
 const ProtectedAuthenticatedRoute = ({ user, redirectPath = '/' }) => {
   switch(checkRole(user)){
@@ -52,7 +52,7 @@ const NoMatch = () => {
 const Layout = (props) => {
   const navigate = useNavigate();
   const { user, logout } = props
-  console.log("Layout :", user)
+  // console.log("Layout :", user)
   return (
     <div>
       <nav>
@@ -104,51 +104,51 @@ const Layout = (props) => {
 };
 
 const App = (props) => {
-    const client = useApolloClient();
-    const location = useLocation();
-    const navigate = useNavigate();
-    const { user } = props
-    const parser = new UAParser();
-    const result = parser.getResult();
+  const client = useApolloClient();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = props
+  const parser = new UAParser();
+  const result = parser.getResult();
 
-    useSubscription(userConnected);
+  useSubscription(userConnected);
 
-    const refetchHealthCheck = async () => {
-      try {
-        await client.query({ query: healthCheck, context: { headers: getHeaders(location) },  fetchPolicy: 'network-only' });
-      } catch (error) {
-        console.error(error)
-      } finally {
-      }
-    };
+  const refetchHealthCheck = async () => {
+    try {
+      await client.query({ query: healthCheck, context: { headers: getHeaders(location) },  fetchPolicy: 'network-only' });
+    } catch (error) {
+      console.error(error)
+    } finally {
+    }
+  };
 
-    useEffect(() => {
-      refetchHealthCheck(); // Initial fetch
-      const intervalId = setInterval(() => {
-        refetchHealthCheck();
-      }, 60000); // Fetch data every 1 minute
-  
-      return () => clearInterval(intervalId); // Cleanup interval on component unmount
-    }, []);
+  useEffect(() => {
+    refetchHealthCheck(); // Initial fetch
+    const intervalId = setInterval(() => {
+      refetchHealthCheck();
+    }, 60000); // Fetch data every 1 minute
 
-    return (
-      <Routes>
-        <Route path="/" element={<Layout {...props} />}>
-          <Route index element={<HomePage {...props} />} />
-          <Route path="login" element={<LoginPage {...props} onRefresh={()=>{ navigate(0) }} />} />
-          <Route element={<ProtectedAuthenticatedRoute user={user} />}>
-            <Route path="mlm" element={<MlmPage {...props}/>} />
-            <Route path="shows" element={<ShowsPage  {...props}/>} />
-          </Route>
-          <Route element={<ProtectedAdministratorRoute user={user} />}>
-            <Route path="users" element={<UsersPage />} />
-            <Route path="dblog" element={<DblogPage />} />
-            <Route path="faker" element={<FakerPage />} />
-          </Route>
-          <Route path="*" element={<NoMatch />} />
+    return () => clearInterval(intervalId); // Cleanup interval on component unmount
+  }, []);
+
+  return (
+    <Routes>
+      <Route path="/" element={<Layout {...props} />}>
+        <Route index element={<HomePage {...props} />} />
+        <Route path="login" element={<LoginPage {...props} onRefresh={()=>{ navigate(0) }} />} />
+        <Route element={<ProtectedAuthenticatedRoute user={user} />}>
+          <Route path="mlm" element={<MlmPage {...props}/>} />
+          <Route path="shows" element={<ShowsPage  {...props}/>} />
         </Route>
-      </Routes>
-    );
+        <Route element={<ProtectedAdministratorRoute user={user} />}>
+          <Route path="users" element={<UsersPage />} />
+          <Route path="dblog" element={<DblogPage />} />
+          <Route path="faker" element={<FakerPage />} />
+        </Route>
+        <Route path="*" element={<NoMatch />} />
+      </Route>
+    </Routes>
+  );
 };
 
 const mapStateToProps = (state, ownProps) => {

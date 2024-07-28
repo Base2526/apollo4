@@ -4049,7 +4049,7 @@ export default {
       let { current_user } =  await Utils.checkAuth(req);
 
       let role = Utils.checkRole(current_user)
-      if( role !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( role !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
       if(!_.isNull( await Utils.getMember({
                                             "$and": [{
@@ -4057,10 +4057,10 @@ export default {
                                             }, {
                                                 "current.email": input.email
                                             }]
-                                          } ) )) throw new AppError(Constants.ERROR, "EXITING USERNAME AND EMAIL")
+                                          } ) )) throw new AppError(Constants.ERROR, "EXITING USERNAME AND EMAIL", input)
       
-      if(!_.isNull(await Utils.getMember({ "current.username": input.username?.toLowerCase() }))) throw new AppError(Constants.ERROR, "EXITING USERNAME")
-      if(!_.isNull( await Utils.getMember({ "current.email": input.email }) )) throw new AppError(Constants.ERROR, "EXITING EMAIL")
+      if(!_.isNull(await Utils.getMember({ "current.username": input.username?.toLowerCase() }))) throw new AppError(Constants.ERROR, "EXITING USERNAME", input)
+      if(!_.isNull( await Utils.getMember({ "current.email": input.email }) )) throw new AppError(Constants.ERROR, "EXITING EMAIL", input)
       
       let newInput =  {current: { ...input,  
                                   username: input.username?.toLowerCase(),
