@@ -6,6 +6,8 @@
 
 // import App from "./App";
 
+import './css/App.css';
+
 import { ApolloProvider } from "@apollo/client";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom";

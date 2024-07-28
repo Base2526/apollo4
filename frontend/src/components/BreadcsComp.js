@@ -301,6 +301,13 @@ const BreadcsComp = (props) => {
         ]
       }
 
+      case "/login":{
+        return [  
+          <MuiLink key="0" component={Link} to="/"><HomeIcon size={18} /> {t("home")}</MuiLink>,
+          <Typography key="1" color="text.primary">{t("login")}</Typography>
+        ]
+      }
+
       case "/all-sell":{
         return [  
           <MuiLink key="0" component={Link} to="/"><HomeIcon size={18} /> {t("home")}</MuiLink>,

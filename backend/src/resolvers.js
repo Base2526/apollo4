@@ -1347,9 +1347,8 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
-      // let members = await Model.Member.find({})
+      if( role !== Constants.AMDINISTRATOR && role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let members =  await Model.Member.aggregate([
                                                     {
@@ -1367,6 +1366,8 @@ export default {
                                                       }
                                                     }
                                                   ])
+
+      console.log("members :", members)
 
       return {
         status:true,

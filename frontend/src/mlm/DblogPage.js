@@ -1,52 +1,13 @@
 import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import _ from "lodash";
-import styled from "styled-components";
 import { useQuery } from "@apollo/client";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { ObjectView } from 'react-object-view'
 import moment from "moment";
 
 import { queryDblog } from "../apollo/gqlQuery"
-
-// import makeData from "./makeData";
-import TableComponent from "./TableComponent"
+import TableComponent from "../components/TableComp"
 import { getHeaders } from "../util"
-
-const Styles = styled.div`
-  padding: 1rem;
-
-  table {
-    border-spacing: 0;
-    border: 1px solid black;
-
-    tr {
-      :last-child {
-        td {
-          border-bottom: 0;
-        }
-      }
-    }
-
-    th,
-    td {
-      margin: 0;
-      padding: 0.5rem;
-      border-bottom: 1px solid black;
-      border-right: 1px solid black;
-
-      :last-child {
-        border-right: 0;
-      }
-    }
-  }
-
-  .pagination {
-    padding: 0.5rem;
-  }
-`;
-
-// Let's simulate a large dataset on the server (outside of our component)
-// const serverData = makeData(100);
 
 const DblogPage = (props) => {
     const location = useLocation();
@@ -122,7 +83,6 @@ const DblogPage = (props) => {
     }, [dataDblog, loadingDblog])
 
     const fetchData = useCallback((el) => {
-        console.log("fetchData @1")
         const { pageSize, pageIndex, sortBy, searchOption, selectedOption } = el;
         const fetchId = ++fetchIdRef.current;
     
@@ -131,7 +91,6 @@ const DblogPage = (props) => {
             if (fetchId === fetchIdRef.current) {
                 let sortedData = [...serverData]; // Create a shallow copy of serverData
     
-                console.log("fetchData @2 ", sortedData, selectedOption, sortBy)
                 // Filter data based on searchOption
                 if (!_.isEmpty(searchOption)) {
                     const searchOptionLower = searchOption.toLowerCase();
@@ -145,12 +104,6 @@ const DblogPage = (props) => {
                                 return item.meta.toLowerCase().includes(searchOptionLower);
                             case "Date":
                                 return item.timestamp.toString().includes(searchOption);
-                            // case "Visits":
-                            //     return item.visits.toString().includes(searchOption);
-                            // case "Status":
-                            //     return item.status.toLowerCase().includes(searchOptionLower);
-                            // case "Profile Progress":
-                            //     return item.progress.toString().includes(searchOption);
                             default:
                                 return true; // Return all if no matching case
                         }
@@ -178,15 +131,15 @@ const DblogPage = (props) => {
         }, 1000);
     }, [serverData]);
 
-    return (<Styles>
-                <TableComponent
-                    columns={columns}
-                    // pageSize={50}
-                    data={data}
-                    fetchData={fetchData}
-                    loading={loading}
-                    pageCount={pageCount}/>
-            </Styles>);
+    return (<div class="wrapper">
+              <TableComponent
+                columns={columns}
+                // pageSize={50}
+                data={data}
+                fetchData={fetchData}
+                loading={loading}
+                pageCount={pageCount}/>
+            </div>);
 }
 
 export default DblogPage;

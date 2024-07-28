@@ -9,7 +9,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import { mutationLogin } from "../apollo/gqlQuery"
 import { setCookie, getHeaders } from "../util"
 
-const Login = (props) => {
+const LoginPage = (props) => {
     const deviceData = useDeviceData();
     const navigate = useNavigate();
     const location = useLocation();
@@ -98,4 +98,4 @@ const Login = (props) => {
     );
 }
 
-export default Login;
+export default LoginPage;
