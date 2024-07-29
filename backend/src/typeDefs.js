@@ -512,6 +512,7 @@ export default gql`
     contentById(_id: ID!): JSON
 
     members: JSON
+    files: JSON
     mlmById(_id: ID!): JSON
   }  
   

@@ -12,6 +12,10 @@ import MlmPage    from "./mlm/MlmPage"
 import ShowsPage  from "./mlm/ShowsPage"
 import DblogPage  from "./mlm/DblogPage"
 import UsersPage  from "./mlm/UsersPage"
+import UserPage   from "./mlm/UserPage"
+
+import FilePage  from "./mlm/FilePage"
+import FilesPage  from "./mlm/FilesPage"
 import BreadcsComp from "./components/BreadcsComp";
 
 import { update_profile as updateProfile, logout } from "./redux/actions/auth";
@@ -76,10 +80,12 @@ const Layout = (props) => {
                   <div>
                     <button onClick={()=>{ navigate('/faker') }}>Faker</button>
                     <button onClick={()=>{ navigate('/users') }}>Users</button>
+                    <button onClick={()=>{ navigate('/files') }}>Files</button>
                     <button onClick={()=>{ navigate('/dblog') }}>Dblog</button>
                   </div>
                 </div>
               : <div>
+                  <button onClick={()=>{ navigate('/file') }}>Add File</button>
                   <button onClick={()=>{ navigate('/mlm') }}>เพิ่ม Tree</button>
                   <button onClick={()=>{ navigate('/shows') }}>แสดง Tree</button>
                   <div>
@@ -139,10 +145,13 @@ const App = (props) => {
         <Route element={<ProtectedAuthenticatedRoute user={user} />}>
           <Route path="mlm" element={<MlmPage {...props}/>} />
           <Route path="shows" element={<ShowsPage  {...props}/>} />
+          <Route path="file" element={<FilePage />} />
         </Route>
         <Route element={<ProtectedAdministratorRoute user={user} />}>
           <Route path="users" element={<UsersPage />} />
+          <Route path="user" element={<UserPage {...props} /* onMutationMe={(evt)=>onMutationMe(evt)}*/ /> } />
           <Route path="dblog" element={<DblogPage />} />
+          <Route path="files" element={<FilesPage />} />
           <Route path="faker" element={<FakerPage />} />
         </Route>
         <Route path="*" element={<NoMatch />} />
