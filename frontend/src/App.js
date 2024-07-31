@@ -4,6 +4,7 @@ import { connect } from "react-redux";
 import _ from "lodash"
 import { useApolloClient, useSubscription } from "@apollo/client";
 import UAParser from 'ua-parser-js';
+import { ToastContainer } from 'react-toastify';
 
 import HomePage   from "./mlm/HomePage"
 import FakerPage  from "./faker/FakerPage"
@@ -19,8 +20,9 @@ import FilesPage  from "./mlm/FilesPage"
 import BreadcsComp from "./components/BreadcsComp";
 
 import { update_profile as updateProfile, logout } from "./redux/actions/auth";
-import { checkRole, getHeaders } from "./util";
+import { checkRole, getHeaders, handlerErrorApollo, showToast } from "./util";
 import * as Constants from "./constants"
+
 
 import { healthCheck, userConnected } from "./apollo/gqlQuery"
 
@@ -55,14 +57,16 @@ const NoMatch = () => {
   
 const Layout = (props) => {
   const navigate = useNavigate();
-  const { user, logout } = props
-  // console.log("Layout :", user)
+  const { user, logout, refetchHealthCheck } = props
+  console.log("Layout : ", props)
   return (
     <div>
+      <ToastContainer />
       <nav>
         <ul>
           <li>
             <Link to="/">หน้าหลัก</Link>
+            <button onClick={()=>refetchHealthCheck()}>refetchHealthCheck</button>
           </li>
           {
             !_.isEmpty(user)
@@ -75,13 +79,13 @@ const Layout = (props) => {
                     <h4>Emai :{ user?.current?.email }</h4>
                   </div>
                   <div>
-                    <button onClick={()=>{ logout(); navigate(0); }}>Logout</button>
-                  </div>
-                  <div>
                     <button onClick={()=>{ navigate('/faker') }}>Faker</button>
                     <button onClick={()=>{ navigate('/users') }}>Users</button>
                     <button onClick={()=>{ navigate('/files') }}>Files</button>
                     <button onClick={()=>{ navigate('/dblog') }}>Dblog</button>
+                  </div>
+                  <div>
+                    <button onClick={()=>{ logout(); navigate(0); }}>Logout</button>
                   </div>
                 </div>
               : <div>
@@ -121,9 +125,13 @@ const App = (props) => {
 
   const refetchHealthCheck = async () => {
     try {
-      await client.query({ query: healthCheck, context: { headers: getHeaders(location) },  fetchPolicy: 'network-only' });
+      let el =  await client.query({ query: healthCheck, context: { headers: getHeaders(location) },  fetchPolicy: 'network-only' });
+      console.log("el : ", el)
     } catch (error) {
-      console.error(error)
+      console.log("error :", error)
+      handlerErrorApollo( props, error )
+
+      navigate(0)
     } finally {
     }
   };
@@ -139,9 +147,9 @@ const App = (props) => {
 
   return (
     <Routes>
-      <Route path="/" element={<Layout {...props} />}>
+      <Route path="/" element={<Layout {...props} refetchHealthCheck={()=>refetchHealthCheck()}  />}>
         <Route index element={<HomePage {...props} />} />
-        <Route path="login" element={<LoginPage {...props} onRefresh={()=>{ navigate(0) }} />} />
+        <Route path="login" element={<LoginPage {...props} onRefresh={()=>{ navigate(0); showToast("info", "เข้าสู่ระบบ") }} />} />
         <Route element={<ProtectedAuthenticatedRoute user={user} />}>
           <Route path="mlm" element={<MlmPage {...props}/>} />
           <Route path="shows" element={<ShowsPage  {...props}/>} />

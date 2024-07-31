@@ -40,8 +40,6 @@ chmod +x mongo_backup.sh
 0 2 * * * /path/to/your/mongo_backup.sh
 
 
-
-
 <!-- //////////////
 {
     "_id" : ObjectId("6694927862cd9e01921e2978"),

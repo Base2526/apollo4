@@ -26,7 +26,9 @@ export default {
       let start = Date.now()
       let { req } = context
       
-      // let { current_user } =  await Utils.checkAuth(req);
+      let el =  await Utils.checkAuth(req);
+
+      console.log("healthCheck :", el, Utils.formatDate(new Date()))
       // console.log("healthCheck :", req['custom-authorization'], current_user)
 
       return {

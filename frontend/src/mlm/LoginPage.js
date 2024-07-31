@@ -7,7 +7,7 @@ import AccountCircle from "@material-ui/icons/AccountCircle";
 import LockIcon from '@mui/icons-material/Lock';
 
 import { mutationLogin } from "../apollo/gqlQuery"
-import { setCookie, getHeaders } from "../util"
+import { setCookie, getHeaders, handlerErrorApollo } from "../util"
 
 const LoginPage = (props) => {
     const deviceData = useDeviceData();
@@ -35,6 +35,7 @@ const LoginPage = (props) => {
         },
         onError(err){
             console.log("onError :", err)
+            handlerErrorApollo(props, err)
         }
     });
 
