@@ -117,14 +117,15 @@ export const currencyFormat = (num) => {
 export const getCurrentLanguage = () => i18n.language || localStorage.getItem("i18n")
 
 export const getHeaders = (params) =>{
-  return  {
-              "apollo-require-preflight": true,
-              "content-Type": "application/json",
-              "authorization": /*localStorage.getItem('usida')*/ !_.isUndefined(getCookie('usida'))  ? `Bearer ${ /*localStorage.getItem('usida')*/ getCookie('usida')}` : '',
-              "custom-location":  JSON.stringify(params),
-              "custom-authorization":  !_.isUndefined(getCookie('usida'))  ? `Bearer ${getCookie('usida')}` : '',
-              "custom-x": "--1-- " + getCookie('usida')
-          }
+  const headers =   {
+                      "apollo-require-preflight": true,
+                      "content-Type": "application/json",
+                      "authorization": /*localStorage.getItem('usida')*/ !_.isUndefined(getCookie('usida'))  ? `Bearer ${ /*localStorage.getItem('usida')*/ getCookie('usida')}` : '',
+                      "custom-location":  JSON.stringify(params),
+                      "custom-authorization":  !_.isUndefined(getCookie('usida'))  ? `Bearer ${getCookie('usida')}` : '',
+                      "custom-x": "--1-- " + getCookie('usida')
+                    }
+  return  headers;
 }
 
 export const makeid = (length) => {

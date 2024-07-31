@@ -13,30 +13,29 @@ const FakerPage = (props) => {
     const [manageLotterys, setManageLotterys] = useState([]); 
  
     // refetchMembers(/*{ids: bankIds}*/);
-    const { loading: loadingMembers, 
-            data: dataMembers, 
-            error: errorMembers,
-            refetch: refetchMembers,
-            networkStatus } = useQuery(queryMembers, 
-                                        { 
-                                        context: { headers: getHeaders(location) }, 
-                                        // variables: {input: { OFF_SET: 0, LIMIT: 1000 }},
-                                        fetchPolicy: 'cache-first', 
-                                        nextFetchPolicy: 'network-only',
-                                        notifyOnNetworkStatusChange: true
-                                        }
-                                    );
-    if(!_.isEmpty(errorMembers)) handlerErrorApollo( props, errorMembers )
-
-    const { loading: loadingManageLotterys, 
-            data: dataManageLotterys, 
-            error: errorManageLotterys,
-            networkStatus: networkStatusManageLotterys } = useQuery( queryManageLotterys, { 
-                                                                    context: { headers: getHeaders(location) }, 
-                                                                    fetchPolicy: 'cache-first', 
-                                                                    nextFetchPolicy: 'network-only', 
-                                                                    notifyOnNetworkStatusChange: true }
-                                                                    );
+    // const { loading: loadingMembers, 
+    //         data: dataMembers, 
+    //         error: errorMembers,
+    //         refetch: refetchMembers,
+    //         networkStatus } = useQuery(queryMembers, 
+    //                                     { 
+    //                                     context: { headers: getHeaders(location) }, 
+    //                                     // variables: {input: { OFF_SET: 0, LIMIT: 1000 }},
+    //                                     fetchPolicy: 'cache-first', 
+    //                                     nextFetchPolicy: 'network-only',
+    //                                     notifyOnNetworkStatusChange: true
+    //                                     }
+    //                                 );
+    // if(!_.isEmpty(errorMembers)) handlerErrorApollo( props, errorMembers )
+    // const { loading: loadingManageLotterys, 
+    //         data: dataManageLotterys, 
+    //         error: errorManageLotterys,
+    //         networkStatus: networkStatusManageLotterys } = useQuery( queryManageLotterys, { 
+    //                                                                 context: { headers: getHeaders(location) }, 
+    //                                                                 fetchPolicy: 'cache-first', 
+    //                                                                 nextFetchPolicy: 'network-only', 
+    //                                                                 notifyOnNetworkStatusChange: true }
+    //                                                                 );
 
     const [onMutationLottery, resultLottery] = useMutation(mutationLottery, {
         context: { headers: getHeaders(location) },
@@ -74,18 +73,18 @@ const FakerPage = (props) => {
         }
     });
 
-    console.log("getCookie('usida') >", getCookie('usida'))
+    // console.log("getCookie('usida') >", getCookie('usida'))
 
-    useEffect(() => {
-        if(!loadingMembers){
-          if(!_.isEmpty(dataMembers?.members)){
-            let { status, data } = dataMembers?.members
-            // if(status)setUsers(data)
-          }
-        }
+    // useEffect(() => {
+    //     if(!loadingMembers){
+    //       if(!_.isEmpty(dataMembers?.members)){
+    //         let { status, data } = dataMembers?.members
+    //         // if(status)setUsers(data)
+    //       }
+    //     }
 
-        console.log("useEffect :", dataMembers, loadingMembers)
-    }, [dataMembers, loadingMembers ])
+    //     console.log("useEffect :", dataMembers, loadingMembers)
+    // }, [dataMembers, loadingMembers ])
 
     // useEffect(() => {
     //     if(!loadingManageLotterys){
@@ -149,7 +148,7 @@ const FakerPage = (props) => {
 
                 <div>
                     <button onClick={()=>{
-                        for ( var i = 0; i < 1; i++ ) {
+                        for ( var i = 0; i < 100; i++ ) {
                             let name = faker.name.firstName().toLowerCase()
                             let newInput =  {
                                 // username: faker.name.firstName(),
@@ -175,11 +174,13 @@ const FakerPage = (props) => {
                     }}>Auto สร้าง USER</button>
                 </div>
 
+                {/* 
                 <div>
                     <button onClick={()=>{
                         refetchMembers()
                     }}>refetchMembers</button>
-                </div>
+                </div> 
+                */}
             </div>)
 }
 

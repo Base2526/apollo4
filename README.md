@@ -50,7 +50,7 @@ mongoimport --port "29102" --username xxxx --password xxxx --db xxxxx --collecti
          <!-- db.createUser({
             user: "",
             pwd: "",
-            roles: [ { role: 'readWrite', db: 'xxxxx' } ]
+            roles: [ { role: 'readWrite', db: 'xxxx' } ]
         }); 
         
         db.createUser({

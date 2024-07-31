@@ -61,6 +61,19 @@ const server = new ApolloServer({
   context: ({ req }) => {
     return { req: req.headers };
   },
+  formatError: (error) => {
+    // Log the error with Winston
+    // const { message, locations, path, extensions } = error;
+    // logger.error({
+    //     message,
+    //     locations,
+    //     path,
+    //     extensions,
+    // });
+    console.log("formatError :", error)
+
+    return error; // Return the error as-is or modify as needed
+  }
 });
 
 // Start the server

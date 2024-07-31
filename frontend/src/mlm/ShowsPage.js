@@ -43,7 +43,7 @@ const containerStyles = {
     alignItems: 'center',
 };
 
-const Shows = (props) => {
+const ShowsPage = (props) => {
   const location = useLocation();
   const [datas, setDatas] = useState({});
   
@@ -91,4 +91,4 @@ const Shows = (props) => {
   );
 }
 
-export default Shows;
+export default ShowsPage;

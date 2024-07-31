@@ -1,5 +1,36 @@
 version: "3"
 services:
+################################
+  #   Setup Api Mongo and mongo-express container
+  ################################ 
+  mongo:
+    image: mongo:6.0.1
+    container_name: a4_mongo
+    # command: mongod --auth --port 29102
+    command: mongod --port 29102
+    expose:
+      - 29102
+    ports:
+      - 29102:29102
+    # ports:
+    #   - 27017:27017
+    env_file:
+      - ./env/.env.dev
+    environment:
+      - MONGO_MAX_CONNECTIONS=100
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=b9be11166d72e9e3ae7fd407165e4bd2
+    volumes:
+      #   - ./mongo-single/data:/data/db
+      #   - ./mongo-single/restore:/mongo-single/restore
+      #   - ./mongo-single/mongod.conf:/etc/mongod.conf
+      - ./mongo/mongod.conf:/etc/mongod.conf
+      - ./mongo/check_and_add_user.sh:/usr/local/bin/check_and_add_user.sh
+      # - ./mongo/db:/data/db
+      - ./mongo/backups:/app/src/backups
+    restart: always
+    networks:
+      - a4
   ################################
   #   Setup React-admin container
   ################################
@@ -25,6 +56,8 @@ services:
     volumes:
       - ./frontend/src:/app/src
       - ./uploads:/var/storage
+    depends_on:
+      - mongo
     networks:
       - a4
   ################################
@@ -44,7 +77,9 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock  # set can run docker inside ex. run docker backup db(a4_mongo)
       - ./backend/src:/app/src        
-      - ./uploads:/app/uploads    
+      - ./uploads:/app/uploads  
+    depends_on:
+      - mongo  
     # environment:
     #   - DOCKER_HOST=unix:///var/run/docker.sock
     #   # - CHOKIDAR_USEPOLLING=${CHOKIDAR_USEPOLLING}
@@ -62,51 +97,6 @@ services:
       - a4
   ################################
 
-  ################################
-  #   Setup Api Mongo and mongo-express container
-  ################################
-  # mongo:
-  #   image: mongo:${MONGO_VERSION}
-  #   command: mongod --port ${MONGO_PORT}
-  #   expose:
-  #     - ${MONGO_PORT}
-  #   ports:
-  #     - "${MONGO_PORT}:${MONGO_PORT}"
-  #     - 29102:${MONGO_PORT}
-  #   volumes:
-  #     - ./mongo-single/data:/data/db
-  #     - ./mongo-single/restore:/mongo-single/restore
-  #     - ./mongo-single/mongod.conf:/etc/mongod.conf
-  #   restart: always
-  #   networks:
-  #     - nodejs
-
-  ################################
-  #   Setup Api Mongo and mongo-express container
-  ################################ 
-  mongo:
-    image: mongo:6.0.1
-    container_name: a4_mongo
-    command: mongod --auth --port 29102
-    # command: mongod --port 29102
-    expose:
-      - 29102
-    ports:
-      - 29102:29102
-    # ports:
-    #   - 27017:27017
-    environment:
-      - MONGO_MAX_CONNECTIONS=100
-    volumes:
-    #   - ./mongo-single/data:/data/db
-    #   - ./mongo-single/restore:/mongo-single/restore
-    #   - ./mongo-single/mongod.conf:/etc/mongod.conf
-      - ./mongo/mongod.conf:/etc/mongod.conf
-      # - ./mongo/db:/data/db
-      - ./mongo/backups:/app/src/backups
-    restart: always
-    networks:
-      - a4
 networks:
   a4:
     external: true 

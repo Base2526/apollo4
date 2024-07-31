@@ -26,7 +26,9 @@ export default {
       let start = Date.now()
       let { req } = context
       
-      // let { current_user } =  await Utils.checkAuth(req);
+      let el =  await Utils.checkAuth(req);
+
+      console.log("healthCheck :", el, Utils.formatDate(new Date()))
       // console.log("healthCheck :", req['custom-authorization'], current_user)
 
       return {
@@ -287,8 +289,8 @@ export default {
 
     async checkUser(parent, args, context, info){
       let { req } = context
-      let { current_user } =  await Utils.checkAuth(req);
-      console.log("checkUser :", current_user, req?.headers?.authorization)
+      let checkAuth =  await Utils.checkAuth(req);
+      console.log("checkUser :", checkAuth, req?.headers?.authorization)
       return { status:true }
     },
 
@@ -1344,9 +1346,66 @@ export default {
     async members(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
-  
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+
+      if( role !== Constants.AMDINISTRATOR && role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+      let members =  await Model.Member.aggregate([
+                                                    {
+                                                      $lookup: {
+                                                        localField: "_id",
+                                                        from: "logUserAccess",
+                                                        foreignField: "current.userId",
+                                                        as: "logAccess"
+                                                      }
+                                                    },
+                                                    {
+                                                      $unwind: {
+                                                        path: "$logAccess",
+                                                        preserveNullAndEmptyArrays: true
+                                                      }
+                                                    }
+                                                  ])
+
+      console.log("members :", members)
+
       return {
         status:true,
+        data: members,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+
+    async files(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+
+      if( role !== Constants.AMDINISTRATOR && role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+      let files = await Model.File.aggregate([
+                                                {
+                                                  $lookup: {
+                                                    localField: "userId",
+                                                    from: "member",
+                                                    foreignField: "_id",
+                                                    as: "creator"
+                                                  }
+                                                },
+                                                {
+                                                  $unwind: {
+                                                    path: "$creator",
+                                                    preserveNullAndEmptyArrays: true
+                                                  }
+                                                }
+                                              ])
+      return {
+        status:true,
+        data: files,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
@@ -1356,24 +1415,11 @@ export default {
       let { req } = context
       let { _id } = args
 
-      console.log("mlmById parentId:", _id)
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.AMDINISTRATOR &&
+          role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', args)
 
-      // let { current_user } =  await Utils.checkAuth(req);
-      // let role = Utils.checkRole(current_user)
-      // if( role !== Constants.AMDINISTRATOR &&
-      //     role !== Constants.AUTHENTICATED && 
-      //     role !== Constants.SELLER ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
-
-
-      // let query =  { conversationId: mongoose.Types.ObjectId(conversationId) } 
-      // if(!_.isUndefined(startId)){
-      //   query ={ _id: { $gt: mongoose.Types.ObjectId(startId) }, conversationId: mongoose.Types.ObjectId(conversationId) };;
-      // }
-      
-      // let data = await Model.Message.find(query).skip(0).limit(100);
-      // let total = (await Model.Message.find({conversationId: mongoose.Types.ObjectId(conversationId)}, {_id: 1}))?.length
-
-  
       return {
         status:true,
         datas: await Utils.mlmCal(_id, 5),
@@ -4024,7 +4070,7 @@ export default {
       let { current_user } =  await Utils.checkAuth(req);
 
       let role = Utils.checkRole(current_user)
-      if( role !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( role !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
       if(!_.isNull( await Utils.getMember({
                                             "$and": [{
@@ -4032,10 +4078,10 @@ export default {
                                             }, {
                                                 "current.email": input.email
                                             }]
-                                          } ) )) throw new AppError(Constants.ERROR, "EXITING USERNAME AND EMAIL")
+                                          } ) )) throw new AppError(Constants.ERROR, "EXITING USERNAME AND EMAIL", input)
       
-      if(!_.isNull(await Utils.getMember({ "current.username": input.username?.toLowerCase() }))) throw new AppError(Constants.ERROR, "EXITING USERNAME")
-      if(!_.isNull( await Utils.getMember({ "current.email": input.email }) )) throw new AppError(Constants.ERROR, "EXITING EMAIL")
+      if(!_.isNull(await Utils.getMember({ "current.username": input.username?.toLowerCase() }))) throw new AppError(Constants.ERROR, "EXITING USERNAME", input)
+      if(!_.isNull( await Utils.getMember({ "current.email": input.email }) )) throw new AppError(Constants.ERROR, "EXITING EMAIL", input)
       
       let newInput =  {current: { ...input,  
                                   username: input.username?.toLowerCase(),

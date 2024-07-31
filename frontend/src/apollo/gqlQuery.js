@@ -90,6 +90,7 @@ export const gqlUsers = gql`query users($page: Int, $perPage: Int){ users( page:
 
 
 export const queryMembers             = gql`query members { members }`;
+export const queryFiles               = gql`query files { files }`;
 export const queryMlmById             = gql`query mlmById($id: ID!) { mlmById(_id: $id) }`;
 export const mutationTest_addmember   = gql`mutation test_addmember($input: MemberInput) { test_addmember(input: $input) }`;
 export const mutationMlm              = gql`mutation test_addmlm($input: MLMInput) { test_addmlm(input: $input) }`;

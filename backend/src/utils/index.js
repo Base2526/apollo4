@@ -51,6 +51,17 @@ export const fileRenamer = (filename) => {
     return `${arrTemp[0].slice(0, arrTemp[0].length - 1).join("_")}${queHoraEs}.${arrTemp[0].pop()}`;
 };
 
+export const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
 export const getSession = async(userId, input) => {  
     await Model.Session.deleteOne({userId})
     let session = await Model.Session.create({  ...input, 
@@ -61,103 +72,42 @@ export const getSession = async(userId, input) => {
 }
 
 export const checkAuth = async(req) => {
-    let pathname = ""
-    if(req && req["custom-location"]){
-        let customLocation = JSON.parse(req["custom-location"])
-        pathname = customLocation?.pathname
-    }
-
-    /*
-    if (req.headers && req.headers.authorization) {
-        var auth    = req.headers.authorization;
-        var parts   = auth.split(" ");
-        var bearer  = parts[0];
-        var sessionId   = cryptojs.AES.decrypt(parts[1], process.env.JWT_SECRET).toString(cryptojs.enc.Utf8);
-        
-        console.log("checkAuth # ", auth, req.headers)
-        if (bearer == "Bearer") {
-            let session = await Model.Session.findOne({_id: sessionId});
-            if(!_.isEmpty(session)){
-                var expiredDays = parseInt((session.expired - new Date())/ (1000 * 60 * 60 * 24));
-
-                // code
-                // -1 : force logout
-                //  0 : anonymums
-                //  1 : OK
-                if(expiredDays >= 0){
-                    let userId  = jwt.verify(session.token, process.env.JWT_SECRET);
-                    let current_user = await Model.User.findOne({_id: userId});
-
-                    if(!_.isNull(current_user)){
-                        return {
-                            status: true,
-                            code: Constants.SUCCESS,
-                            pathname,
-                            current_user,
-                        }
-                    }
-                }
-            }
-            await Model.Session.deleteOne( {"_id": sessionId} )
-        }else if(bearer == "Basic"){
-            // checkAuth #  Basic YmFubGlzdDpiYW5saXN0MTIzNA==
-            return {
-                status: false,
-                code: Constants.USER_NOT_FOUND,
-                message: "without user  user"
-            }
-        }
-        // force logout
-        throw new AppError(Constants.FORCE_LOGOUT, 'Expired!')
-    }
-    */
     // console.log("@1 checkAuth :", req)
     if (req && req["custom-authorization"]) {
-        var auth    = req["custom-authorization"];
-        var parts   = auth.split(" ");
-        var bearer  = parts[0];
-        var sessionId   = cryptojs.AES.decrypt(parts[1], process.env.JWT_SECRET).toString(cryptojs.enc.Utf8);
-        
-        // console.log("checkAuth # ", auth, req)
-        if (bearer == "Bearer") {
-            let session = await Model.Session.findOne({_id: sessionId});
-            // console.log("checkAuth #  session @1 : ", session)
-            if(!_.isEmpty(session)){
-                var expiredDays = parseInt((session.expired - new Date())/ (1000 * 60 * 60 * 24));
+        const auth    = req["custom-authorization"];
+        const parts   = auth.split(" ");
+        const bearer  = parts[0];
+        try{
+            const sessionId   = cryptojs.AES.decrypt(parts[1], process.env.JWT_SECRET).toString(cryptojs.enc.Utf8);
+            if (bearer === "Bearer") {
+                let session = await Model.Session.findOne({_id: sessionId});
+                if(!_.isEmpty(session)){
+                    var expiredDays = parseInt((session.expired - new Date())/ (1000 * 60 * 60 * 24));
 
-                // code
-                // -1 : force logout
-                //  0 : anonymums
-                //  1 : OK
-                if(expiredDays >= 0){
-                    let userId  = jwt.verify(session.token, process.env.JWT_SECRET);
-                    let current_user = await getMember({_id: userId}) //await Model.User.findOne({_id: userId});
+                    // code
+                    // -1 : force logout
+                    //  0 : anonymums
+                    //  1 : OK
+                    if(expiredDays >= 0){
+                        let userId  = jwt.verify(session.token, process.env.JWT_SECRET);
+                        let current_user = await getMember({_id: userId}) 
 
-                    if(!_.isNull(current_user)){
-                        return {
-                            status: true,
-                            code: Constants.SUCCESS,
-                            pathname,
-                            current_user,
+                        if(!_.isNull(current_user)){
+                            return {
+                                status: true,
+                                code: Constants.SUCCESS,
+                                pathname: JSON.parse(req["custom-location"])?.pathname,
+                                current_user,
+                            }
                         }
                     }
                 }
             }
-            throw new AppError(Constants.FORCE_LOGOUT, 'Expired!')
-        }else if(bearer == "Basic"){
-            // checkAuth #  Basic YmFubGlzdDpiYW5saXN0MTIzNA==
-            return {
-                status: false,
-                code: Constants.USER_NOT_FOUND,
-                message: "without user - anonymous user"
-            }
+            throw new AppError(Constants.FORCE_LOGOUT, 'Expired!', req)
+        } catch (e) {
+            throw new AppError(Constants.FORCE_LOGOUT, 'Expired!', {...e, ...req} )
         }
-        // force logout
-        throw new AppError(Constants.FORCE_LOGOUT, 'Expired!')
     }
-
-    // console.log("checkAuth #2")
-    // without user (anonymous)
     return {
         status: false,
         code: Constants.USER_NOT_FOUND,
@@ -540,7 +490,7 @@ export const checkBalance = async(userId) =>{
         let buys = _.filter(sup.supplier.buys, (buy)=> _.isEqual(buy.userId, userId))
         balance -= buys.length * sup.supplier.priceUnit
 
-        let filters = _.filter(sup.supplier.buys, (buy)=> _.isEqual(buy.userId, userId) && buy.selected == 0 )
+        let filters = _.filter(sup.supplier.buys, (buy)=> _.isEqual(buy.userId, userId) && buy.selected === 0 )
         balanceBook += filters.length * sup.supplier.priceUnit
     })
 
@@ -812,7 +762,7 @@ export const mlmCal = async(parentId, level) =>{
         const mlm = await Model.MLM.findOne({ "current.parentId": mongoose.Types.ObjectId(parentId) });
         const member = await getMember({ _id: mongoose.Types.ObjectId(parentId) });
         if (!mlm || !member){
-            if(level == 1){
+            if(level === 1){
                 result.push({ name: member?.current?.displayName, memberId: parentId, parentId: null, amount: 250, otherInfo: `${member?.current?.displayName}` });
             }else{
                 result.push({ name: member?.current?.displayName, memberId: parentId, parentId: parentParentId, amount: 250, otherInfo: `${member?.current?.displayName}` });
