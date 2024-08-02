@@ -1,5 +1,6 @@
 Frontend
   - react js
+  02/Aug/2024
   - custom react-table sort, paging, search with field, going to page, show with size
 
 Backend
