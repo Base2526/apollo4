@@ -1,10 +1,11 @@
 Frontend
   - react js
+  - custom react-table sort, paging, search with field, going to page, show with size
 
 Backend
   - Appollo version 4
     - check connect, disconnect client 
-    - ระบบ member
+    - system member
 
 
 # mlm
