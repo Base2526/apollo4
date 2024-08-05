@@ -26,10 +26,12 @@ export default {
       let start = Date.now()
       let { req } = context
       
-      let el =  await Utils.checkAuth(req);
+      // let el =  await Utils.checkAuth(req);
 
-      console.log("healthCheck :", el, Utils.formatDate(new Date()))
+      // console.log("healthCheck :", el, Utils.formatDate(new Date()))
       // console.log("healthCheck :", req['custom-authorization'], current_user)
+
+      pubsub.publish('USER_CONNECTED', { userConnected: 'A user connected' });
 
       return {
         status: true,
@@ -4458,7 +4460,19 @@ export default {
       )
     },
     userConnected: {
-      subscribe: () => pubsub.asyncIterator(['USER_CONNECTED']),
+      resolve: (payload) =>{
+        return payload.userConnected
+      },
+      subscribe: withFilter((parent, args, context, info) => {
+          return pubsub.asyncIterator(["USER_CONNECTED"])
+        }, async (payload, variables, context, info) => {
+          console.log("userConnected subscribe")
+          return true;
+        }
+      ),
+      onDisconnect: () => {
+        console.log(`Active subscriptions: xxxx`);
+      },
     },
   },
 }

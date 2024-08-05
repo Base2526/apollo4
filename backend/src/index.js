@@ -6,7 +6,7 @@ const { ApolloServerPluginLandingPageLocalDefault } = require('@apollo/server/pl
 
 const { WebSocketServer } = require('ws');
 const { useServer } = require('graphql-ws/lib/use/ws');
-const { PubSub } = require('graphql-subscriptions');
+// const { PubSub } = require('graphql-subscriptions');
 const cors = require('cors');
 
 const path = require('path');
@@ -19,19 +19,22 @@ import _ from "lodash";
 import typeDefs from "./typeDefs";
 import resolvers from "./resolvers";
 import * as Utils from "./utils"
+import pubsub from './pubsub'
 
 const logger = require("./utils/logger");
 const { graphqlUploadExpress } = require('graphql-upload');
 
 require('./cron-jobs.js');
 
-const pubsub = new PubSub();
+// const pubsub = new PubSub();
 
 // Create an executable schema
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
 // Create an Express application
 const app = express();
+
+let subscriptionCount = [];
 
 // Create a logging plugin
 const loggingPlugin = {
@@ -93,7 +96,7 @@ server.start().then(() => {
 
   // Configure CORS
   const corsOptions = {
-    origin: 'http://localhost', // Replace with your frontend URL
+    origin: 'http://localhost:5173', // Replace with your frontend URL
     credentials: true,
   };
 
@@ -112,6 +115,10 @@ server.start().then(() => {
                     { context: async ({ req }) => ({ req: req.headers }),}));
 
   // app.use(express.json()); // This line adds JSON parsing middleware
+
+  app.get('/health', (req, res) => {
+    res.status(200).send('Okay! >> ' + subscriptionCount.toString());
+  });
 
 
   // Create an HTTP server
@@ -136,11 +143,27 @@ server.start().then(() => {
 
         await Utils.logUserAccess(0, ctx);
         
+        console.log("onConnect ccc")
+      },
+      onSubscribe: (ctx, msg) => {
+        let {connectionParams, extra} = ctx
+        console.log('Client onSubscribe');
+
+        subscriptionCount = [...subscriptionCount, extra.request.headers['sec-websocket-key']]
       },
       onDisconnect: async(ctx, code, reason) => {
+        const { connectionParams, extra } = ctx;
+        console.log('Client disconnected');
+
         // const { connectionParams, extra } = ctx;
         // console.log('Client disconnected :', connectionParams, extra.request.headers);
         await Utils.logUserAccess(1, ctx);
+
+       
+        subscriptionCount = _.filter(subscriptionCount, (el)=> el!==extra.request.headers['sec-websocket-key'])
+
+
+        console.log("onDisconnect")
       },
     },
     wsServer

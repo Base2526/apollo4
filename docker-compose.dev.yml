@@ -1,6 +1,6 @@
 version: "3"
 services:
-################################
+  ################################
   #   Setup Api Mongo and mongo-express container
   ################################ 
   mongo:
@@ -31,17 +31,51 @@ services:
     restart: always
     networks:
       - a4
+  # ################################
+  # #   Setup React-admin container
+  # ################################
+  # frontend:
+  #   build: 
+  #     context: ./frontend
+  #     dockerfile: Dockerfile.dev
+  #   container_name: a4_frontend
+  #   env_file:
+  #     - ./env/.env.dev
+  #   # environment:
+  #   #   # - CHOKIDAR_USEPOLLING=${CHOKIDAR_USEPOLLING}
+  #   #   # - WATCHPACK_POLLING=${WATCHPACK_POLLING}
+  #   #   # - REACT_APP_NODE_ENV=${REACT_APP_NODE_ENV}
+  #   #   # - REACT_APP_HOST_GRAPHAL=${REACT_APP_HOST_GRAPHAL}:${GRAPHQL_PORT}
+  #   #   # - FRONTEND_PORT=${FRONTEND_PORT}
+  #   #   # - PORT=${FRONTEND_PORT}
+  #   #   # - REACT_APP_GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+  #   #   # - REACT_APP_GOOGLE_ANALYTICS4=${REACT_APP_GOOGLE_ANALYTICS4}
+  #   #   # - REACT_APP_FACEBOOK_APPID=448400870781752
+  #   ports:
+  #     - "80:3000"
+  #   volumes:
+  #     - ./frontend/src:/app/src
+  #     - ./uploads:/var/storage
+  #   depends_on:
+  #     - mongo
+  #   networks:
+  #     - a4
+  # ################################
   ################################
   #   Setup React-admin container
   ################################
   frontend:
     build: 
       context: ./frontend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile.vite.dev
     container_name: a4_frontend
+    # command: npm run dev
     env_file:
       - ./env/.env.dev
-    # environment:
+    environment:
+      # - VITE_DEV_SERVER_HOST=0.0.0.0
+      - NODE_ENV=development
+      # - CHOKIDAR_USEPOLLING=true  # Enable polling for file watching
     #   # - CHOKIDAR_USEPOLLING=${CHOKIDAR_USEPOLLING}
     #   # - WATCHPACK_POLLING=${WATCHPACK_POLLING}
     #   # - REACT_APP_NODE_ENV=${REACT_APP_NODE_ENV}
@@ -50,10 +84,14 @@ services:
     #   # - PORT=${FRONTEND_PORT}
     #   # - REACT_APP_GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
     #   # - REACT_APP_GOOGLE_ANALYTICS4=${REACT_APP_GOOGLE_ANALYTICS4}
-    #   # - REACT_APP_FACEBOOK_APPID=448400870781752
+      - REACT_APP_FACEBOOK_APPID=448400870781752
+      - VITE_TITLE=Dockerization
     ports:
-      - "80:3000"
+      - "5173:5173"
+      # - "80:5173" # Map container port to host port
     volumes:
+      # - ./frontend:/app
+      # - /app/node_modules
       - ./frontend/src:/app/src
       - ./uploads:/var/storage
     depends_on:
@@ -100,4 +138,4 @@ services:
 networks:
   a4:
     external: true 
-    name: a4-network
+    # name: a4-network
