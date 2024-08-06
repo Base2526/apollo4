@@ -6,10 +6,17 @@ import { Navigate } from 'react-router';
 import { useRoutes } from 'react-router-dom';
 
 
-import HomePage from '@/pages/home';
+import InsurancePage from '@/pages/insurance/insurancePage';
+import SelectInsurancePage from '@/pages/insurance/selectInsurancePage'
+import ListInsurancePage from "@/pages/insurance/listInsurancePage"
 import Dashboard from '@/pages/dashboard';
 import LayoutPage from '@/pages/layout';
 import LoginPage from '@/pages/login';
+
+import ProfilePage from "@/pages/profile"
+import SettingsPage from "@/pages/settings"
+import DetailnsurancePage from "@/pages/insurance/detailnsurancePage"
+import AgentPage from "@/pages/agent/agent"
 
 import WrapperRouteComponent from './config';
 
@@ -44,6 +51,34 @@ const routeList: RouteObject[] = [
       {
         path: '/',
         element: <WrapperRouteComponent requireAuth={true} element={<Dashboard />} titleId="title.dashboard" />,
+      },
+      // 
+      {
+        path: 'listInsurance',
+        element: <WrapperRouteComponent requireAuth={true} element={<ListInsurancePage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'selectInsur',
+        element: <WrapperRouteComponent requireAuth={true} element={<SelectInsurancePage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'insurance',
+        element: <WrapperRouteComponent requireAuth={true} element={<InsurancePage />} titleId="title.insurance" />,
+      },
+      // 
+      {
+        path: 'detailnsurance',
+        element: <WrapperRouteComponent requireAuth={true} element={<DetailnsurancePage />} titleId="title.insurance" />,
+      },
+
+      // 
+      {
+        path: 'agent',
+        element: <WrapperRouteComponent requireAuth={true} element={<AgentPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'profile',
+        element: <WrapperRouteComponent requireAuth={true} element={<ProfilePage />} titleId="title.profile" />,
       },
       {
         path: 'documentation',
@@ -100,6 +135,10 @@ const routeList: RouteObject[] = [
       {
         path: 'business/with-tabs',
         element: <WrapperRouteComponent requireAuth={true} element={<BusinessWithTabsPage />} titleId="title.account" />,
+      },
+      {
+        path: 'settings',
+        element: <WrapperRouteComponent requireAuth={true} element={<SettingsPage />} titleId="title.settings" />,
       },
       {
         path: '*',

@@ -103,3 +103,7 @@ export const mutationMlm = gql`mutation test_addmlm($input: MLMInput) { test_add
 export const userConnected = gql`subscription userConnected { userConnected }`;
 
 export const mutationTest_upload = gql`mutation test_upload($input: JSON) { test_upload(input: $input) }`;
+
+
+export const faker_agent        = gql`mutation faker_agent($input: JSON) { faker_agent(input: $input) }`;
+export const faker_insurance    = gql`mutation faker_insurance($input: JSON) { faker_insurance(input: $input) }`;

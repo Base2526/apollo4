@@ -1,49 +1,26 @@
 import './styles/index.less';
 import './mock';
 
-// new 
+
 // import ReactDOM from 'react-dom';
-// import { StrictMode } from "react";
-// import { ApolloProvider } from "@apollo/client";
-// import { Provider } from "react-redux";
-// import { BrowserRouter as Router } from "react-router-dom";
-// import { PersistGate } from "redux-persist/integration/react";
-
-// import { client } from "./apollo/Apollo";
-// import App from "./App";
-// import { persistor, store } from "./redux/Redux";
-// import Store from "./redux/Store";
-// new 
-
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client'; // Import createRoot
 import { Provider } from "react-redux";
 import { ApolloProvider } from '@apollo/client';
+import { PersistGate } from 'redux-persist/integration/react';
 import App from './App';
-import store from './stores';
+import { store, persistor } from './stores';
 
 import client from './apollo/ConfigureApolloClient';
 
+console.log("import.meta.env :", import.meta.env)
 
-ReactDOM.render(
-  <Provider store={store}>
-    <ApolloProvider client={client}>
-      <App />
-    </ApolloProvider>
-  </Provider>
+const container = document.getElementById('root'); // Get the root element
+const root = createRoot(container!); // Create a root
 
-  // <Provider store={store}>
-  //   <PersistGate loading={null} persistor={persistor}>
-  //     <StrictMode>
-  //       <ApolloProvider client={client}>
-  //         <Router>
-  //           {/* <Store> */}
-  //             <App />
-  //           {/* </Store> */}
-  //         </Router>
-  //       </ApolloProvider>
-  //     </StrictMode>
-  //   </PersistGate>
-  // </Provider>
-  ,
-  document.getElementById('root'),
-);
+root.render(<Provider store={store}>
+              <PersistGate loading={<p>Loading...</p>} persistor={persistor}>
+                <ApolloProvider client={client}>
+                  <App />
+                </ApolloProvider>
+              </PersistGate>
+            </Provider>); // Render the App component

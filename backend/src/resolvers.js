@@ -4216,6 +4216,42 @@ export default {
         files,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       } 
+    },
+
+    async faker_agent(parent, args, context, info) {
+      let start = Date.now()
+      let { input } = args
+      let { req } = context
+
+      // let { current_user } =  await Utils.checkAuth(req);
+
+      // console.log("faker_agent :", input, current_user)
+  
+      await Model.Agent.create({ current: input });
+      return {
+        status: true,
+        message: "faker_agent",
+        input,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+
+    async faker_insurance(parent, args, context, info) {
+      let start = Date.now()
+      let { input } = args
+      let { req } = context
+
+      // let { current_user } =  await Utils.checkAuth(req);
+
+      // console.log("faker_insurance :", input, current_user)
+
+      await Model.Insurance.create({ current: input });
+      return {
+        status: true,
+        message: "faker_insurance",
+        input,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
     }
   },
   Subscription:{

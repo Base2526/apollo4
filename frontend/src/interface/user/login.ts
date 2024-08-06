@@ -20,3 +20,10 @@ export interface LogoutParams {
 }
 
 export interface LogoutResult {}
+
+export interface InsuranceParams {
+  /** 用户名 */
+  username: string;
+  /** 用户密码 */
+  password: string;
+}

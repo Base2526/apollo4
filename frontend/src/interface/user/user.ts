@@ -32,4 +32,7 @@ export interface UserState {
 
   /* for test */
   ramdom: number
+
+  /* for profile */
+  profile: object 
 }

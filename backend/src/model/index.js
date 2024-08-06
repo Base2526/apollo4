@@ -32,6 +32,9 @@ import MemberModel from "./MemberModel"
 import MLMModel from './MLMModel'
 import FileModel from "./FileModel"
 
+import InsuranceModel from "./InsuranceModel"
+import AgentModel from "./AgentModel"
+
 module.exports =  {
     Bank:BankModel,
     Post:PostModel,
@@ -64,5 +67,8 @@ module.exports =  {
     Member: MemberModel,
     MLM: MLMModel,
     LogUserAccess: LogUserAccessModel,
-    File: FileModel
+    File: FileModel,
+
+    Insurance: InsuranceModel,
+    Agent: AgentModel
 };

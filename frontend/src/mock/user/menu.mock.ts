@@ -6,35 +6,299 @@ const mockMenuList: MenuList = [
   {
     code: 'dashboard',
     label: {
-      zh_CN: '首页',
-      en_US: 'Dashboard',
+      zh_CN: 'หน้าหลัก',
+      en_US: 'หน้าหลัก',
     },
     icon: 'dashboard',
     path: '/',
   },
+  // {
+  //   code: 'selectInsur',
+  //   label: {
+  //     zh_CN: 'เลือกบริษัทประกัน',
+  //     en_US: 'เลือกบริษัทประกัน',
+  //   },
+  //   icon: 'documentation',
+  //   path: '/selectInsur',
+  // },
+  // {
+  //   code: 'listInsurance',
+  //   label: {
+  //     zh_CN: 'รายการกรมธรรม์ พ.ร.บ.',
+  //     en_US: 'รายการกรมธรรม์ พ.ร.บ.',
+  //   },
+  //   icon: 'guide',
+  //   path: '/listInsurance',
+  // },
+  
+  // {
+  //   code: 'agent',
+  //   label: {
+  //     zh_CN: 'ตัวแทน',
+  //     en_US: 'ตัวแทน',
+  //   },
+  //   icon: 'guide',
+  //   path: '/agent',
+  // },
   {
-    code: 'documentation',
+    code: 'main-data',
     label: {
-      zh_CN: '文档',
-      en_US: 'Documentation',
+      zh_CN: 'ข้อมูลหลัก',
+      en_US: 'ข้อมูลหลัก',
     },
-    icon: 'documentation',
-    path: '/documentation',
+    icon: 'permission',
+    path: '/',
+    children: [
+      {
+        code: 'routePermission',
+        label: {
+          zh_CN: 'ตัวแทน',
+          en_US: 'ตัวแทน',
+        },
+        path: '/',
+      },
+      {
+        code: 'notFound',
+        label: {
+          zh_CN: 'โครงสร้างตัวแทน',
+          en_US: 'โครงสร้างตัวแทน',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'คำนำหน้า',
+          en_US: 'คำนำหน้า',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'จังหวัด/อำเภอ/ตำบล',
+          en_US: 'จังหวัด/อำเภอ/ตำบล',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'รายการรถ',
+          en_US: 'รายการรถ',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'รายการรุ่นรถ',
+          en_US: 'รายการรุ่นรถ',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'รายการรหัสรถ',
+          en_US: 'รายการรหัสรถ',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'รายการสีรถ',
+          en_US: 'รายการสีรถ',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'Package รถยนต์',
+          en_US: 'Package รถยนต์',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'กลุ่มรถตามค่าคอมมิชชั่น',
+          en_US: 'กลุ่มรถตามค่าคอมมิชชั่น',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'ตารางผลประโยชน์',
+          en_US: 'ตารางผลประโยชน์',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'วงเงินสด',
+          en_US: 'วงเงินสด',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'ประวัติรายการเคลื่อนไหว',
+          en_US: 'ประวัติรายการเคลื่อนไหว',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'นำเข้าข้อมูล',
+          en_US: 'นำเข้าข้อมูล',
+        },
+        path: '/',
+      },
+    ],
   },
   {
-    code: 'guide',
+    code: 'insurance',
     label: {
-      zh_CN: '引导',
-      en_US: 'Guide',
+      zh_CN: 'พ.ร.บ',
+      en_US: 'พ.ร.บ',
     },
-    icon: 'guide',
-    path: '/guide',
+    icon: 'permission',
+    path: '/',
+    children: [
+      {
+        code: 'routePermission',
+        label: {
+          zh_CN: 'สลักหลัง',
+          en_US: 'สลักหลัง',
+        },
+        path: '/',
+      },
+      {
+        code: 'notFound',
+        label: {
+          zh_CN: 'วงเงินเครดิต',
+          en_US: 'วงเงินเครดิต',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'วงเงินคงเหลือ',
+          en_US: 'วงเงินคงเหลือ',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'ประวัติวงเงินเครดิต',
+          en_US: 'ประวัติวงเงินเครดิต',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'ออกกรมธรรม์ใหม่',
+          en_US: 'ออกกรมธรรม์ใหม่',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'กรมธรรม์ประจำวัน',
+          en_US: 'กรมธรรม์ประจำวัน',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'พรบ.รอดำเนินการ',
+          en_US: 'พรบ.รอดำเนินการ',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'ทะเบียนกรมธรรม์พรบ.',
+          en_US: 'ทะเบียนกรมธรรม์พรบ.',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'กรมธรรม์หมดอายุ/ต่ออายุ',
+          en_US: 'กรมธรรม์หมดอายุ/ต่ออายุ',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'สรุปการขายประจำวัน',
+          en_US: 'สรุปการขายประจำวัน',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'สรุปการขายประจำวันทีม',
+          en_US: 'สรุปการขายประจำวันทีม',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'รายงานขายประจำวัน',
+          en_US: 'รายงานขายประจำวัน',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'ตัดชำระพรบ.',
+          en_US: 'ตัดชำระพรบ.',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'ยอดขายแต่ละบริษัท',
+          en_US: 'ยอดขายแต่ละบริษัท',
+        },
+        path: '/',
+      },
+      {
+        code: '',
+        label: {
+          zh_CN: 'ยอดขายแยกบริษัท',
+          en_US: 'ยอดขายแยกบริษัท',
+        },
+        path: '/',
+      },
+    ],
   },
   {
-    code: 'permission',
+    code: 'report',
     label: {
-      zh_CN: '权限',
-      en_US: 'Permission',
+      zh_CN: 'รายงาน',
+      en_US: 'รายงาน',
     },
     icon: 'permission',
     path: '/permission',
@@ -42,21 +306,22 @@ const mockMenuList: MenuList = [
       {
         code: 'routePermission',
         label: {
-          zh_CN: '路由权限',
-          en_US: 'Route Permission',
+          zh_CN: 'รายงานพรบ. ประจำวัน',
+          en_US: 'รายงานพรบ. ประจำวัน',
         },
-        path: '/permission/route',
+        path: '/',
       },
       {
         code: 'notFound',
         label: {
-          zh_CN: '404',
-          en_US: '404',
+          zh_CN: 'รายงานพรบ.(แยกบริษัท)',
+          en_US: 'รายงานพรบ.(แยกบริษัท)',
         },
-        path: '/permission/404',
+        path: '/',
       },
     ],
   },
+  /*
   {
     code: 'component',
     label: {
@@ -168,6 +433,7 @@ const mockMenuList: MenuList = [
       },
     ],
   },
+  */
 ];
 
 mock.mock('/user/menu', 'get', intercepter(mockMenuList));

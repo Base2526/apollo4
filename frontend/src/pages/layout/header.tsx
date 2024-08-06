@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 
-import { LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined } from '@ant-design/icons';
+import { LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined, SettingOutlined } from '@ant-design/icons';
 import { Dropdown, Layout, theme as antTheme, Tooltip } from 'antd';
 import { createElement } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -12,11 +12,11 @@ import { ReactComponent as LanguageSvg } from '@/assets/header/language.svg';
 import { ReactComponent as MoonSvg } from '@/assets/header/moon.svg';
 import { ReactComponent as SunSvg } from '@/assets/header/sun.svg';
 import { ReactComponent as ZhCnSvg } from '@/assets/header/zh_CN.svg';
-import AntdSvg from '@/assets/logo/antd.svg';
-import ReactSvg from '@/assets/logo/react.svg';
 import { LocaleFormatter, useLocale } from '@/locales';
 import { setGlobalState } from '@/stores/global.store';
 import { setUserItem } from '@/stores/user.store';
+
+import InsuranceLogo from "@/assets/logo/InsuranceLogo"
 
 import { logoutAsync } from '../../action/user.action';
 import HeaderNoticeComponent from './notice';
@@ -76,9 +76,8 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
   return (
     <Header className="layout-page-header bg-2" style={{ backgroundColor: token.token.colorBgContainer }}>
       {device !== 'MOBILE' && (
-        <div className="logo" style={{ width: collapsed ? 80 : 200 }}>
-          <img src={ReactSvg} alt="" style={{ marginRight: collapsed ? '2px' : '20px' }} />
-          <img src={AntdSvg} alt="" />
+        <div className="logo" style={{ width: collapsed ? 80 : 200 }} onClick={()=>navigate('/')}>
+          <InsuranceLogo color= { theme === 'dark' ? "#FFFFFF" : "#333333" } />
         </div>
       )}
       <div className="layout-page-header-main">
@@ -130,13 +129,22 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
                     key: '1',
                     icon: <UserOutlined />,
                     label: (
-                      <span onClick={() => navigate('/dashboard')}>
+                      <span onClick={() => navigate('/profile')}>
                         <LocaleFormatter id="header.avator.account" />
                       </span>
                     ),
                   },
                   {
                     key: '2',
+                    icon: <SettingOutlined />,
+                    label: (
+                      <span onClick={() => navigate('/settings')}>
+                        <LocaleFormatter id="header.avator.settings" />
+                      </span>
+                    ),
+                  },
+                  {
+                    key: '3',
                     icon: <LogoutOutlined />,
                     label: (
                       <span onClick={() => onActionClick('logout')}>

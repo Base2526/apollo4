@@ -14,7 +14,7 @@ import { LocaleFormatter, localeConfig } from './locales';
 import RenderRouter from './routes';
 import { setGlobalState } from './stores/global.store';
 
-import { healthCheck, userConnected } from "./apollo/galQuery"
+import { healthCheck, userConnected } from "./apollo/gqlQuery"
 
 const App: FC = () => {
   const { locale } = useSelector(state => state.user);

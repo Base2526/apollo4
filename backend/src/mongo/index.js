@@ -343,6 +343,57 @@ const modelExists =()=>{
       await Model.File.deleteMany({})
     }
   });
+
+  Model.Insurance.find({}, async(err, result)=> {
+    if (result.length > 0) {
+    } else {
+      let newInsurance = new Model.Insurance({
+                                                current : {
+                                                  policyNumber: "policyNumber",
+                                                  number: "number",
+                                                  houseNumber: "houseNumber",
+                                                  group: "group",
+                                                  firstName: "firstName",
+                                                  lastName: "lastName",
+                                                  province: "province", // จังหวัด
+                                                  district: "district", // อำเภอ/เขต
+                                                  subDistrict: "subDistrict", // ตำบล/แขวง
+                                                  postalCode: "postalCode", // รหัสไปรษณีย์
+                                                }
+                                              });
+      await newInsurance.save();
+      await Model.Insurance.deleteMany({})
+    }
+  });
+
+  Model.Agent.find({}, async(err, result)=> {
+    if (result.length > 0) {
+    } else {
+      let newAgent = new Model.Agent({
+                                      current : {
+                                        code: "code",
+                                        prefix: 'mr',
+                                        address: "address",
+                                        firstName: "firstName",
+                                        province: "province",
+                                        district: "district",
+                                        lastName: "lastName",
+                                        subDistrict: "subDistrict",
+                                        postalCode: "postalCode",
+                                        mobile: "mobile",
+                                        licenseNumber: "licenseNumber",
+                                        idCardNumber: "idCardNumber",
+                                        phone: "phone",
+                                        collateralAmount: 0,
+                                        creditLimit: 0,
+                                        email: "email",
+                                        availableCredit: 0
+                                      }
+                                    });
+      await newAgent.save();
+      await Model.Agent.deleteMany({})
+    }
+  });
 }
 
 // TODO: initial and connect to MongoDB

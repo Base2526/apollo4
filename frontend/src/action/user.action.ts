@@ -36,6 +36,7 @@ export const logoutAsync = () => {
       dispatch(
         setUserItem({
           logged: false,
+          profile: {}
         }),
       );
 

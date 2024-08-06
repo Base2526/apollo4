@@ -16,7 +16,9 @@ const initialState: UserState = {
   username: localStorage.getItem('username') || '',
   role: (localStorage.getItem('username') || '') as Role,
 
-  ramdom: 0
+  ramdom: 0,
+
+  profile:{}
 };
 
 const userSlice = createSlice({
@@ -36,10 +38,15 @@ const userSlice = createSlice({
       console.log("testSetRamdom :",state, action.payload)
 
       Object.assign(state, action.payload);
+    },
+    updateProfile(state, action: PayloadAction<Partial<UserState>> ){
+      console.log("updateProfile :",state, action.payload)
+
+      Object.assign(state, { ...action.payload, logged: true });
     }
   },
 });
 
-export const { setUserItem, testSetRamdom } = userSlice.actions;
+export const { setUserItem, testSetRamdom, updateProfile } = userSlice.actions;
 
 export default userSlice.reducer;

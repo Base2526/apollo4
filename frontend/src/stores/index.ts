@@ -1,14 +1,23 @@
-import { configureStore } from '@reduxjs/toolkit';
+// store.ts
+import { createStore, applyMiddleware } from 'redux';
+import { persistStore, persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
+import thunk from 'redux-thunk';
+import { encrypt, decrypt } from './encryption'; // Import your encryption functions
+import rootReducer from './rootReducer'; // Your root reducer
 
-import rootReducer from './rootReducer';
+// Configure Redux Persist
+const persistConfig = {
+                        key: 'root',
+                        storage,
+                        transforms: [{
+                                      in: (state: any) => import.meta.env.DEV ? JSON.stringify(state) : encrypt(JSON.stringify(state)), // Encrypt the state before persisting
+                                      out: (state: string) => import.meta.env.DEV ? JSON.parse(state) : JSON.parse(decrypt(state)), // Decrypt the state when rehydrating
+                                    }]
+                      };
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-const store = configureStore({
-  reducer: rootReducer,
-});
+const store = createStore(persistedReducer, applyMiddleware(thunk));
+const persistor = persistStore(store);
 
-export type AppState = ReturnType<typeof rootReducer>;
-export type AppDispatch = typeof store.dispatch;
-
-export default store;
-
-export type AppStore = typeof store;
+export { store, persistor };

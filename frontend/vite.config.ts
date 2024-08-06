@@ -39,14 +39,14 @@ export default defineConfig({
         //   libName: 'antd',
         //   style: name => `antd/es/${name}/style/index.css`,
         // },
-        {
-          libName: 'lodash',
-          libDirectory: '',
-          camel2DashComponentName: false,
-          style: () => {
-            return false;
-          },
-        },
+        // {
+        //   libName: 'lodash',
+        //   libDirectory: '',
+        //   camel2DashComponentName: false,
+        //   style: () => {
+        //     return false;
+        //   },
+        // },
       ],
     }),
     svgrPlugin({

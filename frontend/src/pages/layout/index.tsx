@@ -17,6 +17,8 @@ import { useGuide } from '../guide/useGuide';
 import HeaderComponent from './header';
 import MenuComponent from './menu';
 import TagsView from './tagView';
+import FooterComponent from './footer'
+import DynamicBreadcrumb from '../../components/breadcrumb'
 
 const { Sider, Content } = Layout;
 const WIDTH = 992;
@@ -150,13 +152,15 @@ const LayoutPage: FC = () => {
         )}
         <Content className="layout-page-content">
           {/* <TagsView /> */}
-          <Suspense fallback={null}>
-            <div style={{ padding: '6px 4px' }}>
+          <div style={{ padding: '0px 10px' }}>
+            <DynamicBreadcrumb />
+            <Suspense fallback={null}>
               <Outlet />
-            </div>
-          </Suspense>
+            </Suspense>
+          </div>
         </Content>
       </Layout>
+      <FooterComponent>footer</FooterComponent>
     </Layout>
   );
 };
