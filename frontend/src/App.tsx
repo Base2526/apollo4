@@ -3,6 +3,7 @@ import 'dayjs/locale/zh-cn';
 import { ConfigProvider, Spin, theme as antdTheme } from 'antd';
 import enUS from 'antd/es/locale/en_US';
 import zhCN from 'antd/es/locale/zh_CN';
+import thTH from 'antd/es/locale/th_TH';
 import dayjs from 'dayjs';
 import { FC, Suspense, useEffect } from 'react';
 import { IntlProvider } from 'react-intl';
@@ -61,6 +62,8 @@ const App: FC = () => {
       dayjs.locale('en');
     } else if (locale === 'zh_CN') {
       dayjs.locale('zh-cn');
+    } else if (locale === 'th_TH') {
+      dayjs.locale('th-th');
     }
   }, [locale]);
 
@@ -74,6 +77,8 @@ const App: FC = () => {
       return enUS;
     } else if (locale === 'zh_CN') {
       return zhCN;
+    }else if (locale === 'th_TH') {
+      return thTH;
     }
   };
 

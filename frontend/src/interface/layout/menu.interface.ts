@@ -5,6 +5,7 @@ interface MenuItem {
   label: {
     zh_CN: string;
     en_US: string;
+    th_TH: string;
   };
   /** 图标名称
    *

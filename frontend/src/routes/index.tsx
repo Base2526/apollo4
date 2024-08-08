@@ -8,7 +8,7 @@ import { useRoutes } from 'react-router-dom';
 
 import InsurancePage from '@/pages/insurance/insurancePage';
 import SelectInsurancePage from '@/pages/insurance/selectInsurancePage'
-import ListInsurancePage from "@/pages/insurance/listInsurancePage"
+import ListCtpPage from "@/pages/insurance/ListCtp"
 import Dashboard from '@/pages/dashboard';
 import LayoutPage from '@/pages/layout';
 import LoginPage from '@/pages/login';
@@ -89,8 +89,9 @@ const routeList: RouteObject[] = [
       },
 
       {
-        path: 'insurance/listInsurance',
-        element: <WrapperRouteComponent requireAuth={true} element={<ListInsurancePage />} titleId="title.insurance" />,
+        // path: 'insurance/listInsurance',
+        path: 'insurance/listctp',
+        element: <WrapperRouteComponent requireAuth={true} element={<ListCtpPage />} titleId="title.insurance" />,
       },
 
       {

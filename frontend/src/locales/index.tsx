@@ -5,10 +5,12 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import en_US from './en-US';
 import zh_CN from './zh-CN';
+import th_TH from './th-TH';
 
 export const localeConfig = {
   zh_CN: zh_CN,
   en_US: en_US,
+  th_TH: th_TH,
 };
 
 type Id = keyof typeof en_US;

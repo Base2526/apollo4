@@ -12,6 +12,7 @@ import { ReactComponent as LanguageSvg } from '@/assets/header/language.svg';
 import { ReactComponent as MoonSvg } from '@/assets/header/moon.svg';
 import { ReactComponent as SunSvg } from '@/assets/header/sun.svg';
 import { ReactComponent as ZhCnSvg } from '@/assets/header/zh_CN.svg';
+import { ReactComponent as ThThSvg } from '@/assets/header/th_TH.svg';
 import { LocaleFormatter, useLocale } from '@/locales';
 import { setGlobalState } from '@/stores/global.store';
 import { setUserItem } from '@/stores/user.store';
@@ -101,10 +102,16 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
             menu={{
               onClick: info => selectLocale(info),
               items: [
+                // {
+                //   key: 'zh_CN',
+                //   icon: <ThThSvg />,
+                //   disabled: locale === 'zh_CN',
+                //   label: 'ภาษาไทย',
+                // },
                 {
-                  key: 'zh_CN',
-                  icon: <ZhCnSvg />,
-                  disabled: locale === 'zh_CN',
+                  key: 'th_TH',
+                  icon: <ThThSvg />,
+                  disabled: locale === 'th_TH',
                   label: 'ภาษาไทย',
                 },
                 {
