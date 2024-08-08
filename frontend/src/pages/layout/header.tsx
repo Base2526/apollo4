@@ -21,6 +21,8 @@ import InsuranceLogo from "@/assets/logo/InsuranceLogo"
 import { logoutAsync } from '../../action/user.action';
 import HeaderNoticeComponent from './notice';
 
+import LanguageSwitcher from "./LanguageSwitcher"
+
 const { Header } = Layout;
 
 interface HeaderProps {
@@ -105,7 +107,7 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
                   key: 'zh_CN',
                   icon: <ZhCnSvg />,
                   disabled: locale === 'zh_CN',
-                  label: '简体中文',
+                  label: 'ภาษาไทย',
                 },
                 {
                   key: 'en_US',
@@ -117,7 +119,8 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
             }}
           >
             <span>
-              <LanguageSvg id="language-change" />
+              {/* <LanguageSvg id="language-change" /> */}
+              <LanguageSwitcher />
             </span>
           </Dropdown>
 
