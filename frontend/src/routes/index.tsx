@@ -17,6 +17,23 @@ import ProfilePage from "@/pages/profile"
 import SettingsPage from "@/pages/settings"
 import DetailnsurancePage from "@/pages/insurance/detailnsurancePage"
 import AgentPage from "@/pages/agent/agent"
+import ListAgentPage from "@/pages/settings/ListAgent"
+import ListEndDosNoticPage from "@/pages/insurance/ListEndDosNotic"
+import ListAgentCreditPage from "@/pages/insurance/ListAgentCredit"
+import PendingListCTPPage from "@/pages/insurance/PendingListCTP"
+import ListPolicyCtpPage from "@/pages/insurance/ListPolicyCtp"
+import PolicyCTPListExpirePage from "@/pages/insurance/PolicyCTPListExpire"
+import ShowAgentSalePage from "@/pages/insurance/ShowAgentSale"
+
+import ReportCtpListPage from "@/pages/report/ReportCtpList"
+import ReportCtpListByInsPage from "@/pages/report/ReportCtpListByIns"
+import AdministratorPage from "@/pages/administrator"
+import UserListPage from "@/pages/administrator/UserList"
+import UserPage from "@/pages/administrator/User"
+import FakerPage from "@/pages/administrator/Faker"
+import FileListPage from "@/pages/administrator/FileList"
+import DblogPage  from "@/pages/administrator/Dblog"
+import ImportPage from "@/pages/administrator/Import"
 
 import WrapperRouteComponent from './config';
 
@@ -53,27 +70,94 @@ const routeList: RouteObject[] = [
         element: <WrapperRouteComponent requireAuth={true} element={<Dashboard />} titleId="title.dashboard" />,
       },
       // 
-      {
-        path: 'listInsurance',
-        element: <WrapperRouteComponent requireAuth={true} element={<ListInsurancePage />} titleId="title.insurance" />,
-      },
-      {
-        path: 'selectInsur',
-        element: <WrapperRouteComponent requireAuth={true} element={<SelectInsurancePage />} titleId="title.insurance" />,
-      },
+
       {
         path: 'insurance',
         element: <WrapperRouteComponent requireAuth={true} element={<InsurancePage />} titleId="title.insurance" />,
       },
-      // 
+      {
+        path: 'insurance/listenddosnotic',
+        element: <WrapperRouteComponent requireAuth={true} element={<ListEndDosNoticPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'insurance/listagentcredit',
+        element: <WrapperRouteComponent requireAuth={true} element={<ListAgentCreditPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'insurance/selectInsur',
+        element: <WrapperRouteComponent requireAuth={true} element={<SelectInsurancePage />} titleId="title.insurance" />,
+      },
+
+      {
+        path: 'insurance/listInsurance',
+        element: <WrapperRouteComponent requireAuth={true} element={<ListInsurancePage />} titleId="title.insurance" />,
+      },
+
+      {
+        path: 'insurance/pendinglist_ctp',
+        element: <WrapperRouteComponent requireAuth={true} element={<PendingListCTPPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'insurance/listpolicyctp',
+        element: <WrapperRouteComponent requireAuth={true} element={<ListPolicyCtpPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'insurance/policyctplistexpire',
+        element: <WrapperRouteComponent requireAuth={true} element={<PolicyCTPListExpirePage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'insurance/showagentsale',
+        element: <WrapperRouteComponent requireAuth={true} element={<ShowAgentSalePage />} titleId="title.insurance" />,
+      },
+     
       {
         path: 'detailnsurance',
         element: <WrapperRouteComponent requireAuth={true} element={<DetailnsurancePage />} titleId="title.insurance" />,
       },
-
+    
+      {
+        path: 'report/reportctplist',
+        element: <WrapperRouteComponent requireAuth={true} element={<ReportCtpListPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'report/reportctplistbyins',
+        element: <WrapperRouteComponent requireAuth={true} element={<ReportCtpListByInsPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'administrator',
+        element: <WrapperRouteComponent requireAuth={true} element={<AdministratorPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'administrator/dblog',
+        element: <WrapperRouteComponent requireAuth={true} element={<DblogPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'administrator/filelist',
+        element: <WrapperRouteComponent requireAuth={true} element={<FileListPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'administrator/userlist',
+        element: <WrapperRouteComponent requireAuth={true} element={<UserListPage />} titleId="title.insurance" />,
+      },
       // 
       {
-        path: 'agent',
+        path: 'administrator/userlist/user',
+        element: <WrapperRouteComponent requireAuth={true} element={<UserPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'administrator/faker',
+        element: <WrapperRouteComponent requireAuth={true} element={<FakerPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'administrator/import',
+        element: <WrapperRouteComponent requireAuth={true} element={<ImportPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'settings/listagent',
+        element: <WrapperRouteComponent requireAuth={true} element={<ListAgentPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'settings/listagent/agent',
         element: <WrapperRouteComponent requireAuth={true} element={<AgentPage />} titleId="title.insurance" />,
       },
       {

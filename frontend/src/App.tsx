@@ -9,11 +9,11 @@ import { IntlProvider } from 'react-intl';
 import { useDispatch, useSelector } from 'react-redux';
 import { useApolloClient, useSubscription } from "@apollo/client";
 import { HistoryRouter, history } from '@/routes/history';
+import _ from "lodash"
 
 import { LocaleFormatter, localeConfig } from './locales';
 import RenderRouter from './routes';
 import { setGlobalState } from './stores/global.store';
-
 import { healthCheck, userConnected } from "./apollo/gqlQuery"
 
 const App: FC = () => {
@@ -21,7 +21,14 @@ const App: FC = () => {
   const { theme, loading } = useSelector(state => state.global);
   const dispatch = useDispatch();
 
-  useSubscription(userConnected);
+  const { data: useData, loading: useLoading, error: useError } = useSubscription(userConnected);
+
+  // Handle error here
+  if (useError) {
+    _.map(useError?.graphQLErrors, (e)=>{
+      console.error('Subscription error:',  e?.extensions, e?.extensions?.code);
+    })
+  }
 
   const setTheme = (dark = true) => {
     dispatch(

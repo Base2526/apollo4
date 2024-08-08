@@ -1,5 +1,10 @@
 import type { FC } from 'react';
 
+
+import { HomeOutlined, ControlOutlined, DingdingOutlined, BugOutlined, FireOutlined } from '@ant-design/icons';
+
+// dingding
+
 import { ReactComponent as AccountSvg } from '@/assets/menu/account.svg';
 import { ReactComponent as DashboardSvg } from '@/assets/menu/dashboard.svg';
 import { ReactComponent as DocumentationSvg } from '@/assets/menu/documentation.svg';
@@ -12,21 +17,40 @@ interface CustomIconProps {
 
 export const CustomIcon: FC<CustomIconProps> = props => {
   const { type } = props;
-  let com = <GuideSvg />;
+  // let com = <GuideSvg />;
 
-  if (type === 'guide') {
-    com = <GuideSvg />;
-  } else if (type === 'permission') {
-    com = <PermissionSvg />;
-  } else if (type === 'dashboard') {
-    com = <DashboardSvg />;
-  } else if (type === 'account') {
-    com = <AccountSvg />;
-  } else if (type === 'documentation') {
-    com = <DocumentationSvg />;
-  } else {
-    com = <GuideSvg />;
+  // if (type === 'guide') {
+  //   com = <GuideSvg />;
+  // } else if (type === 'permission') {
+  //   com = <PermissionSvg />;
+  // } else if (type === 'dashboard') {
+  //   com = <DashboardSvg />;
+  // } else if (type === 'account') {
+  //   com = <AccountSvg />;
+  // } else if (type === 'documentation') {
+  //   com = <DocumentationSvg />;
+  // } else {
+  //   com = <GuideSvg />;
+  // }
+
+  switch(type){
+    case 'home':{
+      return <span className="anticon"><HomeOutlined /></span>;
+    }
+    case 'main-data':{
+      return <span className="anticon"><ControlOutlined /></span>;
+    }
+    case 'insurance':{
+      return <span className="anticon"><FireOutlined /></span>;
+    }
+    case 'report':{
+      return <span className="anticon"><BugOutlined /></span>;
+    }
+
+    default:{
+      return <span className="anticon"><HomeOutlined /></span>;
+    }
   }
 
-  return <span className="anticon">{com}</span>;
+  
 };

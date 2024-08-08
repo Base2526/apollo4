@@ -849,6 +849,7 @@ export default gql`
 
     test_addmember(input: MemberInput): JSON
     test_addmlm(input: MLMInput): JSON
+    profile(input: JSON): JSON
     test_upload(input: JSON): JSON
 
     faker_agent(input: JSON): JSON

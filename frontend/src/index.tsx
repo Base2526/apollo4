@@ -11,8 +11,9 @@ import App from './App';
 import { store, persistor } from './stores';
 
 import client from './apollo/ConfigureApolloClient';
+import { getCookie } from './utils'
 
-console.log("import.meta.env :", import.meta.env)
+console.log("import.meta.env :", import.meta.env, getCookie('usida'))
 
 const container = document.getElementById('root'); // Get the root element
 const root = createRoot(container!); // Create a root

@@ -4,6 +4,7 @@ set -x
 
 # MongoDB connection details
 MONGO_HOST="a4_mongo"
+# MONGO_PORT=27017
 
 # script that includes a wait mechanism to ensure MongoDB is ready before executing commands:
 # Wait for MongoDB to be ready

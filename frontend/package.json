@@ -116,7 +116,8 @@
     "ua-parser-js": "^1.0.38",
     "universal-cookie": "^6.1.1",
     "utf8": "^3.0.0",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "dev": "vite",

@@ -12,17 +12,10 @@ const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-// MongoDB connection details
-// const mongoUri = 'mongodb://root:example@localhost:27017/admin';
-const backupDir = path.join(__dirname, 'backups');
-
-// Ensure backup directory exists
-if (!fs.existsSync(backupDir)) {
-  fs.mkdirSync(backupDir, { recursive: true });
-}
 
 // Function to delete old backups
 const deleteOldBackups = () => {
+  const backupDir = path.join(__dirname, '../backups');
   fs.readdir(backupDir, (err, files) => {
     if (err) {
       console.error(`Error reading backup directory: ${err.message}`);
@@ -57,8 +50,12 @@ const deleteOldBackups = () => {
 
 // Function to perform the backup
 const backupMongoDB = () => {
+  const backupDir = path.join(__dirname, 'backups');
+  
   const date = new Date().toISOString().replace(/T/, '_').replace(/:/g, '-').replace(/\..+/, '');
   const backupPath = path.join(backupDir, `backup_${date}`);
+
+  console.log("@2 backupMongoDB :", backupPath)
 
   const command = `docker exec a4_mongo mongodump --uri="${process.env.MONGO_URI}" --out="${backupPath}"`;
 
@@ -80,6 +77,7 @@ const backupMongoDB = () => {
 
 // At minute 0 past every 6th hour.
 cron.schedule('0 */6 * * *', backupMongoDB, {
+// cron.schedule('*/5 * * * *', backupMongoDB, {
   scheduled: true,
   timezone: 'Asia/Bangkok' // Adjust timezone as needed
 });

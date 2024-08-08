@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 import { setUserItem } from '@/stores/user.store';
-
 import { CustomIcon } from './customIcon';
 
 interface MenuProps {
@@ -22,6 +21,8 @@ const MenuComponent: FC<MenuProps> = props => {
   const { device, locale } = useSelector(state => state.user);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  console.log("openKeys ", openKey)
 
   const getTitle = (menu: MenuList[0]) => {
     return (

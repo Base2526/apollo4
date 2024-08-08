@@ -7,4 +7,6 @@ export const enUS_avatorDropMenu = {
   'global.theme.switchThemeFail': 'Update theme fail',
 
   'header.avator.settings': "Settings",
+
+  'header.avator.administrator': "ผู้ดูแลระบบ",
 };

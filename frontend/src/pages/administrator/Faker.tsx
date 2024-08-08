@@ -1,30 +1,30 @@
-// Settings.tsx
-import React from 'react';
-import { Form, Input, Button, Checkbox, Switch, Card, Select  } from 'antd';
-
-import { Row, Col, Typography } from 'antd';
-
-const { Title, Paragraph } = Typography;
-
-import { faker } from '@faker-js/faker';
-import moment from 'moment';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Form, Input, Button, Checkbox, Switch, Card, Select, Row, Col, Typography  } from 'antd';
+import moment from "moment";
 import { useQuery, useMutation } from "@apollo/client";
-
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import _ from "lodash"
+import { faker } from '@faker-js/faker';
 
 import { getHeaders, getCookie } from "../../utils"
-import { faker_agent, faker_insurance } from "../../apollo/gqlQuery"
+import { faker_agent, faker_insurance, mutationTest_addmember } from "../../apollo/gqlQuery"
 
-const { Meta } = Card;
-
-interface CardItem {
-    title: string;
-    description: string;
-    imageUrl: string;
-}
-
-const SettingsPage: React.FC = () => {
+const Faker: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const [onTest_addmember, resultTest_addmember] = useMutation(mutationTest_addmember, {
+        context: { headers: getHeaders(location) },
+        update: (cache, {data: {test_addmember}}) => { 
+            console.log("onTest_addmember ")
+        },
+        onCompleted( data ) {
+        //   history.goBack()
+        },
+        onError(error){
+          console.log("onTest_addmember onError :", error)
+        }
+    });
 
     const [onFakerAgent, resultFakerAgent] = useMutation(faker_agent, {
         context: { headers: getHeaders(location) },
@@ -52,9 +52,26 @@ const SettingsPage: React.FC = () => {
         }
     });
 
-    const onFinish = (values: any) => {
-        console.log('onFinish Received values:', values);
+    const onFinishMember = (values: any) => {
+        console.log('onFinishMember Received values:', values);
         // Here you can handle form submission (e.g., send data to an API)
+
+        for ( var i = 0; i < 100; i++ ) {
+            let name = faker.name.firstName().toLowerCase()
+            let newInput =  {
+                displayName: faker.name.firstName(),
+                email: faker.internet.email(),
+                password: name,
+                username: name,
+                avatar: {
+                    url: faker.image.avatar(),
+                    filename: faker.name.firstName(),
+                    encoding: '7bit',
+                    mimetype: 'image/png'
+                }
+            }
+            onTest_addmember({ variables: { input: newInput } });
+        }
     };
 
     const onFinishAgent = (values: any) => {
@@ -171,37 +188,38 @@ const SettingsPage: React.FC = () => {
         }
     };
 
-    const cardsData = [
-        { title: 'ตัวแทน', details: 'ตัวแทน', path: "/settings/listagent" },
-        { title: 'โครงสร้างตัวแทน', details: 'โครงสร้างตัวแทน' },
-        { title: 'คำนำหน้า', details: 'คำนำหน้า' },
-        { title: 'จังหวัด/อำเภอ/ตำบล', details: 'จังหวัด/อำเภอ/ตำบล' },
-        { title: 'รายการรถ', details: 'รายการรถ' },
-        { title: 'รายการรุ่นรถ', details: 'รายการรุ่นรถ' },
-        { title: 'รายการรหัสรถ', details: 'รายการรหัสรถ' },
-        { title: 'รายการสีรถ', details: 'รายการสีรถ' },
-        { title: 'Package รถยนต์', details: 'Package รถยนต์' },
-        { title: 'กลุ่มรถตามค่าคอมมิชชั่น', details: 'กลุ่มรถตามค่าคอมมิชชั่น' },
-        { title: 'ตารางผลประโยชน์', details: 'ตารางผลประโยชน์' },
-        { title: 'วงเงินสด', details: 'วงเงินสด' },
-        { title: 'ประวัติรายการเคลื่อนไหว', details: 'ประวัติรายการเคลื่อนไหว' },
-        { title: 'นำเข้าข้อมูล', details: 'นำเข้าข้อมูล' },
-    ];
-
     return (
-        <div style={{ padding: '24px' }}>
-            <Row gutter={16}>
-                {cardsData.map((card, index) => (
-                    <Col span={5} key={index} style={{"margin": "3px"}}>
-                        <Card hoverable title={card.title} bordered={false} onClick={()=>{navigate(card.path)}}>
-                            <p>{card.details}</p>
-                        </Card>
-                    </Col>
-                ))}
-            </Row>
-        </div>
-    )
+        <div>
+            <Card title="Create Member" style={{ marginBottom: '10px' }}>
+                <Form layout="vertical" onFinish={onFinishMember}>
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit">
+                            Create
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Card>
+            <Card title="Create Agent" style={{ marginBottom: '10px' }}>
+                <Form layout="vertical" onFinish={onFinishAgent}>
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit">
+                            Create
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Card>
 
+            <Card title="Create Insurance" style={{ marginBottom: '10px' }}>
+                <Form layout="vertical" onFinish={onFinishInsurance}>
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit">
+                            Create
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Card>
+        </div>
+    );
 };
 
-export default SettingsPage;
+export default Faker;

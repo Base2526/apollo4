@@ -143,7 +143,7 @@ server.start().then(() => {
 
         await Utils.logUserAccess(0, ctx);
         
-        console.log("onConnect ccc")
+        console.log("onConnect")
       },
       onSubscribe: (ctx, msg) => {
         let {connectionParams, extra} = ctx
@@ -159,7 +159,6 @@ server.start().then(() => {
         // console.log('Client disconnected :', connectionParams, extra.request.headers);
         await Utils.logUserAccess(1, ctx);
 
-       
         subscriptionCount = _.filter(subscriptionCount, (el)=> el!==extra.request.headers['sec-websocket-key'])
 
 

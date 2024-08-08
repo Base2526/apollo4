@@ -28,6 +28,7 @@ services:
       - ./mongo/check_and_add_user.sh:/usr/local/bin/check_and_add_user.sh
       # - ./mongo/db:/data/db
       - ./mongo/backups:/app/src/backups
+      # - ./mongo/check_and_add_user.sh:/docker-entrypoint-initdb.d/init-mongo.sh
     restart: always
     networks:
       - a4
@@ -116,6 +117,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock  # set can run docker inside ex. run docker backup db(a4_mongo)
       - ./backend/src:/app/src        
       - ./uploads:/app/uploads  
+      - ./mongo/backups:/app/backups
     depends_on:
       - mongo  
     # environment:

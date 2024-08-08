@@ -41,3 +41,12 @@ export const getHeaders = (params: Params): Record<string, string> => {
 
     return headers;
 };
+
+export const isValidUrl = (urlString: string): boolean => {
+  try {
+    new URL(urlString);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};

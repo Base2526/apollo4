@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 
-import { LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined, SettingOutlined } from '@ant-design/icons';
+import { LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined, SettingOutlined, ToolOutlined } from '@ant-design/icons';
 import { Dropdown, Layout, theme as antTheme, Tooltip } from 'antd';
 import { createElement } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -145,6 +145,15 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
                   },
                   {
                     key: '3',
+                    icon: <ToolOutlined />,
+                    label: (
+                      <span onClick={() => navigate('/administrator')}>
+                        <LocaleFormatter id="header.avator.administrator" />
+                      </span>
+                    ),
+                  },
+                  {
+                    key: '4',
                     icon: <LogoutOutlined />,
                     label: (
                       <span onClick={() => onActionClick('logout')}>

@@ -542,11 +542,11 @@ export const getUser = async(query, without_password = true) =>{
 }
 
 export const getMember = async(query, without_password = true) =>{
-    let fields = { "current.username": 1, "current.password": 1, "current.email": 1, "current.displayName": 1, "current.roles": 1 }
-    if(without_password){
-        fields = { "current.username": 1, "current.email": 1, "current.displayName": 1, "current.roles": 1 }
-    }
-    return  await Model.Member.findOne( query, fields )
+    // let fields = { "current.username": 1, "current.password": 1, "current.email": 1, "current.displayName": 1, "current.roles": 1 }
+    // if(without_password){
+    //     fields = { "current.username": 1, "current.email": 1, "current.displayName": 1, "current.roles": 1 }
+    // }
+    return  await Model.Member.findOne( query  )
 }
 
 export const getUserFull = async(query) =>{

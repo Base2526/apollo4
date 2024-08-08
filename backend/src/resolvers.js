@@ -1386,7 +1386,6 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-
       if( role !== Constants.AMDINISTRATOR && role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
       let files = await Model.File.aggregate([
@@ -4139,6 +4138,29 @@ export default {
         message: "PARENT NEW",
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
+    },
+
+    async profile(parent, args, context, info) {
+      let start = Date.now()
+      let { input } = args
+      let { req } = context
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let prof  =  await Utils.saveFile(current_user, input.file)
+
+      console.log("profile :", current_user, prof)
+
+      let member = await Model.Member.findOne({ _id: mongoose.Types.ObjectId(current_user?._id) })
+      await Model.Member.updateOne({ _id: mongoose.Types.ObjectId(current_user?._id) }, 
+                                   { "current.avatar": { url: prof.url, filename: prof.filename, encoding: prof.encoding, mimetype: prof.mimetype }, history: Utils.revision(member) }
+                                  );
+
+      let user = await Utils.getMember({ _id: mongoose.Types.ObjectId(current_user?._id) }, false)
+      return {
+        status: true,
+        data: user,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      } 
     },
 
     async test_upload(parent, args, context, info) {
