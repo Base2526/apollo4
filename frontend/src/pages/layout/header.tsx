@@ -48,9 +48,7 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
         return;
       case 'logout':
         const res = Boolean(await dispatch(logoutAsync()));
-
         res && navigate('/login');
-
         return;
     }
   };
