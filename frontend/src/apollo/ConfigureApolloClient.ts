@@ -10,13 +10,15 @@ import { createUploadLink } from 'apollo-upload-client'; // v15.0.0
 //   uri: 'http://localhost:4000/graphql', // Your Apollo Server HTTP endpoint
 // });
 
+// import.meta.env.DEV
+
 const httpLink = createUploadLink({
-  uri: 'http://localhost:4000/graphql', // Replace with your Apollo Server URL
+  uri: 'http://' + import.meta.env.VITE_HOST_GRAPHAL + "/graphql", // Replace with your Apollo Server URL
 });
 
 const wsLink = new GraphQLWsLink(
   createClient({
-    url: 'ws://localhost:4000/graphql', // Your Apollo Server WebSocket endpoint
+    url: 'ws://' + import.meta.env.VITE_HOST_GRAPHAL + "/graphql", // Your Apollo Server WebSocket endpoint
   })
 );
 

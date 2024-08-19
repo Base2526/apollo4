@@ -14,6 +14,8 @@ docker-compose -f docker-compose.ui.yml build
 docker-compose -f docker-compose.dev.yml build
 docker-compose -f docker-compose.prod.yml build
 
+docker-compose -f docker-compose.be.yml build
+
 docker-compose -f docker-compose.prod.yml down &&  docker-compose -f docker-compose.prod.yml build &&  docker-compose -f docker-compose.prod.yml up -d
 
 mongoimport --uri mongodb://root:xxxx@mongo:29101/xxx --collection role --file role

@@ -2,13 +2,11 @@ import React, { FC } from 'react';
 import type { LoginParams } from '@/interface/user/login';
 import './index.less';
 import { Button, Checkbox, Form, Input } from 'antd';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { LocaleFormatter, useLocale } from '@/locales';
 import { useDispatch } from 'react-redux';
 import { useMutation } from "@apollo/client";
-// import { loginAsync } from '../../action/user.action';
 import { updateProfile } from '../../stores/user.store';
-// import * as constants from "../../constants";
 import { mutationLogin } from "../../apollo/gqlQuery";
 import { setCookie, getHeaders } from "../../utils";
 

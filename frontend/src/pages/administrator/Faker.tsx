@@ -9,6 +9,17 @@ import { faker } from '@faker-js/faker';
 import { getHeaders, getCookie } from "../../utils"
 import { faker_agent, faker_insurance, mutationTest_addmember } from "../../apollo/gqlQuery"
 
+import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
+import SaleOrderPDF from './PDF';
+
+
+interface SaleItem {
+    id: number;
+    name: string;
+    amount: number;
+    checked: boolean;
+  }
+
 const Faker: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -188,6 +199,21 @@ const Faker: React.FC = () => {
         }
     };
 
+
+    const sampleData = [
+        { code: 'A001', description: 'Item 1', quantity: 2, unit: 'pcs', unitPrice: 10.0 },
+        { code: 'A002', description: 'Item 2', quantity: 5, unit: 'pcs', unitPrice: 15.0 },
+        // Add more items as needed
+    ];
+    
+
+    const saleItems: SaleItem[] = [
+        { id: 1, name: 'Product A', amount: 50, checked: true },
+        { id: 2, name: 'Product B', amount: 30, checked: false },
+        { id: 3, name: 'Product C', amount: 20, checked: true },
+        // Add more items as needed
+      ];
+
     return (
         <div>
             <Card title="Create Member" style={{ marginBottom: '10px' }}>
@@ -218,6 +244,23 @@ const Faker: React.FC = () => {
                     </Form.Item>
                 </Form>
             </Card>
+
+
+            <div style={{ padding: 20 }}>
+    <h1>Download Sale Order PDF</h1>
+    {/* <PDFViewer width="100%" height="600">
+        <SaleOrderPDF  />
+      </PDFViewer> */}
+      {/* <PDFDownloadLink document={<SaleOrderPDF data={sampleData} />} fileName="full-screen-table.pdf">
+        {({ loading }) => (loading ? 'Loading document...' : 'Download PDF')}
+      </PDFDownloadLink> */}
+
+<PDFDownloadLink document={<SaleOrderPDF items={saleItems} />} fileName="sale-report.pdf">
+      {({ loading }) => (loading ? 'Loading document...' : 'Download Sale Report')}
+    </PDFDownloadLink>
+
+{/* <SaleOrderPDF content={content} /> */}
+  </div>
         </div>
     );
 };
