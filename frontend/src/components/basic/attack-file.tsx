@@ -1,17 +1,28 @@
 import React, { FC } from "react";
-import { styled } from "@mui/material/styles";
-import {
-  Stack,
-  Box,
-  Avatar,
-  IconButton,
-  Typography
-} from "@mui/material";
+// import { styled } from "@mui/material/styles";
+// import {
+//   // Stack,
+//   // Box,
+//   // Avatar,
+//   // IconButton,
+//   // Typography
+// } from "@mui/material";
+
+import styled from 'styled-components';
+import { Space, Input, Avatar, Button, Typography } from 'antd';
 
 import { PlusSquareOutlined as AddBoxIcon, DeleteOutlined as RemoveCircleIcon } from '@ant-design/icons';
 import _ from "lodash";
 
-const Input = styled("input")({ display: "none" });
+// const Input = styled("input")({ display: "none" });
+
+const HiddenInput = styled(Input)`
+display: none;
+`;
+
+const Box = styled.div`
+  /* Custom styles */
+`;
 
 interface AttackFileFieldProps {
   label: string;
@@ -45,10 +56,10 @@ const AttackFileField: FC<AttackFileFieldProps> = ({
   };
 
   return (
-    <Stack>
+    <Space>
       <Typography variant="overline" display="block" gutterBottom>{label}</Typography>
       <label htmlFor="contained-button-file">
-        <Input
+        <HiddenInput
           accept="image/*"
           id="contained-button-file"
           name="file"
@@ -56,15 +67,16 @@ const AttackFileField: FC<AttackFileFieldProps> = ({
           type="file"
           onChange={onFileChange}
         />
-        <IconButton
+        {/* <IconButton
           color="primary"
           aria-label="upload picture"
           component="span"
         >
           <AddBoxIcon />
-        </IconButton>
+        </IconButton> */}
+        <Button icon={<AddBoxIcon />} shape="circle"/>
       </label>
-      <Stack direction="row" spacing={2}>
+      <Space direction="row" spacing={2}>
         {_.map(
           _.filter(values, (v) => !v?.delete),
           (file, index) => {
@@ -84,7 +96,7 @@ const AttackFileField: FC<AttackFileFieldProps> = ({
                   alt="Example Alt"
                   src={isOldFile ? file?.url : URL.createObjectURL(file)}
                 />
-                <IconButton
+                {/* <IconButton
                   style={{
                     position: "absolute",
                     right: 0,
@@ -113,13 +125,35 @@ const AttackFileField: FC<AttackFileFieldProps> = ({
                   }}
                 >
                   <RemoveCircleIcon />
-                </IconButton>
+                </IconButton> */}
+
+                <Button 
+                  icon={<RemoveCircleIcon /> } 
+                  shape="circle"
+                  onClick={() => {
+                    const newInputList = [...values];
+                    const i = _.findIndex(newInputList, (v) => v._id === file._id);
+
+                    if (isOldFile) {
+                      if (i !== -1) {
+                        newInputList[i] = {
+                          ...newInputList[i],
+                          delete: true
+                        };
+                      }
+                    } else {
+                      newInputList.splice(index, 1);
+                    }
+
+                    onChange(newInputList);
+                    onSnackbar({ open: true, message: "Delete image" });
+                  }}/>
               </Box>
             );
           }
         )}
-      </Stack>
-    </Stack>
+      </Space>
+    </Space>
   );
 };
 

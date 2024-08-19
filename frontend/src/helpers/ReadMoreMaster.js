@@ -1,6 +1,5 @@
 import React, {useState, useCallback, useEffect} from 'react';
 import truncate from "truncate-html";
-import { Typography } from "@material-ui/core";
 import { useTranslation } from "react-i18next";
 
 // refer : https://stackoverflow.com/questions/71472309/read-show-more-or-less-of-html-content-or-normal-text-using-single-reusable-reac
@@ -39,7 +38,7 @@ const ReadMoreMaster = (props) => {
 
     return (
         <div className={parentClass}>
-            <Typography variant="subtitle2" color="textSecondary"> {label ? label+ " :" : ""} </Typography>
+            {/* <Typography variant="subtitle2" color="textSecondary"> {label ? label+ " :" : ""} </Typography> */}
             <div
                 className="show-more-text"
                 dangerouslySetInnerHTML={{
