@@ -87,10 +87,13 @@ export default gql`
   }
 
   input MemberInput {
+    parentId: ID
     username: String!
     password: String!
     email: String!
+    tel: String!
     displayName: String
+    idCard: String!
     avatar: FileInput
   }
 
@@ -467,6 +470,9 @@ export default gql`
   }
 
   type Query {
+    test_fetch_node(_id: ID): JSON
+    test_add_node(_id: String!, ownerId: String!, packages: Int!): JSON
+    init: JSON
     healthCheck: JSON
     me: JSON
     checkWalletByUserId(_id: ID): JSON
@@ -808,7 +814,7 @@ export default gql`
     login(input: LoginInput): JSON
     loginWithSocial(input: LoginWithSocialInput): JSON
     loginWithGithub(code: String!): JSON
-    register(input: RegisterInput): JSON
+    register(input: JSON): JSON
     me(input: JSON): JSON
     book(input: BookInput): JSON
     buy(_id: ID!): JSON

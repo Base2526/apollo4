@@ -21,3 +21,6 @@ const store = createStore(persistedReducer, applyMiddleware(thunk));
 const persistor = persistStore(store);
 
 export { store, persistor };
+
+// Add this line if AppStore is a type
+export type AppStore = ReturnType<typeof store.getState>;

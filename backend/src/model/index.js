@@ -35,6 +35,8 @@ import FileModel from "./FileModel"
 import InsuranceModel from "./InsuranceModel"
 import AgentModel from "./AgentModel"
 
+import NodeModel from "./NodeModel"
+
 module.exports =  {
     Bank:BankModel,
     Post:PostModel,
@@ -70,5 +72,8 @@ module.exports =  {
     File: FileModel,
 
     Insurance: InsuranceModel,
-    Agent: AgentModel
+    Agent: AgentModel,
+
+
+    Node: NodeModel
 };

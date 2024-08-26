@@ -1,0 +1,62 @@
+version: '3.8'
+services:
+  mongo1:
+    image: mongo:4
+    container_name: mongo1
+    ports:
+      - "27017:27017"
+    command: mongod --replSet rs0 --bind_ip_all
+    volumes:
+      - mongo_data1:/data/db
+    networks:
+      - mongo-network
+
+  mongo2:
+    image: mongo:4
+    container_name: mongo2
+    ports:
+      - "27018:27017"
+    command: mongod --replSet rs0 --bind_ip_all
+    volumes:
+      - mongo_data2:/data/db
+    networks:
+      - mongo-network
+
+  mongo3:
+    image: mongo:4
+    container_name: mongo3
+    ports:
+      - "27019:27017"
+    command: mongod --replSet rs0 --bind_ip_all
+    volumes:
+      - mongo_data3:/data/db
+    networks:
+      - mongo-network
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://mongo1:27017,mongo2:27017,mongo3:27017/?replicaSet=rs0
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=yourpassword
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin1234
+    depends_on:
+      - mongo1
+      - mongo2
+      - mongo3
+    networks:
+      - mongo-network
+
+volumes:
+  mongo_data1:
+  mongo_data2:
+  mongo_data3:
+
+networks:
+  mongo-network:
+    driver: bridge

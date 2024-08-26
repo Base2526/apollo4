@@ -3,35 +3,35 @@ services:
   ################################
   #   Setup Api Mongo and mongo-express container
   ################################ 
-  mongo:
-    image: mongo:6.0.1
-    container_name: a4_mongo
-    # command: mongod --auth --port 29102
-    command: mongod --port 29102
-    expose:
-      - 29102
-    ports:
-      - 29102:29102
-    # ports:
-    #   - 27017:27017
-    env_file:
-      - ./env/.env.dev
-    environment:
-      - MONGO_MAX_CONNECTIONS=100
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=b9be11166d72e9e3ae7fd407165e4bd2
-    volumes:
-      #   - ./mongo-single/data:/data/db
-      #   - ./mongo-single/restore:/mongo-single/restore
-      #   - ./mongo-single/mongod.conf:/etc/mongod.conf
-      - ./mongo/mongod.conf:/etc/mongod.conf
-      - ./mongo/check_and_add_user.sh:/usr/local/bin/check_and_add_user.sh
-      # - ./mongo/db:/data/db
-      - ./mongo/backups:/app/src/backups
-      # - ./mongo/check_and_add_user.sh:/docker-entrypoint-initdb.d/init-mongo.sh
-    restart: always
-    networks:
-      - a4
+  # mongo:
+  #   image: mongo:6.0.1
+  #   container_name: a4_mongo
+  #   # command: mongod --auth --port 29102
+  #   command: mongod --port 29102
+  #   expose:
+  #     - 29102
+  #   ports:
+  #     - 29102:29102
+  #   # ports:
+  #   #   - 27017:27017
+  #   env_file:
+  #     - ./env/.env.dev
+  #   environment:
+  #     - MONGO_MAX_CONNECTIONS=100
+  #     - MONGO_INITDB_ROOT_USERNAME=admin
+  #     - MONGO_INITDB_ROOT_PASSWORD=b9be11166d72e9e3ae7fd407165e4bd2
+  #   volumes:
+  #     #   - ./mongo-single/data:/data/db
+  #     #   - ./mongo-single/restore:/mongo-single/restore
+  #     #   - ./mongo-single/mongod.conf:/etc/mongod.conf
+  #     - ./mongo/mongod.conf:/etc/mongod.conf
+  #     - ./mongo/check_and_add_user.sh:/usr/local/bin/check_and_add_user.sh
+  #     # - ./mongo/db:/data/db
+  #     - ./mongo/backups:/app/src/backups
+  #     # - ./mongo/check_and_add_user.sh:/docker-entrypoint-initdb.d/init-mongo.sh
+  #   restart: always
+  #   networks:
+  #     - a4
   # ################################
   # #   Setup React-admin container
   # ################################
@@ -95,8 +95,8 @@ services:
       # - /app/node_modules
       - ./frontend/src:/app/src
       - ./uploads:/var/storage
-    depends_on:
-      - mongo
+    # depends_on:
+    #   - mongo
     networks:
       - a4
   ################################
@@ -118,8 +118,8 @@ services:
       - ./backend/src:/app/src        
       - ./uploads:/app/uploads  
       - ./mongo/backups:/app/backups
-    depends_on:
-      - mongo  
+    # depends_on:
+    #   - mongo  
     # environment:
     #   - DOCKER_HOST=unix:///var/run/docker.sock
     #   # - CHOKIDAR_USEPOLLING=${CHOKIDAR_USEPOLLING}
@@ -136,7 +136,6 @@ services:
     networks:
       - a4
   ################################
-
 networks:
   a4:
     external: true 

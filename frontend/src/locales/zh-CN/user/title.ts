@@ -10,4 +10,6 @@ export const zhCN_title = {
   'title.notFount': '404',
 
   'title.settings': 'Settings',
+
+  'title.register': 'Register'
 };

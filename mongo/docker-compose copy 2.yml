@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  mongo1:
+    image: mongo:6.0
+    command: ["mongod", "--replSet", "rs0"]
+    ports:
+      - "27017:27017"
+    networks:
+      - mongo-network
+
+  mongo2:
+    image: mongo:6.0
+    command: ["mongod", "--replSet", "rs0"]
+    networks:
+      - mongo-network
+
+  mongo3:
+    image: mongo:6.0
+    command: ["mongod", "--replSet", "rs0"]
+    networks:
+      - mongo-network
+
+  mongo-express:
+    image: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongo1,mongo2,mongo3:27017/?replicaSet=rs0
+      ME_CONFIG_MONGODB_SERVER: mongo1
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin1234
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password
+    ports:
+      - "8081:8081"
+    networks:
+      - mongo-network
+
+networks:
+  mongo-network:
+
+
+# ต้อง add user ก่อนด้วย
+# use admin
+# db.createUser({
+#   user: "admin",
+#   pwd: "password",
+#   roles: [{ role: "root", db: "admin" }]
+# })

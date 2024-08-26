@@ -1,5 +1,4 @@
 import type { FC } from 'react';
-
 import { LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined, SettingOutlined, ToolOutlined } from '@ant-design/icons';
 import { Dropdown, Layout, theme as antTheme, Tooltip } from 'antd';
 import { createElement } from 'react';
@@ -16,13 +15,12 @@ import { ReactComponent as ThThSvg } from '@/assets/header/th_TH.svg';
 import { LocaleFormatter, useLocale } from '@/locales';
 import { setGlobalState } from '@/stores/global.store';
 import { setUserItem } from '@/stores/user.store';
-
 import InsuranceLogo from "@/assets/logo/InsuranceLogo"
-
 import { logoutAsync } from '../../action/user.action';
 import HeaderNoticeComponent from './notice';
-
 import LanguageSwitcher from "./LanguageSwitcher"
+
+import "./index.less"
 
 const { Header } = Layout;
 
@@ -82,7 +80,7 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
         </div>
       )}
       <div className="layout-page-header-main">
-        <div onClick={toggle}>
+        <div onClick={toggle} style={{ color: '#000' }}>
           <span id="sidebar-trigger">{collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}</span>
         </div>
         <div className="actions">

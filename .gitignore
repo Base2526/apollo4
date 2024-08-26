@@ -11,6 +11,9 @@ backend/src/logs
 mongo/data1
 mongo/data2
 mongo/data3
+mongo/mongo1-data
+mongo/mongo2-data
+mongo/mongo3-data
 mongo/backups
 
 mongo-single/data

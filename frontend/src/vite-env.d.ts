@@ -5,7 +5,10 @@
 import type { AppState } from './stores';
 
 declare module 'react-redux' {
-  export interface DefaultRootState extends AppState {}
+  export interface DefaultRootState extends AppState {
+    user: UserState  | null;
+    global: any;
+  }
 }
 
 declare interface ObjectConstructor {

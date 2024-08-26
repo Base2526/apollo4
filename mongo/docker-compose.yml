@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  mongo1:
+    image: mongo:6.0
+    container_name: mongo1
+    command: ["mongod", "--replSet", "rs0"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo1-data:/data/db
+    networks:
+      - mongo-network
+
+  mongo2:
+    image: mongo:6.0
+    container_name: mongo2
+    command: ["mongod", "--replSet", "rs0"]
+    volumes:
+      - ./mongo2-data:/data/db
+    networks:
+      - mongo-network
+
+  mongo3:
+    image: mongo:6.0
+    container_name: mongo3
+    command: ["mongod", "--replSet", "rs0"]
+    volumes:
+      - ./mongo3-data:/data/db
+    networks:
+      - mongo-network
+
+  mongo-express:
+    image: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongo1,mongo2,mongo3:27017/?replicaSet=rs0
+      ME_CONFIG_MONGODB_SERVER: mongo1
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin1234
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password
+    ports:
+      - "8081:8081"
+    networks:
+      - mongo-network
+
+networks:
+  mongo-network:
+
+
+# ต้อง add user ก่อนด้วย
+# use admin
+# db.createUser({
+#   user: "admin",
+#   pwd: "password",
+#   roles: [{ role: "root", db: "admin" }]
+# })
+
+# rs.initiate({_id: "rs0", members: [{ _id: 0, host: "mongo1:27017" }, { _id: 1, host: "mongo2:27017" }, { _id: 2, host: "mongo3:27017" }]})
+
+# docker exec -it a7e29cf6e13e mongosh

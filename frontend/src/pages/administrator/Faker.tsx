@@ -7,7 +7,8 @@ import _ from "lodash"
 import { faker } from '@faker-js/faker';
 
 import { getHeaders, getCookie } from "../../utils"
-import { faker_agent, faker_insurance, mutationTest_addmember } from "../../apollo/gqlQuery"
+import { queryMembers, faker_agent, faker_insurance, mutationTest_addmember, mutationMlm } from "../../apollo/gqlQuery"
+
 
 import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 import SaleOrderPDF from './PDF';
@@ -23,6 +24,7 @@ interface SaleItem {
 const Faker: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const [users, setUsers] = useState<any[]>();
 
     const [onTest_addmember, resultTest_addmember] = useMutation(mutationTest_addmember, {
         context: { headers: getHeaders(location) },
@@ -63,17 +65,76 @@ const Faker: React.FC = () => {
         }
     });
 
+    // const [onMlm, resultMlm] = useMutation(mutationMlm, { 
+    //     context: { headers: getHeaders(location) },
+    //     onCompleted: async(datas)=>{
+    //         console.log("onCompleted :", datas)
+    //         // let {status, data, sessionId} = datas.login
+    //         // if(status){
+    //         //     // localStorage.setItem('usida', sessionId)
+    //         //     setCookie('usida', sessionId)
+    //         //     updateProfile(data)
+    //         // }
+
+    //         // onMlm({ variables: { input: { parentId: selectedOption }} })
+
+    //         // navigate("/")
+    //     },
+    //     onError(err){
+    //         console.log("onError :", err)
+    //     }
+    // });
+
+    const { loading: loadingMembers, 
+        data: dataMembers, 
+        error: errorMembers  } =  useQuery(   queryMembers, {
+                                            context: { headers: getHeaders(location) },
+                                            fetchPolicy: 'cache-first', 
+                                            nextFetchPolicy: 'network-only', 
+                                            notifyOnNetworkStatusChange: false,
+                                        });
+
+    useEffect(() => {
+        if(!loadingMembers){
+            if(!_.isEmpty(dataMembers?.members)){
+                setUsers([])
+                if(dataMembers.members.status){
+                    _.map(dataMembers.members.data, (e, key)=>{
+                        
+                        // const newItem: any = {key, displayName: e.current.displayName, email: e.current.email, avatar: e.current.avatar?.url,  roles: e.current.roles, timestamp:e.updatedAt}; 
+                        // console.log("e :", e, newItem)
+                        setUsers((prevItems) => {
+                            if (Array.isArray(prevItems)) { // Check if prevItems is an array
+                                return [...prevItems, e];
+                            } else {
+                                console.error('prevItems is not an array:', prevItems);
+                                return [e]; // Fallback to ensure it is always an array
+                            }
+                        });
+                    })
+                }
+            }
+        }
+    }, [dataMembers, loadingMembers])
+
+    useEffect(()=>{
+        console.log("users :", users)
+    }, [users])
+
     const onFinishMember = (values: any) => {
         console.log('onFinishMember Received values:', values);
         // Here you can handle form submission (e.g., send data to an API)
 
-        for ( var i = 0; i < 100; i++ ) {
+        for ( var i = 0; i < 20; i++ ) {
             let name = faker.name.firstName().toLowerCase()
             let newInput =  {
+                parentId: users[Math.floor(Math.random() * users.length)]._id,
                 displayName: faker.name.firstName(),
                 email: faker.internet.email(),
                 password: name,
                 username: name,
+                idCard: faker.datatype.uuid(),
+                tel: faker.phone.phoneNumber(),
                 avatar: {
                     url: faker.image.avatar(),
                     filename: faker.name.firstName(),
@@ -219,7 +280,7 @@ const Faker: React.FC = () => {
             <Card title="Create Member" style={{ marginBottom: '10px' }}>
                 <Form layout="vertical" onFinish={onFinishMember}>
                     <Form.Item>
-                        <Button type="primary" htmlType="submit">
+                        <Button disabled={_.isEmpty(users) ? true : false} type="primary" htmlType="submit">
                             Create
                         </Button>
                     </Form.Item>
@@ -234,7 +295,6 @@ const Faker: React.FC = () => {
                     </Form.Item>
                 </Form>
             </Card>
-
             <Card title="Create Insurance" style={{ marginBottom: '10px' }}>
                 <Form layout="vertical" onFinish={onFinishInsurance}>
                     <Form.Item>

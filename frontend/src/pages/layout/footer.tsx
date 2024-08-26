@@ -39,7 +39,7 @@ const FooterComponent: FC /*<HeaderProps> */ = () => {
   return (
     <Footer className="footer">
         <div className="footer-content">
-            <p>&copy; {new Date().getFullYear()} Your Company Name</p>
+            <p>&copy; {new Date().getFullYear()} INSURANCE</p>
             {/* <ul className="footer-links">
                 <li><a href="/about">About</a></li>
                 <li><a href="/contact">Contact</a></li>

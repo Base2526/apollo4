@@ -83,6 +83,9 @@ const LoginForm: FC = () => {
           <Button htmlType="submit" type="primary" className="login-page-form_button">
             <LocaleFormatter id="gloabal.tips.login" />
           </Button>
+          {/* <Button onClick={()=>{
+            navigate("/register")
+          }}>Register</Button> */}
         </Form.Item>
       </Form>
     </div>

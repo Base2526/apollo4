@@ -41,7 +41,7 @@ export const queryContentById = gql`query contentById($id: ID!) { contentById(_i
 export const mutationCheck_db = gql`mutation check_db { check_db }`;
 export const mutationLogin = gql`mutation login($input: LoginInput) { login(input: $input) }`;
 export const mutationLoginWithSocial = gql`mutation loginWithSocial($input: LoginWithSocialInput) { loginWithSocial(input: $input) }`;
-export const mutationRegister = gql`mutation register($input: RegisterInput) { register(input: $input) }`;
+export const mutationRegister = gql`mutation register($input: JSON) { register(input: $input) }`;
 export const mutationMe = gql`mutation me($input: JSON) { me(input: $input) }`;
 export const mutationBook = gql`mutation book($input: BookInput) { book(input: $input) }`;
 export const mutationBuy = gql`mutation buy($id: ID!) { buy(_id: $id) }`;
@@ -108,3 +108,6 @@ export const mutationProfile = gql`mutation profile($input: JSON) { profile(inpu
 
 export const faker_agent        = gql`mutation faker_agent($input: JSON) { faker_agent(input: $input) }`;
 export const faker_insurance    = gql`mutation faker_insurance($input: JSON) { faker_insurance(input: $input) }`;
+
+// 
+export const querytest_fetch_node = gql`query test_fetch_node($id: ID!) { test_fetch_node(_id: $id) }`;

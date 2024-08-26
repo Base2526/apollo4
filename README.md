@@ -159,3 +159,14 @@ db.getCollection("supplier").aggregate([
         }
 ])
 
+
+
+{
+    _id: ObjectId('66c567b58acb120679a5288b'),
+    parentNodeId: null,
+    ownerId: ObjectId('66c4b084cd538705b46a616b'),
+    level: 0,
+    number: 1,
+    __v: 0
+}
+

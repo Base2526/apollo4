@@ -5,7 +5,7 @@ import cryptojs from "crypto-js";
 import deepdash from "deepdash";
 deepdash(_);
 import * as fs from "fs";
-import mongoose from 'mongoose';
+// import mongoose from 'mongoose';
 // import fetch from "node-fetch";
 import { GraphQLUpload } from 'graphql-upload';
 import moment from "moment";
@@ -20,8 +20,180 @@ import * as Model from "./model"
 import * as Utils from "./utils"
 import connection from './mongo'
 
+const mongoose = require('mongoose');
+
 export default {
   Query: {
+    async test_fetch_node(parent, args, context, info){
+      let start = Date.now()
+      let { _id } = args
+      // console.log("test_fetch_node :",args, _id)
+
+      let parantNode = await Model.Node.find({ ownerId: mongoose.Types.ObjectId(_id), level: 0, number: 1 });
+
+      console.log("test_fetch_node :", args, _id, parantNode)
+      let treeData = await Utils.fetchTreeData(parantNode[0]._id)
+
+      return {
+        status: true,
+        data: treeData,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+    async test_add_node(parent, args, context, info){
+      let start = Date.now()
+      let { _id, ownerId, packages } = args
+
+     
+
+      // const parentId = mongoose.Types.ObjectId(_id); // Replace with actual parent ID
+      // const ownerId = new mongoose.Types.ObjectId(); // Replace with actual owner ID
+      // await Utils.insertNodes(ownerId, parentId, packages)
+
+      // const ownerId = mongoose.Types.ObjectId("YourOwnerIdHere");
+      // const parentId = mongoose.Types.ObjectId("YourParentIdHere");
+      const initialLevel = 0;
+      const numberOfChildren = packages;
+
+      let parantNode = await Model.Node.find({ ownerId: mongoose.Types.ObjectId(_id), level: 0, number: 1 });
+
+      console.log("test_add_node :", parantNode, _id)
+      if(_.isEmpty(parantNode)){
+        return { status: false };
+      }
+
+      // await Utils.createChildNodes(mongoose.Types.ObjectId(ownerId), parantNode._id, initialLevel, numberOfChildren);
+
+      
+      const session = await mongoose.startSession();
+      session.startTransaction();
+      try {
+        
+        // const initialLevel = 0;
+        await Utils.createChildNodes(mongoose.Types.ObjectId(ownerId), parantNode[0]._id, initialLevel, packages, session);
+        // Commit the transaction
+        await session.commitTransaction();
+      }catch(error){
+        console.log("error @@@@@@@1 :", error)
+        
+    
+        await session.abortTransaction();
+    
+        throw new AppError(Constants.ERROR, error)
+      }finally {
+        session.endSession();
+    
+        console.log("finally @@@@@@@1 :")
+      }  
+
+      
+      return {  status: true };
+   
+      // let ownerId = /*mongoose.Types.ObjectId('66c581d3ea26b41192a00bcb');*/ new mongoose.Types.ObjectId();  // Replace with actual ownerId
+      // let parentId = mongoose.Types.ObjectId(_id);//new mongoose.Types.ObjectId(); 
+
+      // switch(packages){
+
+      //   case 7:{
+          // let level = 1;
+          // let newNode = await Utils.addMultipleChildren(ownerId, parentId, level, 1);
+          // console.log("new node :", newNode)
+          // if(newNode && packages >1){
+          //   parentId = newNode._id
+          //   for (let i = 0; i < packages; i++) {
+          //     if(i <= 7){
+          //       level = 2
+          //     }else if(i > 7 && i <= 49){
+          //       level = 3
+          //     }else if(i > 49 && i <= 343){
+          //       level = 4
+          //     }
+          //     await Utils.addMultipleChildren(ownerId, parentId, level, 1);
+          //   }
+          // }
+      //     break;
+      //   }
+
+      //   case 49:{
+      //     break;
+      //   }
+
+      //   case 343:{
+      //     break;
+      //   }
+
+      //   case 2401:{
+      //     break;
+      //   }
+
+      //   case 16807:{
+      //     break;
+      //   }
+      // }
+        
+      // await Utils.addMultipleChildren(ownerId, parentId, 1);
+
+
+       /*.then(() => {
+          console.log('10 nodes created');
+          // Fetch the nodes to be used in your frontend
+          // fetchTreeData(ownerId).then(treeData => {
+          //     console.log('Tree Data:', treeData);
+          // });
+      });
+      */
+      // let treeData = await Utils.fetchTreeData(ownerId)
+
+      return {
+        status: true,
+        // data: treeData,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+    async init(parent, args, context, info){
+      let start = Date.now()
+      let checkAdmin = await Model.Member.findOne({'current.username': 'admin'})
+      console.log("checkAmin :", checkAdmin)
+      if(!_.isEmpty(checkAdmin)){
+        throw new AppError(Constants.ERROR, "EXITING USERNAME")
+      }
+      
+      const session = await mongoose.startSession();
+      session.startTransaction()
+      try {
+        let newInput =  {current: { 
+                                    username: 'admin',
+                                    password: cryptojs.AES.encrypt( 'Somkid058848391@', process.env.JWT_SECRET).toString(),
+                                    displayName: "ADMIN",
+                                    email : "admin@local.local",
+                                    tel : "0000000000", 
+                                    idCard: "0000000000000",
+                                    roles: [ Constants.AMDINISTRATOR ],
+                                    lastAccess: Date.now(), 
+                                    isOnline: true
+                                  }
+                          }
+
+        let newUser = await Model.Member.create(newInput);
+        let newMLM  = await Model.MLM.create({current: { ownerId: newUser._id,  level: 0, number: 0 }});
+
+        console.log("newUser :", newUser, newMLM);
+      }catch(error){
+        await session.abortTransaction();
+        console.log(`init #error ${error}`)
+
+        throw new AppError(Constants.ERROR, error)
+      }finally {
+        session.endSession();
+
+        console.log("init # : OK")
+      }  
+      
+      return {
+        status: true,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
     async healthCheck (parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1961,23 +2133,77 @@ export default {
     async register(parent, args, context, info) {
       let start     = Date.now()
       let { input } = args
+      let { req } = context
 
-      let user = await Utils.getUser({ email: input.email } ) 
-      if(!_.isNull(user)) throw new AppError(Constants.ERROR, "EXITING EMAIL")
-
-      let newInput =  {...input,  username: input.username?.toLowerCase(),
+      console.log("register :", args)
+      
+      if(!_.isNull( await Utils.getMember({
+                                            "$and": [{
+                                                "current.username": input.username
+                                            }, {
+                                                "current.email": input.email
+                                            }]
+                                          } ) )) throw new AppError(Constants.ERROR, "EXITING USERNAME AND EMAIL", input)
+      
+      if(!_.isNull( await Utils.getMember({ "current.username": input.username?.toLowerCase() }))) throw new AppError(Constants.ERROR, "EXITING USERNAME", input)
+      if(!_.isNull( await Utils.getMember({ "current.email": input.email }) )) throw new AppError(Constants.ERROR, "EXITING EMAIL", input)
+      if(!_.isNull( await Utils.getMember({ "current.idCard": input.idCard }) )) throw new AppError(Constants.ERROR, "EXITING ID CARD", input)
+      if(!_.isNull( await Utils.getMember({ "current.tel": input.tel }) )) throw new AppError(Constants.ERROR, "EXITING TEL", input)
+      
+      let newInput =  {current: { ...input,  
+                                  username: input.username?.toLowerCase(),
                                   password: cryptojs.AES.encrypt( input.password, process.env.JWT_SECRET).toString(),
                                   displayName: _.isEmpty(input.displayName) ? input.username : input.displayName ,
-                                  roles: [Constants.AUTHENTICATED], 
                                   lastAccess: Date.now(), 
                                   isOnline: true}
-              
-      await Model.User.create(newInput);
-      return {
-        status: true,
-        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
-      }
+                      }
+
+
+      const session = await mongoose.startSession();
+      session.startTransaction();
+      try {
+        // let memberNew = await Model.Member.create([newInput], { session });
+        // let check2    = await Utils.addMLM(memberNew._id, input)
+        // console.log("check2 :", check2);
+
+        let memberNew = await Model.Member.create([newInput], { session });
+
+        if (!memberNew || memberNew.length === 0) {
+          throw new AppError("Member creation failed, returned undefined.");
+        }
+
+        let parantNode = await Model.Node.find({ ownerId: input.parentId, level: 0, number: 1 }).session(session);
+        if(!parantNode || parantNode.length === 0){
+          throw new AppError(Constants.ERROR, "Node find failed, returned undefined.");
+        }
+
+        console.log("@1 :", memberNew[0]._id, parantNode[0]._id)
+  
+        const initialLevel = 0;
+        await Utils.createChildNodes(memberNew[0]._id, parantNode[0]._id, initialLevel, input.packages, session);
+
+        // Commit the transaction
+        await session.commitTransaction();
+
+        return {
+          status: true,
+          memberNew,
+          executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+        }
+      }catch(error){
+        console.log("error @@@@@@@1 :", error)
+        
+
+        await session.abortTransaction();
+
+        throw new AppError(Constants.ERROR, error)
+      }finally {
+        session.endSession();
+
+        console.log("finally @@@@@@@1 :")
+      }  
     },
+
     async me(parent, args, context, info) {
       let start = Date.now()
       let { input } = args

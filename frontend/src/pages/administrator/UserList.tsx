@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "@apollo/client";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import _ from "lodash"
 import { DownOutlined } from '@ant-design/icons';
+import { useSelector } from 'react-redux';
 
 import { queryMembers } from "../../apollo/gqlQuery"
 import { getHeaders, isValidUrl } from "../../utils"
@@ -25,6 +26,83 @@ const items = [
     { key: '2', label: 'Delete' },
 ];
 
+const columns = (navigate: ReturnType<typeof useNavigate>) => [
+    {
+        title: 'Avatar',
+        dataIndex: 'avatar',
+        render:(avatar: any)=>{
+            return isValidUrl(avatar) 
+                    ? <Image  width={100} src={avatar} /> 
+                    : <Image  width={100} src={"http://localhost:4000/" + avatar} /> 
+        }
+    },
+    {
+        title: 'User',
+        dataIndex: 'displayName',
+        sorter: (a: DataType, b: DataType) => a.displayName.localeCompare(b.displayName),
+        render: (name: string) =>{
+            return <Tag color="#2db7f5">{name}</Tag>
+        }
+    },
+    {
+        title: 'Email',
+        dataIndex: 'email',
+        sorter: (a: DataType, b: DataType) => a.email.localeCompare(b.email),
+        // render: (path: string) =>{
+        //     let newPath = window.location.protocol +'//'+ window.location.hostname + ':4000/' + path
+        //     return <a href={newPath} target="_blank" rel="noopener noreferrer">{ path }</a>
+        // }
+    },
+    {
+        title: 'Roles',
+        dataIndex: 'roles',
+        render: (roles: number[]) =>{
+            return _.map(roles, role=>{
+                return <Tag color="#2db7f5">{role}</Tag>
+            })
+        }
+    },
+    {
+        title: 'Date',
+        dataIndex: 'timestamp',
+        // sorter: (a: DataType, b: DataType) => a.address.localeCompare(b.address),
+        render: (timestamp: string) =>{
+            return <div>{(moment(new Date(timestamp), 'YYYY-MM-DD HH:mm')).format('MMMM Do YYYY, h:mm:ss a')}</div>
+        }
+    },
+    {
+        title: 'Action',
+        key: 'action',
+        sorter: true,
+        render: (data: any) => {
+            console.log("Action :", data)
+
+            if(data.roles.includes(1)){
+                return  <Space size="middle">
+                            <a onClick={()=>{
+                                navigate("/administrator/userlist/user")
+                            }}>View</a>
+                            
+                            <Dropdown menu={{ items }}>
+                                <a>More <DownOutlined /></a>
+                            </Dropdown>
+                        </Space>
+            }
+            return  <Space size="middle">
+                        <a onClick={()=>{
+                            navigate("/administrator/userlist/user")
+                        }}>View</a>
+                        <a onClick={()=>{
+                            navigate("/administrator/userlist/tree")
+                        }}>Tree</a>
+                        <Dropdown menu={{ items }}>
+                            <a>More <DownOutlined /></a>
+                        </Dropdown>
+                    </Space>
+        }
+    },
+];
+
 const UserList: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -32,67 +110,9 @@ const UserList: React.FC = () => {
     const [filteredData, setFilteredData] = useState<DataType[]>();
     const [data, setData] = useState<DataType[]>();
     const [files, setFiles] = useState<File[]>([]);
+    const { profile } = useSelector((state: any) => state.user);
 
-    const columns = [
-        {
-            title: 'Avatar',
-            dataIndex: 'avatar',
-            render:(avatar: any)=>{
-                return isValidUrl(avatar) 
-                        ? <Image  width={100} src={avatar} /> 
-                        : <Image  width={100} src={"http://localhost:4000/" + avatar} /> 
-            }
-        },
-        {
-            title: 'User',
-            dataIndex: 'displayName',
-            sorter: (a: DataType, b: DataType) => a.displayName.localeCompare(b.displayName),
-            render: (name: string) =>{
-                return <Tag color="#2db7f5">{name}</Tag>
-            }
-        },
-        {
-            title: 'Email',
-            dataIndex: 'email',
-            sorter: (a: DataType, b: DataType) => a.email.localeCompare(b.email),
-            // render: (path: string) =>{
-            //     let newPath = window.location.protocol +'//'+ window.location.hostname + ':4000/' + path
-            //     return <a href={newPath} target="_blank" rel="noopener noreferrer">{ path }</a>
-            // }
-        },
-        {
-            title: 'Roles',
-            dataIndex: 'roles',
-            render: (roles: number[]) =>{
-                return _.map(roles, role=>{
-                    return <Tag color="#2db7f5">{role}</Tag>
-                })
-            }
-        },
-        {
-            title: 'Date',
-            dataIndex: 'timestamp',
-            // sorter: (a: DataType, b: DataType) => a.address.localeCompare(b.address),
-            render: (timestamp: string) =>{
-                return <div>{(moment(new Date(timestamp), 'YYYY-MM-DD HH:mm')).format('MMMM Do YYYY, h:mm:ss a')}</div>
-            }
-        },
-        {
-            title: 'Action',
-            key: 'action',
-            sorter: true,
-            render: () => (
-                <Space size="middle">
-                    <a onClick={()=>{
-                        navigate("/administrator/userlist/user")
-                    }}>View</a>
-                    <Dropdown menu={{ items }}>
-                        <a>More <DownOutlined /></a>
-                    </Dropdown>
-                </Space>
-            ),
-        },
-    ];
+    // console.log("UserList :", profile.current.roles);
 
     const { loading: loadingMembers, 
             data: dataMembers, 
@@ -157,7 +177,7 @@ const UserList: React.FC = () => {
                 style={{ marginBottom: 16 }}
             />
             <Table
-                columns={columns}
+                columns={columns(navigate)}
                 dataSource={filteredData}
                 pagination={{ pageSize: 50 }}
                 rowKey="key"

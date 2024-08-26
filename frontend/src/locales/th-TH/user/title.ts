@@ -13,4 +13,6 @@ export const enUS_title = {
   'title.insurance': 'Insurance',
   'title.profile': 'Profile',
   'title.settings': 'Settings',
+
+  'title.register': 'Register'
 };

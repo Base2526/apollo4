@@ -4,7 +4,7 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient } from 'graphql-ws';
 import { HttpLink } from '@apollo/client';
 import { getMainDefinition } from "@apollo/client/utilities";
-import { createUploadLink } from 'apollo-upload-client'; // v15.0.0
+import { createUploadLink } from 'apollo-upload-client';
 
 // const httpLink = new HttpLink({
 //   uri: 'http://localhost:4000/graphql', // Your Apollo Server HTTP endpoint

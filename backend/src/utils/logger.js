@@ -95,6 +95,7 @@ const logger = winston.createLogger({
       options: {
         useUnifiedTopology: true,
         useNewUrlParser: true,
+        connectTimeoutMS: 30000,  // 30 seconds
       },
       // A collection to save json formatted logs
       collection: 'dblog',

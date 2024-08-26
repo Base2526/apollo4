@@ -302,10 +302,13 @@ const modelExists =()=>{
     if (result.length > 0) {
     } else {
       let newMember = new Model.Member({current:{
+                                                  parentId: new mongoose.Types.ObjectId(),
                                                   username: "username",
                                                   password: "password",
                                                   email: "email@banlist.info",
+                                                  tel: "091111111111",
                                                   displayName: "displayName",
+                                                  idCard: "123456789"
                                                 }
                                         });
       await newMember.save();
@@ -313,10 +316,35 @@ const modelExists =()=>{
     }
   });
 
+  /*
+  var childSchema  = new Schema({
+    childId: { type: Schema.Types.ObjectId, required:[true, "Child ID Request is a required field"]},
+    updatedAt : { type : Date, default: Date.now },
+})
+
+const mlmSchema = new Schema({
+    current: {
+        parentId: { type: Schema.Types.ObjectId, default : null },
+        childs: [childSchema],
+        level: { type: Number, required:[true, "Level Request is a required field"]},
+        updatedAt: { type : Date, default: Date.now },
+    },
+    history: [historySchema]
+},
+{
+    timestamps: true
+})
+  */
+
   Model.MLM.find({}, async(err, result)=> {
     if (result.length > 0) {
     } else {
-      let newMLM = new Model.MLM({});
+      let newMLM = new Model.MLM({current: {
+                                              ownerId: new mongoose.Types.ObjectId(),
+                                              level: 0,
+                                              number: 0
+                                            }
+                                  });
       
       await newMLM.save();
       await Model.MLM.deleteMany({})
@@ -394,12 +422,24 @@ const modelExists =()=>{
       await Model.Agent.deleteMany({})
     }
   });
+
+  Model.Node.find({}, async(err, result)=> {
+    if (result.length > 0) {
+    } else {
+      let newNode = new Model.Node({  
+                                      parentNodeId: new mongoose.Types.ObjectId(), 
+                                      ownerId: new mongoose.Types.ObjectId(), 
+                                      level: 0 
+                                    });
+      await newNode.save();
+      await Model.Node.deleteMany({})
+    }
+  });  
 }
 
 // TODO: initial and connect to MongoDB
 mongoose.Promise = global.Promise;
 // mongoose.connect("YOUR_MONGODB_URI", { useNewUrlParser: true });
-
 // console.log(">>>>> process.env.MONGO_URI :", process.env)
 // uri
 mongoose.connect(

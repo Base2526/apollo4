@@ -12,6 +12,7 @@ import ListCtpPage from "@/pages/insurance/ListCtp"
 import Dashboard from '@/pages/dashboard';
 import LayoutPage from '@/pages/layout';
 import LoginPage from '@/pages/login';
+import RegisterPage from '@/pages/register';
 
 import ProfilePage from "@/pages/profile"
 import SettingsPage from "@/pages/settings"
@@ -34,6 +35,7 @@ import FakerPage from "@/pages/administrator/Faker"
 import FileListPage from "@/pages/administrator/FileList"
 import DblogPage  from "@/pages/administrator/Dblog"
 import ImportPage from "@/pages/administrator/Import"
+import TreePage from "@/pages/administrator/Tree"
 
 import WrapperRouteComponent from './config';
 
@@ -57,8 +59,15 @@ const BusinessWithTabsPage = lazy(() => import(/* webpackChunkName: "with-tabs" 
 
 const routeList: RouteObject[] = [
   {
-    path: '/login',
-    element: <WrapperRouteComponent requireAuth={false} element={<LoginPage />} titleId="title.login" />,
+    // element: <LayoutPage />,
+    children: [{
+      path: '/login',
+      element: <WrapperRouteComponent requireAuth={false} element={<LoginPage />} titleId="title.login" />,
+    },{
+      path: '/register/:id',
+      element: <WrapperRouteComponent requireAuth={false} element={<RegisterPage />} titleId="title.register" />,
+    }
+    ]
   },
   {
     // path: '/',
@@ -140,10 +149,13 @@ const routeList: RouteObject[] = [
         path: 'administrator/userlist',
         element: <WrapperRouteComponent requireAuth={true} element={<UserListPage />} titleId="title.insurance" />,
       },
-      // 
       {
         path: 'administrator/userlist/user',
         element: <WrapperRouteComponent requireAuth={true} element={<UserPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'administrator/userlist/tree',
+        element: <WrapperRouteComponent requireAuth={true} element={<TreePage />} titleId="title.insurance" />,
       },
       {
         path: 'administrator/faker',
