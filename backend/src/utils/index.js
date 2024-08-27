@@ -509,7 +509,7 @@ export const checkRole = (user) =>{
         let { REACT_APP_USER_ROLES } = process.env
         console.log("@2 checkRole :", user?.current?.roles, REACT_APP_USER_ROLES)
         if(_.includes( user?.current?.roles, parseInt(_.split(REACT_APP_USER_ROLES, ',' )[0])) ){
-            return Constants.AMDINISTRATOR;
+            return Constants.ADMINISTRATOR;
         }
         else if(_.includes( user?.current?.roles, parseInt(_.split(REACT_APP_USER_ROLES, ',' )[2])) ){
             return Constants.SELLER;

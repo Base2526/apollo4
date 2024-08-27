@@ -168,7 +168,7 @@ export default {
                                     email : "admin@local.local",
                                     tel : "0000000000", 
                                     idCard: "0000000000000",
-                                    roles: [ Constants.AMDINISTRATOR ],
+                                    roles: [ Constants.ADMINISTRATOR ],
                                     lastAccess: Date.now(), 
                                     isOnline: true
                                   }
@@ -217,7 +217,7 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.AMDINISTRATOR  &&
+      if( role !== Constants.ADMINISTRATOR  &&
           role !== Constants.AUTHENTICATED &&
           role !== Constants.SELLER
           ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
@@ -239,7 +239,7 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( role !== Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       console.log(`####################### checkWalletByUserId Start ${ _id } ##############################`)
 
@@ -452,7 +452,7 @@ export default {
       let { req } = context
       let { _id } = args
       let { current_user } =  await Utils.checkAuth(req);
-      // if( Utils.checkRole(current_user) == Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      // if( Utils.checkRole(current_user) == Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let data = await Model.BasicContent.findOne({_id})
       return {  status: true,
@@ -474,14 +474,14 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( role !== Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let { OFF_SET, LIMIT } = args?.input
       
       let users = await Model.User.aggregate([
                                                 {
                                                   $match: {
-                                                    roles: {$nin:[Constants.AMDINISTRATOR.toString()]}
+                                                    roles: {$nin:[Constants.ADMINISTRATOR.toString()]}
                                                   }
                                                 },
                                                 { $skip: OFF_SET }, 
@@ -560,7 +560,7 @@ export default {
       return { 
               status: true,
               data: transitions,
-              total: ( await Utils.getUserFull({roles: {$nin:[Constants.AMDINISTRATOR.toString()]}}) )?.length,
+              total: ( await Utils.getUserFull({roles: {$nin:[Constants.ADMINISTRATOR.toString()]}}) )?.length,
               executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` 
             }
     },
@@ -586,7 +586,7 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( role !== Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let data = await Model.Role.find({_id: {$in: args?.input }})
       return {
@@ -854,7 +854,7 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req)
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.AMDINISTRATOR &&
+      if( role !== Constants.ADMINISTRATOR &&
           role !== Constants.SELLER 
         ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
@@ -904,13 +904,13 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req)
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.AMDINISTRATOR &&
+      if( role !== Constants.ADMINISTRATOR &&
           role !== Constants.SELLER
         ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       switch(role){
-        case Constants.AMDINISTRATOR:{
-          console.log("buys : Constants.AMDINISTRATOR")
+        case Constants.ADMINISTRATOR:{
+          console.log("buys : Constants.ADMINISTRATOR")
           // let transitions = await Model.Transition.find({ type: Constants.SUPPLIER, status: Constants.APPROVED });
           // transitions = await Promise.all(_.map(transitions, async(transition)=>{
           //                     switch(transition.type){
@@ -1086,7 +1086,7 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( role !== Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let dblogs = await Model.Dblog.find({})
       return {  status: true,
@@ -1101,7 +1101,7 @@ export default {
       
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( role !== Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let dateLotterys = await Model.DateLottery.find({})
       
@@ -1117,7 +1117,7 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( role !== Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let dateLottery = await Model.DateLottery.findById(_id)
       if(_.isNull(dateLottery)) throw new AppError(Constants.DATA_NOT_FOUND, 'Data not found.')
@@ -1144,7 +1144,7 @@ export default {
       let start = Date.now()
       let { req } = context
       let { current_user } =  await Utils.checkAuth(req);
-      // if( Utils.checkRole(current_user) == Constants.AMDINISTRATOR || Utils.checkRole(current_user) == Constants.SELLER ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      // if( Utils.checkRole(current_user) == Constants.ADMINISTRATOR || Utils.checkRole(current_user) == Constants.SELLER ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
       let data = await Model.ManageLottery.find({})
       return {  status: true,
                 data,
@@ -1157,7 +1157,7 @@ export default {
       let { req } = context
       let { _id } = args
       let { current_user } =  await Utils.checkAuth(req);
-      // if( Utils.checkRole(current_user) == Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      // if( Utils.checkRole(current_user) == Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let data = await Model.ManageLottery.findOne({_id})
       return {  status: true,
@@ -1172,7 +1172,7 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( role !== Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let data = await Model.Transition.aggregate([
                   { $match: { type: Constants.DEPOSIT } },
@@ -1202,7 +1202,7 @@ export default {
       let { req } = context
 
       let { current_user } =  await Utils.checkAuth(req);
-      if( Utils.checkRole(current_user) !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( Utils.checkRole(current_user) !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let data = await Model.Transition.aggregate([
                           { $match: { type: Constants.WITHDRAW } },
@@ -1235,7 +1235,7 @@ export default {
       // console.log("adminHome :", context)
 
       let { current_user } =  await Utils.checkAuth(req);
-      if( Utils.checkRole(current_user) !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( Utils.checkRole(current_user) !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let transitions = await Model.Transition.aggregate([
         { 
@@ -1275,7 +1275,7 @@ export default {
       ])
 
       let suppliers = Array.from({ length: await Utils.getTotalSupplier() }, (_, i) => i);
-      let users     = await Model.User.find({ roles: {$nin:[Constants.AMDINISTRATOR.toString()]} }, 
+      let users     = await Model.User.find({ roles: {$nin:[Constants.ADMINISTRATOR.toString()]} }, 
                                             { username: 1, email: 1, displayName: 1, banks: 1, roles: 1, avatar: 1, lastAccess: 1 }); 
 
       let withdraws = _.filter(transitions, (transition)=>transition?.withdraw)
@@ -1310,7 +1310,7 @@ export default {
         
       let { req } = context
       let { current_user } =  await Utils.checkAuth(req);
-      if( Utils.checkRole(current_user) !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( Utils.checkRole(current_user) !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let data = await Model.Transition.aggregate([
                               { $match: { status: Constants.WAIT, type: Constants.DEPOSIT } },
@@ -1339,7 +1339,7 @@ export default {
       let start = Date.now()
       let { req } = context
       let { current_user } =  await Utils.checkAuth(req);
-      if( Utils.checkRole(current_user) !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( Utils.checkRole(current_user) !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let data = await Model.Transition.aggregate([
                   { $match: { status: Constants.WAIT, type: Constants.WITHDRAW } },
@@ -1369,7 +1369,7 @@ export default {
       let { req } = context
       let { current_user } =   await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.AMDINISTRATOR && 
+      if( role !== Constants.ADMINISTRATOR && 
           role !== Constants.SELLER ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       // let { TITLE, NUMBER, PAGE, LIMIT } = args?.input
@@ -1468,7 +1468,7 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.AMDINISTRATOR &&
+      if( role !== Constants.ADMINISTRATOR &&
           role !== Constants.AUTHENTICATED && 
           role !== Constants.SELLER ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
@@ -1489,7 +1489,7 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.AMDINISTRATOR &&
+      if( role !== Constants.ADMINISTRATOR &&
           role !== Constants.AUTHENTICATED && 
           role !== Constants.SELLER ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
@@ -1524,7 +1524,7 @@ export default {
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
 
-      if( role !== Constants.AMDINISTRATOR && role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+      if( role !== Constants.ADMINISTRATOR && role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
       let members =  await Model.Member.aggregate([
                                                     {
@@ -1558,7 +1558,7 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.AMDINISTRATOR && role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+      if( role !== Constants.ADMINISTRATOR && role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
       let files = await Model.File.aggregate([
                                                 {
@@ -1590,7 +1590,7 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.AMDINISTRATOR &&
+      if( role !== Constants.ADMINISTRATOR &&
           role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', args)
 
       return {
@@ -1609,7 +1609,7 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       // console.log("current_user :", current_user)
-      if( Utils.checkRole(current_user) !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( Utils.checkRole(current_user) !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let users = await Model.User.find({})
       
@@ -1640,7 +1640,7 @@ export default {
 
       // let { current_user } =  await Utils.checkAuth(req);
       // console.log("current_user :", current_user)
-      // if( Utils.checkRole(current_user) !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      // if( Utils.checkRole(current_user) !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       console.log("check_db :", connection)
       let { readyState } = connection
@@ -2211,12 +2211,12 @@ export default {
       
       let { current_user } =  await Utils.checkAuth(req);
 
-      if( Utils.checkRole(current_user) !==Constants.AMDINISTRATOR &&
+      if( Utils.checkRole(current_user) !==Constants.ADMINISTRATOR &&
           Utils.checkRole(current_user) !==Constants.SELLER &&
           Utils.checkRole(current_user) !==Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       switch(Utils.checkRole(current_user)){
-        case Constants.AMDINISTRATOR:{
+        case Constants.ADMINISTRATOR:{
           console.log("me :", input)
 
           let fileObject = input?.avatar
@@ -2529,7 +2529,7 @@ export default {
       console.log("supplier :", input)
 
       let { current_user } =  await Utils.checkAuth(req);
-      if( Utils.checkRole(current_user) !==Constants.AMDINISTRATOR && 
+      if( Utils.checkRole(current_user) !==Constants.ADMINISTRATOR && 
           Utils.checkRole(current_user) !==Constants.SELLER ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       if(input.test){
@@ -2853,7 +2853,7 @@ export default {
       let { req } = context
 
       let { current_user } =  await Utils.checkAuth(req);
-      if( !_.isEqual(Utils.checkRole(current_user), Constants.AMDINISTRATOR) ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( !_.isEqual(Utils.checkRole(current_user), Constants.ADMINISTRATOR) ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       await Promise.all( _.map(input, async(date, weight)=>{
                           let dateLottery =  await Model.DateLottery.findOne({date})
@@ -2916,7 +2916,7 @@ export default {
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
       if( role !==Constants.AUTHENTICATED && 
-          role !==Constants.AMDINISTRATOR  &&
+          role !==Constants.ADMINISTRATOR  &&
           role !==Constants.SELLER) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let comment = await Model.Comment.findOne({ _id: input?._id })
@@ -3023,7 +3023,7 @@ export default {
       let { req } = context
 
       let { current_user } =  await Utils.checkAuth(req);
-      if( Utils.checkRole(current_user) !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( Utils.checkRole(current_user) !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let aggregate = [
                         { 
@@ -3110,7 +3110,7 @@ export default {
       let { req } = context
 
       let { current_user } =  await Utils.checkAuth(req);
-      if( Utils.checkRole(current_user) !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( Utils.checkRole(current_user) !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let transition = await Model.Transition.findOne({ _id: input?._id })
       
@@ -3148,7 +3148,7 @@ export default {
       let { req } = context
 
       let { current_user } =  await Utils.checkAuth(req);
-      if( Utils.checkRole(current_user) !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( Utils.checkRole(current_user) !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let result = {input}
 
@@ -3208,7 +3208,7 @@ export default {
 
       console.log("forceLogout :", input)
       let { current_user } =  await Utils.checkAuth(req);
-      if( Utils.checkRole(current_user) !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( Utils.checkRole(current_user) !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       switch(input?.mode.toLowerCase()){
         case "all":{
@@ -3255,7 +3255,7 @@ export default {
       console.log("expireLottery :", input)
 
       let { current_user } =  await Utils.checkAuth(req);
-      if( Utils.checkRole(current_user) !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( Utils.checkRole(current_user) !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let manageL = await Model.ManageLottery.findOne({_id: mongoose.Types.ObjectId(input?._id)})
       console.log("expireLottery manageL :", manageL, manageL?.end_date_time)
@@ -3289,7 +3289,7 @@ export default {
       console.log("Calculate lottery :", input)
 
       let { current_user } =  await Utils.checkAuth(req);
-      if( Utils.checkRole(current_user) !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( Utils.checkRole(current_user) !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       let manageL = await Model.ManageLottery.findOne({_id: mongoose.Types.ObjectId(input?._id)})
       console.log("Calculate lottery manageL :", manageL)
@@ -3735,7 +3735,7 @@ export default {
 
         let { current_user } =  await Utils.checkAuth(req);
         let role = Utils.checkRole(current_user)
-        if( role !== Constants.AMDINISTRATOR &&
+        if( role !== Constants.ADMINISTRATOR &&
             role !== Constants.AUTHENTICATED &&
             role !== Constants.SELLER ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
@@ -3809,7 +3809,7 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.AMDINISTRATOR &&
+      if( role !== Constants.ADMINISTRATOR &&
           role !== Constants.AUTHENTICATED &&
           role !== Constants.SELLER ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
@@ -4085,7 +4085,7 @@ export default {
       console.log("content :", input)
 
       let { current_user } =  await Utils.checkAuth(req);
-      if( Utils.checkRole(current_user) !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( Utils.checkRole(current_user) !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
       // return {
       //   status: true,
@@ -4135,7 +4135,7 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+      if( role !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
 
       let newFiles = [];
@@ -4216,7 +4216,7 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !==Constants.AMDINISTRATOR && 
+      if( role !==Constants.ADMINISTRATOR && 
           role !==Constants.SELLER ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
 
 
@@ -4297,7 +4297,7 @@ export default {
       let { current_user } =  await Utils.checkAuth(req);
 
       let role = Utils.checkRole(current_user)
-      if( role !==Constants.AMDINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+      if( role !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
       if(!_.isNull( await Utils.getMember({
                                             "$and": [{

@@ -1,5 +1,5 @@
 export const ANONYMOUS     = 0;
-export const AMDINISTRATOR = 1;
+export const ADMINISTRATOR = 1;
 export const AUTHENTICATED = 2;
 export const SELLER        = 3;
 

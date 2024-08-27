@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const Schema = mongoose.Schema
 
-import { AMDINISTRATOR, AUTHENTICATED } from "../constants"
+import { ADMINISTRATOR, AUTHENTICATED } from "../constants"
 
 const SubscriberInput = new Schema({
   userId: { type: Schema.Types.ObjectId, required:[true, "User-ID is a required field"]},
@@ -24,7 +24,7 @@ const userSchema = new Schema({
   displayName: { type: String, required:[true, "Email Request is a required field"]},
   banks: [BanksInput],
   roles: [{ type: String,
-            enum : [AUTHENTICATED, AMDINISTRATOR],
+            enum : [AUTHENTICATED, ADMINISTRATOR],
             default: AUTHENTICATED
           }],
   // isActive: { type: String },

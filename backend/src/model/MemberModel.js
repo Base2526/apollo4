@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 const Schema = mongoose.Schema
 
-import { AMDINISTRATOR, AUTHENTICATED } from "../constants"
+import { ADMINISTRATOR, AUTHENTICATED } from "../constants"
 
 const historySchema = new Schema({
     version: Number,
@@ -25,7 +25,7 @@ const memberSchema = new Schema({
         },
         roles: {
             type: [Number],
-            enum: [AUTHENTICATED, AMDINISTRATOR],
+            enum: [AUTHENTICATED, ADMINISTRATOR],
             default: [AUTHENTICATED],
         },
         isActive: {
