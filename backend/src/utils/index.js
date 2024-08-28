@@ -1427,114 +1427,83 @@ async function addChild2(ownerId, parentId, level) {
     }
 }
 
-async function addChild_org(ownerId, parentId, level) {
+async function findParent_org(ownerId, parentId) {
     // level #1
-    let currentChildren = await Model.Node.find({
-        parentNodeId: mongoose.Types.ObjectId(parentId),
-        // level: level
-    });
+    let currentChildren = await Model.Node.find({current: { parentNodeId: mongoose.Types.ObjectId(parentId) }});
 
     if (currentChildren.length < 7) {
         // add new childen 7 node
         // There's space in the current level, add the new child
-        let newChild = {
-            ownerId: ownerId,
-            parentNodeId: parentId,
-            level: level,
-            number: currentChildren.length + 1 // incremented by 1 for the new child
-        };
-        return await Model.Node.create(newChild);
+        // let newChild = {
+        //     ownerId: ownerId,
+        //     parentNodeId: parentId,
+        //     level: level,
+        //     number: currentChildren.length + 1 // incremented by 1 for the new child
+            
+        // };
+        // return await Model.Node.create(newChild);
+
+        return { parentId, number: currentChildren.length + 1 }
     } else {
         
         // level #2
-        let nextLevel2Children = await Model.Node.find({
-            parentNodeId: { $in: currentChildren.map(child => child._id) },
-            // level: level + 1
-        });
-
+        let nextLevel2Children = await Model.Node.find({ current: { parentNodeId: { $in: currentChildren.map(child => child._id) }}});
         if (nextLevel2Children.length < currentChildren.length * 7) {
              // add new childen 49 node
 
             // If the current level is full, check for space in the next level
             for (let child of currentChildren) {
-                let childNodes = await Model.Node.find({
-                    parentNodeId: child._id,
-                    // level: level + 1
-                });
+                let childNodes = await Model.Node.find({current: { parentNodeId: child._id }});
 
                 if (childNodes.length < 7) {
-                    return await addChild(ownerId, child._id, level + 1);                    
+                    return await findParent(ownerId, child._id /*, level + 1*/ );                    
                 }
             }
         }else{
 
             // level #3
-            let nextLevel3Children = await Model.Node.find({
-                parentNodeId: { $in: nextLevel2Children.map(child => child._id) },
-                // level: level + 1
-            });
-
+            let nextLevel3Children = await Model.Node.find({ current :{ parentNodeId: { $in: nextLevel2Children.map(child => child._id) } }});
             if (nextLevel3Children.length < nextLevel2Children.length * 7) {
                 // add new childen 343 node
 
                 // If the current level is full, check for space in the next level
                 for (let child of nextLevel2Children) {
-                    let childNodes = await Model.Node.find({
-                        parentNodeId: child._id,
-                        // level: level + 1
-                    });
+                    let childNodes = await Model.Node.find({current: { parentNodeId: child._id }} );
 
                     if (childNodes.length < 7) {
-                        return await addChild(ownerId, child._id, level + 2);                    
+                        return await findParent(ownerId, child._id /*, level + 2*/ );                    
                     }
                 }
             } else {
 
                 // level #4
-                let nextLevel4Children = await Model.Node.find({
-                    parentNodeId: { $in: nextLevel3Children.map(child => child._id) },
-                    // level: level + 1
-                });
-
+                let nextLevel4Children = await Model.Node.find({current: { parentNodeId: { $in: nextLevel3Children.map(child => child._id) } }});
                 if (nextLevel4Children.length < nextLevel3Children.length * 7) {
                     // add new childen 2401 node
     
                     // If the current level is full, check for space in the next level
                     for (let child of nextLevel3Children) {
-                        let childNodes = await Model.Node.find({
-                            parentNodeId: child._id,
-                            // level: level + 1
-                        });
+                        let childNodes = await Model.Node.find({current: { parentNodeId: child._id }});
     
                         if (childNodes.length < 7) {
-                            return await addChild(ownerId, child._id, level + 3);                    
+                            return await findParent(ownerId, child._id /*, level + 3*/ );                    
                         }
                     }
                 }else{
                     
                     // level #5
-                    let nextLevel5Children = await Model.Node.find({
-                        parentNodeId: { $in: nextLevel4Children.map(child => child._id) },
-                        // level: level + 1
-                    });
-
+                    let nextLevel5Children = await Model.Node.find({ current: { parentNodeId: { $in: nextLevel4Children.map(child => child._id) } }});
                     if (nextLevel5Children.length < nextLevel4Children.length * 7) {
                         // add new childen 16807 node
         
                         // If the current level is full, check for space in the next level
                         for (let child of nextLevel4Children) {
-                            let childNodes = await Model.Node.find({
-                                parentNodeId: child._id,
-                                // level: level + 1
-                            });
-        
+                            let childNodes = await Model.Node.find({current :{ parentNodeId: child._id }} );
                             if (childNodes.length < 7) {
-                                return await addChild(ownerId, child._id, level + 4);                    
+                                return await findParent( ownerId, child._id );                    
                             }
                         }
                     }else{
-                        // console.log("If all nodes at the current level and next level are full, create a new level #6")
-
                         throw new Error("No space available to add a new child @2.");
                     }
                 }
@@ -1543,7 +1512,7 @@ async function addChild_org(ownerId, parentId, level) {
     }
 }
 
-async function addChild(ownerId, parentId, level, session) {
+async function addChild_org(ownerId, parentId, level, session) {
     // Define constants
     const MAX_CHILDREN = 7;
     const MAX_LEVEL = 5;
@@ -1600,26 +1569,290 @@ async function addChild(ownerId, parentId, level, session) {
     throw new Error("No space available to add a new child.");
 }
 
-export async function createChildNodes(ownerId, parentId, level, numberOfChildren, session) {
-    let newRoot = await addChild(ownerId, parentId, level, session);
-
-    if (numberOfChildren > 1) {
-        level = 1;
-        for (let i = 0; i < numberOfChildren; i++) {
-            await addChild(ownerId, newRoot[0]._id, level, session);
+/*
+parentId : first id node
+*/
+export async function findParent(parentId = null) {
+    // let currentLevel = 1;
+    let nodes = [parentId];
+    let nextLevelNodes = [];
+  
+    while ( true/*currentLevel <= 10 */) {
+      const children = await Model.Node.find({ 'current.parentNodeId': { $in: nodes } });
+      
+    //   console.log("#1 children :", children, nodes)
+      if (children.length < nodes.length * 7) {
+        // There's space in the current level, return a node where a new child can be added
+        for (const node of nodes) {
+          const childCount = await Model.Node.countDocuments({ current: { parentNodeId: node } });
+          if (childCount < 7) {
+            return { parentId: node, number: childCount + 1 };
+          }
         }
+      }
+      
+      // Prepare for the next level
+      nextLevelNodes = children.map(child => child._id);
+      nodes = nextLevelNodes;
+    //   currentLevel++;
     }
+  
+    throw new Error("No space available to add a new child.");
+  }
+  
+
+// export async function findLastNode(ownerId) {
+//     try {
+//       const lastNode = await Model.Node.findOne({ 'current.ownerId': ownerId })
+//         .sort({ 'current.number': -1 }) // Sort in descending order to get the highest number
+//         .exec();
+  
+//       if (lastNode) {
+//         console.log('Last node:', lastNode);
+//         return lastNode;
+//       } else {
+//         console.log('No nodes found for this ownerId');
+//         return null;
+//       }
+//     } catch (error) {
+//       console.error('Error finding last node:', error);
+//     }
+// }
+
+export async function createChildNodes(_id, currentUser, packages) {
+    let start = Date.now()
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+        // หา node แรกที่ _id เป็นเจ้าของ
+        let rootNode = await Model.Node.findOne({'current.ownerId': mongoose.Types.ObjectId(_id), 'current.isParent': true });
+
+        if(_.isEmpty(rootNode)){
+            throw new Error("Root node is Empty.");
+        }
+
+        // หา node ที่สามารถเพิ่มลงไปได้
+        let {parentId, number} = await findParent(rootNode._id)
+
+        if(_.isEmpty(parentId)){
+            throw new Error("FindParent is Empty.");
+        }
+
+        // Generate a new ObjectId
+        const documents = [];
+
+        switch(packages){
+            case 1: {
+                // Create root node
+                const _id0_0 = mongoose.Types.ObjectId();
+                documents.push({ _id: _id0_0, current: { ownerId: currentUser._id, parentNodeId: parentId, number, isParent: true } });
+                break;
+            }
+
+            case 2: {
+                // Create root node
+                const _id0_0 = mongoose.Types.ObjectId();
+                documents.push({ _id: _id0_0, current: { ownerId: currentUser._id, parentNodeId: parentId, number, isParent: true } });
+
+                // Create level 1 nodes
+                const level1Ids = [];
+                for (let i = 0; i < 7; i++) {
+                    const id = mongoose.Types.ObjectId();
+                    documents.push({ _id: id, current: { ownerId: currentUser._id, parentNodeId: _id0_0, number: i + 1 } });
+                    level1Ids.push(id);
+                }
+                break;
+            }
+
+            case 3: {
+                // Create root node
+                const _id0_0 = mongoose.Types.ObjectId();
+                documents.push({ _id: _id0_0, current: { ownerId: currentUser._id, parentNodeId: parentId, number, isParent: true } });
+
+                // Create level 1 nodes
+                const level1Ids = [];
+                for (let i = 0; i < 7; i++) {
+                    const id = mongoose.Types.ObjectId();
+                    documents.push({ _id: id, current: { ownerId: currentUser._id, parentNodeId: _id0_0, number: i + 1 } });
+                    level1Ids.push(id);
+                }
+
+                // Create level 2 nodes
+                const level2Ids = [];
+                for (const parentId of level1Ids) {
+                    for (let i = 0; i < 7; i++) {
+                        const id = mongoose.Types.ObjectId();
+                        documents.push({ _id: id, current: { ownerId: currentUser._id, parentNodeId: parentId, number: i + 1 } });
+                        level2Ids.push(id);
+                    }
+                }
+                break;
+            }
+
+            case 4: {
+                // Create root node
+                const _id0_0 = mongoose.Types.ObjectId();
+                documents.push({ _id: _id0_0, current: { ownerId: currentUser._id, parentNodeId: parentId, number, isParent: true } });
+
+                // Create level 1 nodes
+                const level1Ids = [];
+                for (let i = 0; i < 7; i++) {
+                    const id = mongoose.Types.ObjectId();
+                    documents.push({ _id: id, current: { ownerId: currentUser._id, parentNodeId: _id0_0, number: i + 1 } });
+                    level1Ids.push(id);
+                }
+
+                // Create level 2 nodes
+                const level2Ids = [];
+                for (const parentId of level1Ids) {
+                    for (let i = 0; i < 7; i++) {
+                        const id = mongoose.Types.ObjectId();
+                        documents.push({ _id: id, current: { ownerId: currentUser._id, parentNodeId: parentId, number: i + 1 } });
+                        level2Ids.push(id);
+                    }
+                }
+
+                // Create level 3 nodes
+                const level3Ids = [];
+                for (const parentId of level2Ids) {
+                    for (let i = 0; i < 7; i++) {
+                        const id = mongoose.Types.ObjectId();
+                        documents.push({ _id: id, current: { ownerId: currentUser._id, parentNodeId: parentId, number: i + 1 } });
+                        level3Ids.push(id);
+                    }
+                }
+                break;
+            }
+
+            case 5: {
+                // Create root node
+                const _id0_0 = mongoose.Types.ObjectId();
+                documents.push({ _id: _id0_0, current: { ownerId: currentUser._id, parentNodeId: parentId, number, isParent: true } });
+
+                // Create level 1 nodes
+                const level1Ids = [];
+                for (let i = 0; i < 7; i++) {
+                    const id = mongoose.Types.ObjectId();
+                    documents.push({ _id: id, current: { ownerId: currentUser._id, parentNodeId: _id0_0, number: i + 1 } });
+                    level1Ids.push(id);
+                }
+
+                // Create level 2 nodes
+                const level2Ids = [];
+                for (const parentId of level1Ids) {
+                    for (let i = 0; i < 7; i++) {
+                        const id = mongoose.Types.ObjectId();
+                        documents.push({ _id: id, current: { ownerId: currentUser._id, parentNodeId: parentId, number: i + 1 } });
+                        level2Ids.push(id);
+                    }
+                }
+
+                // Create level 3 nodes
+                const level3Ids = [];
+                for (const parentId of level2Ids) {
+                    for (let i = 0; i < 7; i++) {
+                        const id = mongoose.Types.ObjectId();
+                        documents.push({ _id: id, current: { ownerId: currentUser._id, parentNodeId: parentId, number: i + 1 } });
+                        level3Ids.push(id);
+                    }
+                }
+
+                // Create level 4 nodes
+                const level4Ids = [];
+                for (const parentId of level3Ids) {
+                    for (let i = 0; i < 7; i++) {
+                        const id = mongoose.Types.ObjectId();
+                        documents.push({ _id: id, current: { ownerId: currentUser._id, parentNodeId: parentId, number: i + 1 } });
+                        level4Ids.push(id);
+                    }
+                }
+                break;
+            }
+
+            case 6: {
+                // Create root node
+                const _id0_0 = mongoose.Types.ObjectId();
+                documents.push({ _id: _id0_0, current: { ownerId: currentUser._id, parentNodeId: parentId, number, isParent: true } });
+
+                // Create level 1 nodes
+                const level1Ids = [];
+                for (let i = 0; i < 7; i++) {
+                    const id = mongoose.Types.ObjectId();
+                    documents.push({ _id: id, current: { ownerId: currentUser._id, parentNodeId: _id0_0, number: i + 1 } });
+                    level1Ids.push(id);
+                }
+
+                // Create level 2 nodes
+                const level2Ids = [];
+                for (const parentId of level1Ids) {
+                    for (let i = 0; i < 7; i++) {
+                        const id = mongoose.Types.ObjectId();
+                        documents.push({ _id: id, current: { ownerId: currentUser._id, parentNodeId: parentId, number: i + 1 } });
+                        level2Ids.push(id);
+                    }
+                }
+
+                // Create level 3 nodes
+                const level3Ids = [];
+                for (const parentId of level2Ids) {
+                    for (let i = 0; i < 7; i++) {
+                        const id = mongoose.Types.ObjectId();
+                        documents.push({ _id: id, current: { ownerId: currentUser._id, parentNodeId: parentId, number: i + 1 } });
+                        level3Ids.push(id);
+                    }
+                }
+
+                // Create level 4 nodes
+                const level4Ids = [];
+                for (const parentId of level3Ids) {
+                    for (let i = 0; i < 7; i++) {
+                        const id = mongoose.Types.ObjectId();
+                        documents.push({ _id: id, current: { ownerId: currentUser._id, parentNodeId: parentId, number: i + 1 } });
+                        level4Ids.push(id);
+                    }
+                }
+
+                // Create level 5 nodes
+                for (const parentId of level4Ids) {
+                    for (let i = 0; i < 7; i++) {
+                        const id = mongoose.Types.ObjectId();
+                        documents.push({ _id: id, current: { ownerId: currentUser._id, parentNodeId: parentId, number: i + 1 } });
+                    }
+                }
+
+                break;
+            }
+            default:{
+                throw new Error("Other packages");
+            }
+        }
+        const result = await Model.Node.insertMany(documents, {session});
+
+        let executionTime = `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+        console.log("result ", result.length, executionTime)
+
+        // Commit the transaction
+        await session.commitTransaction();
+    }catch(error){
+        console.log("error @@@@@@@1 :", error)
+        await session.abortTransaction();
+    
+        throw new AppError(Constants.ERROR, error)
+    }finally {
+        session.endSession();
+    
+        console.log("finally @@@@@@@1 :")
+    }  
 }
 
-async function buildTree(parentId = null /*, level = 0*/ ) {
-    const nodes = await Model.Node.find({ parentNodeId: parentId /*, level*/ });
-
-    // console.log("@1", nodes)
+async function buildTree(parentId = null  ) {
+    const nodes = await Model.Node.find({ 'current.parentNodeId': parentId });
     return await Promise.all(nodes.map(async node => {
-        const children = await buildTree(node._id /*, level + 1*/ );
-        const owner = await Model.Member.findById(node.ownerId)
+        const children = await buildTree(node._id );
+        const owner = await Model.Member.findById(node.current.ownerId)
         return {
-            title: `id: ${node._id.toString()}, parentNodeId: ${node.parentNodeId} ,ownerId: ${node.ownerId}, level: ${node.level}, number: ${node.number}`,
+            title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId} ,ownerId: ${node.current.ownerId}, number: ${node.current.number}, isParent: ${node.current.isParent}`,
             key: node._id.toString(),
             node,
             owner,
@@ -1629,23 +1862,18 @@ async function buildTree(parentId = null /*, level = 0*/ ) {
 }
 
 export const  fetchTreeData = async(id) => {
-    const node = await Model.Node.findOne({ _id: id /*, level*/ });
+    const node = await Model.Node.findById(id);
 
     if(node){
-        let trees =  await buildTree(id /*, 1*/ )
-
-        const owner = await Model.Member.findById(node.ownerId)
-
-        let datas = [{
-            title:  `id: ${node._id.toString()}, parentNodeId: ${node.parentNodeId} ,ownerId: ${node.ownerId}, level: ${node.level}, number: ${node.number}`,
-            key: node._id.toString(),
-            node,
-            owner,
-            children: trees
-        }]
-        
-        // console.log("fetchTreeData :", trees, datas)
-        return datas;
+        let trees =  await buildTree(id)
+        const owner = await Model.Member.findById(node.current.ownerId)
+        return [{
+                    title:  `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId} ,ownerId: ${node.current.ownerId}, number: ${node.current.number}, isParent: ${node.current.isParent}`,
+                    key: node._id.toString(),
+                    node,
+                    owner,
+                    children: trees
+                }]
     }
 
     return []

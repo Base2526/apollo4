@@ -26,13 +26,21 @@ export default {
   Query: {
     async test_fetch_node(parent, args, context, info){
       let start = Date.now()
+      let { req } = context
       let { _id } = args
-      // console.log("test_fetch_node :",args, _id)
 
-      let parantNode = await Model.Node.find({ ownerId: mongoose.Types.ObjectId(_id), level: 0, number: 1 });
+      let { status, current_user } =  await Utils.checkAuth(req);
+      if(!status){
+        throw new AppError(Constants.ERROR, "current user empty")
+      }
 
-      console.log("test_fetch_node :", args, _id, parantNode)
-      let treeData = await Utils.fetchTreeData(parantNode[0]._id)
+      let rootNode = await Model.Node.findOne({'current.ownerId': current_user._id, 'current.isParent': true });
+      if(_.isEmpty(rootNode)){
+        throw new AppError(Constants.ERROR, "current user empty")
+      }
+
+      console.log("test_fetch_node :", args, _id, rootNode)
+      let treeData = await Utils.fetchTreeData(rootNode._id)
 
       return {
         status: true,
@@ -42,111 +50,17 @@ export default {
     },
     async test_add_node(parent, args, context, info){
       let start = Date.now()
-      let { _id, ownerId, packages } = args
+      let { req } = context
+      let { _id, packages } = args
 
-     
-
-      // const parentId = mongoose.Types.ObjectId(_id); // Replace with actual parent ID
-      // const ownerId = new mongoose.Types.ObjectId(); // Replace with actual owner ID
-      // await Utils.insertNodes(ownerId, parentId, packages)
-
-      // const ownerId = mongoose.Types.ObjectId("YourOwnerIdHere");
-      // const parentId = mongoose.Types.ObjectId("YourParentIdHere");
-      const initialLevel = 0;
-      const numberOfChildren = packages;
-
-      let parantNode = await Model.Node.find({ ownerId: mongoose.Types.ObjectId(_id), level: 0, number: 1 });
-
-      console.log("test_add_node :", parantNode, _id)
-      if(_.isEmpty(parantNode)){
-        return { status: false };
+      let { status, current_user } =  await Utils.checkAuth(req);
+      if(!status){
+        throw new AppError(Constants.ERROR, "current user empty")
       }
-
-      // await Utils.createChildNodes(mongoose.Types.ObjectId(ownerId), parantNode._id, initialLevel, numberOfChildren);
-
-      
-      const session = await mongoose.startSession();
-      session.startTransaction();
-      try {
-        
-        // const initialLevel = 0;
-        await Utils.createChildNodes(mongoose.Types.ObjectId(ownerId), parantNode[0]._id, initialLevel, packages, session);
-        // Commit the transaction
-        await session.commitTransaction();
-      }catch(error){
-        console.log("error @@@@@@@1 :", error)
-        
-    
-        await session.abortTransaction();
-    
-        throw new AppError(Constants.ERROR, error)
-      }finally {
-        session.endSession();
-    
-        console.log("finally @@@@@@@1 :")
-      }  
-
-      
-      return {  status: true };
-   
-      // let ownerId = /*mongoose.Types.ObjectId('66c581d3ea26b41192a00bcb');*/ new mongoose.Types.ObjectId();  // Replace with actual ownerId
-      // let parentId = mongoose.Types.ObjectId(_id);//new mongoose.Types.ObjectId(); 
-
-      // switch(packages){
-
-      //   case 7:{
-          // let level = 1;
-          // let newNode = await Utils.addMultipleChildren(ownerId, parentId, level, 1);
-          // console.log("new node :", newNode)
-          // if(newNode && packages >1){
-          //   parentId = newNode._id
-          //   for (let i = 0; i < packages; i++) {
-          //     if(i <= 7){
-          //       level = 2
-          //     }else if(i > 7 && i <= 49){
-          //       level = 3
-          //     }else if(i > 49 && i <= 343){
-          //       level = 4
-          //     }
-          //     await Utils.addMultipleChildren(ownerId, parentId, level, 1);
-          //   }
-          // }
-      //     break;
-      //   }
-
-      //   case 49:{
-      //     break;
-      //   }
-
-      //   case 343:{
-      //     break;
-      //   }
-
-      //   case 2401:{
-      //     break;
-      //   }
-
-      //   case 16807:{
-      //     break;
-      //   }
-      // }
-        
-      // await Utils.addMultipleChildren(ownerId, parentId, 1);
-
-
-       /*.then(() => {
-          console.log('10 nodes created');
-          // Fetch the nodes to be used in your frontend
-          // fetchTreeData(ownerId).then(treeData => {
-          //     console.log('Tree Data:', treeData);
-          // });
-      });
-      */
-      // let treeData = await Utils.fetchTreeData(ownerId)
+      await Utils.createChildNodes(mongoose.Types.ObjectId(_id), current_user, packages);
 
       return {
         status: true,
-        // data: treeData,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
@@ -231,7 +145,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-    
     async checkWalletByUserId(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1599,6 +1512,44 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
+
+    async bills(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+
+      if( role !== Constants.ADMINISTRATOR && role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+      let bills = await Model.Node.find({'current.ownerId': current_user._id})
+
+      console.log("members :", bills)
+
+      return {
+        status:true,
+        data: bills,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+
+    async bill(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+      let { _id } = args
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+
+      if( role !== Constants.ADMINISTRATOR && role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+      let bill = await Model.Node.findById(_id)
+      return {
+        status:true,
+        data: bill,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
   },
   Upload: GraphQLUpload,
   Mutation: {
@@ -2172,22 +2123,23 @@ export default {
           throw new AppError("Member creation failed, returned undefined.");
         }
 
-        let parantNode = await Model.Node.find({ ownerId: input.parentId, level: 0, number: 1 }).session(session);
-        if(!parantNode || parantNode.length === 0){
-          throw new AppError(Constants.ERROR, "Node find failed, returned undefined.");
-        }
+        await Utils.createChildNodes(mongoose.Types.ObjectId(input.parentId), memberNew[0], input.packages);
 
-        console.log("@1 :", memberNew[0]._id, parantNode[0]._id)
+        // let parantNode = await Model.Node.find({ ownerId: input.parentId, level: 0, number: 1 }).session(session);
+        // if(!parantNode || parantNode.length === 0){
+        //   throw new AppError(Constants.ERROR, "Node find failed, returned undefined.");
+        // }
+
+        // console.log("@1 :", memberNew[0]._id, parantNode[0]._id)
   
-        const initialLevel = 0;
-        await Utils.createChildNodes(memberNew[0]._id, parantNode[0]._id, initialLevel, input.packages, session);
+        // const initialLevel = 0;
+        // await Utils.createChildNodes(memberNew[0]._id, parantNode[0]._id, initialLevel, input.packages, session);
 
         // Commit the transaction
         await session.commitTransaction();
 
         return {
           status: true,
-          memberNew,
           executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
         }
       }catch(error){
@@ -4498,6 +4450,47 @@ export default {
         status: true,
         message: "faker_insurance",
         input,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+
+    async paid_bill(parent, args, context, info) {
+      let start = Date.now()
+      let { input } = args
+      let { req } = context
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !==Constants.ADMINISTRATOR && role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+      // await Model.Insurance.create({ current: input });
+      const session = await mongoose.startSession();
+      session.startTransaction();
+      try {
+
+        let node = await Model.Node.findById(mongoose.Types.ObjectId(input?.id)).session(session);
+        if (!node) {
+          throw new Error('Node not found');
+        }
+
+        // Update the node within the session
+        await Model.Node.updateOne(
+          { _id: input?.id },
+          { "current.status": 1, history: Utils.revision(node) },
+          { session } // Include the session in the update
+        );
+
+        // Commit the transaction
+        await session.commitTransaction();
+      }catch(error){
+          await session.abortTransaction();
+          throw new AppError(Constants.ERROR, error)
+      }finally {
+          session.endSession();
+      } 
+
+      return {
+        status: true,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     }

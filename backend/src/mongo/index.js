@@ -426,10 +426,12 @@ const mlmSchema = new Schema({
   Model.Node.find({}, async(err, result)=> {
     if (result.length > 0) {
     } else {
-      let newNode = new Model.Node({  
-                                      parentNodeId: new mongoose.Types.ObjectId(), 
-                                      ownerId: new mongoose.Types.ObjectId(), 
-                                      level: 0 
+      let newNode = new Model.Node({    
+                                      current:{
+                                                parentNodeId: new mongoose.Types.ObjectId(), 
+                                                ownerId: new mongoose.Types.ObjectId(), 
+                                                // level: 0 
+                                              }
                                     });
       await newNode.save();
       await Model.Node.deleteMany({})

@@ -471,7 +471,7 @@ export default gql`
 
   type Query {
     test_fetch_node(_id: ID): JSON
-    test_add_node(_id: String!, ownerId: String!, packages: Int!): JSON
+    test_add_node(_id: String!, packages: Int!): JSON
     init: JSON
     healthCheck: JSON
     me: JSON
@@ -520,6 +520,9 @@ export default gql`
     members: JSON
     files: JSON
     mlmById(_id: ID!): JSON
+
+    bills: JSON
+    bill(_id: ID!): JSON
   }  
   
   input RoomInput {
@@ -860,6 +863,8 @@ export default gql`
 
     faker_agent(input: JSON): JSON
     faker_insurance(input: JSON): JSON
+
+    paid_bill(input: JSON): JSON
   }
 
   type Subscription {

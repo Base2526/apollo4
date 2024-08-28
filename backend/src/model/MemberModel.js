@@ -20,7 +20,7 @@ const memberSchema = new Schema({
         idCard: { type: String, required:[true, "ID Card Request is a required field"]},
         packages: { 
             type: Number,
-            enum : [1, 7, 49, 343, 2401],
+            enum : [1, 2, 3, 4, 5, 6],
             default: 1
         },
         roles: {
