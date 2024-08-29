@@ -37,6 +37,8 @@ import AgentModel from "./AgentModel"
 
 import NodeModel from "./NodeModel"
 
+import CalTreeModel from "./CalTreeModel"
+
 module.exports =  {
     Bank:BankModel,
     Post:PostModel,
@@ -75,5 +77,7 @@ module.exports =  {
     Agent: AgentModel,
 
 
-    Node: NodeModel
+    Node: NodeModel,
+
+    CalTree: CalTreeModel
 };

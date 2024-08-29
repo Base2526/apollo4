@@ -5,6 +5,8 @@ import pubsub from './pubsub'
 
 // import * as Constants from "./constants"
 
+import * as Utils from "./utils"
+
 const _ = require('lodash');
 const moment = require('moment');
 
@@ -80,6 +82,12 @@ cron.schedule('0 */6 * * *', backupMongoDB, {
 // cron.schedule('*/5 * * * *', backupMongoDB, {
   scheduled: true,
   timezone: 'Asia/Bangkok' // Adjust timezone as needed
+});
+
+// Schedule the cron job
+cron.schedule('0 1 * * *', async() => {
+  console.log('Running a task every At 01:00 AM');
+  await Utils.calTree(); // Replace `xx` with your specific function
 });
 
 // cron.schedule('*/5 * * * *', async() => {

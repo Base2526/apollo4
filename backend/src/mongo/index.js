@@ -437,6 +437,18 @@ const mlmSchema = new Schema({
       await Model.Node.deleteMany({})
     }
   });  
+
+  Model.CalTree.find({}, async(err, result)=> {
+    if (result.length > 0) {
+    } else {
+      let newCalTree = new Model.CalTree({    
+                                            userId: new mongoose.Types.ObjectId(), 
+                                            path: 'path', 
+                                          });
+      await newCalTree.save();
+      await Model.CalTree.deleteMany({})
+    }
+  });  
 }
 
 // TODO: initial and connect to MongoDB

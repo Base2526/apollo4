@@ -523,6 +523,8 @@ export default gql`
 
     bills: JSON
     bill(_id: ID!): JSON
+
+    cals: JSON
   }  
   
   input RoomInput {
@@ -865,6 +867,7 @@ export default gql`
     faker_insurance(input: JSON): JSON
 
     paid_bill(input: JSON): JSON
+    cal_tree: JSON
   }
 
   type Subscription {

@@ -1878,3 +1878,53 @@ export const  fetchTreeData = async(id) => {
 
     return []
 }
+
+export const calTree = async()=>{
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+
+    let users_without_admin  = await Model.Member.find({ 'current.roles': {$nin:[Constants.ADMINISTRATOR.toString()] } } ); 
+
+    // Create a timestamp for the file name
+    const now = new Date();
+    const timestamp = now.toISOString().replace(/[-T:\.Z]/g, '');
+    // Output file path
+    const outputFile = `/app/uploads/node_${timestamp}.json`;
+    
+    try{
+        // Fetch all documents from the collection
+        const data = await Model.Node.find({});
+        const jsonData = JSON.stringify(data, null, 2);
+
+        // Write data to a file in JSON format
+        fs.writeFileSync(outputFile, jsonData);
+
+        console.log(`Data successfully written to ${outputFile}`);
+
+
+        // const result = await Model.Node.insertMany(documents, {session});
+
+        let newTree =  {
+                            userId: mongoose.Types.ObjectId('66c4b084cd538705b46a616b'),
+                            path: outputFile,
+                            status: 1
+                        }
+
+        await Model.CalTree.create([newTree], { session });
+
+        // Commit the transaction
+        await session.commitTransaction();
+    } catch (err) {
+        // console.error('Error fetching data or writing to file:', err);
+        fs.unlink(outputFile);
+
+        await session.abortTransaction();
+
+        throw new AppError(Constants.ERROR, err)
+    } finally {
+
+        session.endSession();
+    }
+}

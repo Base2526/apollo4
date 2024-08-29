@@ -1550,6 +1550,39 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
+
+    async cals(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+      // let { _id } = args
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+
+      if( role !== Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+      let cals = await Model.CalTree.aggregate([{
+                                                  $lookup: {
+                                                    localField: "userId",
+                                                    from: "member",
+                                                    foreignField: "_id",
+                                                    as: "creator"
+                                                  }
+                                                },
+                                                {
+                                                  $unwind: {
+                                                    path: "$creator",
+                                                    preserveNullAndEmptyArrays: true
+                                                  }
+                                                }
+                                              ])
+
+      return {
+        status:true,
+        data: cals,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
   },
   Upload: GraphQLUpload,
   Mutation: {
@@ -4488,6 +4521,48 @@ export default {
       }finally {
           session.endSession();
       } 
+
+      return {
+        status: true,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+
+    async cal_tree(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+    
+      await Utils.calTree()
+
+      // // await Model.Insurance.create({ current: input });
+      // const session = await mongoose.startSession();
+      // session.startTransaction();
+      // try {
+
+      //   let node = await Model.Node.findById(mongoose.Types.ObjectId(input?.id)).session(session);
+      //   if (!node) {
+      //     throw new Error('Node not found');
+      //   }
+
+      //   // Update the node within the session
+      //   await Model.Node.updateOne(
+      //     { _id: input?.id },
+      //     { "current.status": 1, history: Utils.revision(node) },
+      //     { session } // Include the session in the update
+      //   );
+
+      //   // Commit the transaction
+      //   await session.commitTransaction();
+      // }catch(error){
+      //     await session.abortTransaction();
+      //     throw new AppError(Constants.ERROR, error)
+      // }finally {
+      //     session.endSession();
+      // } 
 
       return {
         status: true,
