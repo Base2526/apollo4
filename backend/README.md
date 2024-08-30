@@ -6,16 +6,6 @@ Mongo Change Streams
 https://github.com/Base2526/web-banlist.info/blob/d89b55a0b48e8b19b260dadc7d39bae9cc9369af/mongo/rs-setup.sh
 
 
-init node
-{
-    "_id" : ObjectId("66c567b58acb120679a5288b"),
-    "parentNodeId" : null,
-    "ownerId" : ObjectId("66c4b084cd538705b46a616b"),
-    "level" : NumberInt(1),
-    "number" : NumberInt(1),
-    "__v" : NumberInt(0)
-}
-
 init member
 {
     "_id" : ObjectId("66c4b084cd538705b46a616b"),

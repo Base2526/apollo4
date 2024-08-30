@@ -301,40 +301,20 @@ const modelExists =()=>{
   Model.Member.find({}, async(err, result)=> {
     if (result.length > 0) {
     } else {
-      let newMember = new Model.Member({current:{
-                                                  parentId: new mongoose.Types.ObjectId(),
-                                                  username: "username",
-                                                  password: "password",
-                                                  email: "email@banlist.info",
-                                                  tel: "091111111111",
-                                                  displayName: "displayName",
-                                                  idCard: "123456789"
-                                                }
-                                        });
+      /*{
+        parentId: new mongoose.Types.ObjectId(),
+        username: "username",
+        password: "password",
+        email: "email@banlist.info",
+        tel: "091111111111",
+        displayName: "displayName",
+        idCard: "123456789"
+      }
+      */
+      let newMember = new Model.Member({ current: JSON.parse(process.env.INIT_USER_ADMIN) });
       await newMember.save();
-      await Model.Member.deleteMany({})
     }
   });
-
-  /*
-  var childSchema  = new Schema({
-    childId: { type: Schema.Types.ObjectId, required:[true, "Child ID Request is a required field"]},
-    updatedAt : { type : Date, default: Date.now },
-})
-
-const mlmSchema = new Schema({
-    current: {
-        parentId: { type: Schema.Types.ObjectId, default : null },
-        childs: [childSchema],
-        level: { type: Number, required:[true, "Level Request is a required field"]},
-        updatedAt: { type : Date, default: Date.now },
-    },
-    history: [historySchema]
-},
-{
-    timestamps: true
-})
-  */
 
   Model.MLM.find({}, async(err, result)=> {
     if (result.length > 0) {
@@ -426,15 +406,9 @@ const mlmSchema = new Schema({
   Model.Node.find({}, async(err, result)=> {
     if (result.length > 0) {
     } else {
-      let newNode = new Model.Node({    
-                                      current:{
-                                                parentNodeId: new mongoose.Types.ObjectId(), 
-                                                ownerId: new mongoose.Types.ObjectId(), 
-                                                // level: 0 
-                                              }
-                                    });
+      let newNode = new Model.Node({ current: JSON.parse(process.env.INIT_NODE) });
       await newNode.save();
-      await Model.Node.deleteMany({})
+      // await Model.Node.deleteMany({})
     }
   });  
 
@@ -444,6 +418,7 @@ const mlmSchema = new Schema({
       let newCalTree = new Model.CalTree({    
                                             userId: new mongoose.Types.ObjectId(), 
                                             path: 'path', 
+                                            fileName: "fileName"
                                           });
       await newCalTree.save();
       await Model.CalTree.deleteMany({})
@@ -454,7 +429,7 @@ const mlmSchema = new Schema({
 // TODO: initial and connect to MongoDB
 mongoose.Promise = global.Promise;
 // mongoose.connect("YOUR_MONGODB_URI", { useNewUrlParser: true });
-// console.log(">>>>> process.env.MONGO_URI :", process.env)
+// console.log(">>>>> process.env :", process.env)
 // uri
 mongoose.connect(
   // "mongodb://mongo1:27017,mongo2:27017,mongo3:27017/bl?replicaSet=rs",

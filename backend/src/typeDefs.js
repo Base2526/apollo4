@@ -470,6 +470,7 @@ export default gql`
   }
 
   type Query {
+    test(input: JSON): JSON
     test_fetch_node(_id: ID): JSON
     test_add_node(_id: String!, packages: Int!): JSON
     init: JSON
@@ -867,7 +868,7 @@ export default gql`
     faker_insurance(input: JSON): JSON
 
     paid_bill(input: JSON): JSON
-    cal_tree: JSON
+    calculate_tree: JSON
   }
 
   type Subscription {

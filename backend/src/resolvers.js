@@ -24,6 +24,27 @@ const mongoose = require('mongoose');
 
 export default {
   Query: {
+    async test(parent, args, context, info){
+      let start = Date.now()
+      let { req } = context
+      let { id, level } = args?.input
+
+      // let childen = await Utils.findChildren(mongoose.Types.ObjectId(id), level)
+
+      console.log("test :", process.env, JSON.parse(process.env.INIT_USER_ADMIN))
+
+      // let newInput ={ current:JSON.parse(process.env.USER_ADMIN_CURRENT) }  
+
+      // let newUser = await Model.Member.create(newInput);
+      return {
+        status: true,
+        args,
+        // newUser,
+        // newInput,
+        // env: JSON.parse(process.env.INIT_USER_ADMIN),
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
     async test_fetch_node(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -117,7 +138,7 @@ export default {
       // console.log("healthCheck :", el, Utils.formatDate(new Date()))
       // console.log("healthCheck :", req['custom-authorization'], current_user)
 
-      pubsub.publish('USER_CONNECTED', { userConnected: 'A user connected' });
+      // pubsub.publish('USER_CONNECTED', { userConnected: 'A user connected' });
 
       return {
         status: true,
@@ -280,7 +301,6 @@ export default {
 
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async ping(parent, args, context, info){
       let { req } = context
 
@@ -332,7 +352,6 @@ export default {
       console.log("ping ca_keys :", ca_keys)
       return { status:true }
     },
-
     async checkCacheById(parent, args, context, info){
       let { req } = context
       let { _id } = args
@@ -345,7 +364,6 @@ export default {
       // console.log("checkUser :", current_user, req?.headers?.authorization)
       return { status:true }
     },
-
     async contents(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -359,7 +377,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async contentById(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -4528,7 +4545,7 @@ export default {
       }
     },
 
-    async cal_tree(parent, args, context, info) {
+    async calculate_tree(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
 
@@ -4536,7 +4553,7 @@ export default {
       let role = Utils.checkRole(current_user)
       if( role !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
     
-      await Utils.calTree()
+      await Utils.calculateTree()
 
       // // await Model.Insurance.create({ current: input });
       // const session = await mongoose.startSession();

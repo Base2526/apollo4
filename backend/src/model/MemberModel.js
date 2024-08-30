@@ -11,7 +11,8 @@ const historySchema = new Schema({
 
 const memberSchema = new Schema({
     current: {
-        parentId: { type: Schema.Types.ObjectId, required:[true, "Parent ID Request is a required field"]  },
+        // parentId: { type: Schema.Types.ObjectId, required:[true, "Parent ID Request is a required field"]  },
+        parentId: { type: Schema.Types.ObjectId, default: null },
         username: { type: String, unique: true, required:[true, "Username Request is a required field"] },
         password: { type: String, required:[true, "Password Request is a required field"] },
         email: { type: String, unique: true, required:[true, "Email Request is a required field"] },

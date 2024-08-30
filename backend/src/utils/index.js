@@ -1596,29 +1596,36 @@ export async function findParent(parentId = null) {
       nodes = nextLevelNodes;
     //   currentLevel++;
     }
-  
-    throw new Error("No space available to add a new child.");
-  }
-  
+}
 
-// export async function findLastNode(ownerId) {
-//     try {
-//       const lastNode = await Model.Node.findOne({ 'current.ownerId': ownerId })
-//         .sort({ 'current.number': -1 }) // Sort in descending order to get the highest number
-//         .exec();
-  
-//       if (lastNode) {
-//         console.log('Last node:', lastNode);
-//         return lastNode;
-//       } else {
-//         console.log('No nodes found for this ownerId');
-//         return null;
-//       }
-//     } catch (error) {
-//       console.error('Error finding last node:', error);
-//     }
-// }
+/*
+parentId : first id node
+*/
+export async function findChildren(parentId = null, level = 5) {
+    let nodeParent = await Model.Node.findById(parentId);
+    if (_.isEmpty(nodeParent)) {
+        throw new Error("Parent node is empty.");
+    }
 
+    let currentLevel = 1;
+    let nodes = [parentId];
+    let objectNodes = [nodeParent];
+
+    while (currentLevel <= level) {
+        const children = await Model.Node.find({ 'current.parentNodeId': { $in: nodes } });
+        // console.log("@1 ", children, nodes)
+        if (children.length === 0) break; // Exit loop if no more children are found
+
+        objectNodes = [...objectNodes, ...children];
+        nodes = children.map(child => child._id);
+
+        currentLevel++;
+    }
+
+    // console.log("Find Children Result:", objectNodes, "Total Nodes:", objectNodes.length);
+    return objectNodes;
+}
+  
 export async function createChildNodes(_id, currentUser, packages) {
     let start = Date.now()
 
@@ -1879,52 +1886,71 @@ export const  fetchTreeData = async(id) => {
     return []
 }
 
-export const calTree = async()=>{
-
+export const calculateTree = async () => {
     const session = await mongoose.startSession();
     session.startTransaction();
 
-
-    let users_without_admin  = await Model.Member.find({ 'current.roles': {$nin:[Constants.ADMINISTRATOR.toString()] } } ); 
-
     // Create a timestamp for the file name
-    const now = new Date();
+    const now       = new Date();
     const timestamp = now.toISOString().replace(/[-T:\.Z]/g, '');
+    const dirPath   = "/app/uploads/nodemon_ignored";
+
+    if (!fs.existsSync(dirPath)) fs.mkdirSync(dirPath, { recursive: true });
+
     // Output file path
-    const outputFile = `/app/uploads/node_${timestamp}.json`;
-    
-    try{
+    const outputFile = `${dirPath}/node_${timestamp}.json`;
+
+    try {
+        let users_without_admin = await Model.Member.find({ 'current.roles': { $nin: [Constants.ADMINISTRATOR.toString()] } });
+        for (let user of users_without_admin) {
+            // Find the root node for the user
+            let rootNode = await Model.Node.findOne({ 'current.ownerId': user._id, 'current.isParent': true });
+
+            if (_.isEmpty(rootNode)) {
+                throw new Error("Root node is Empty.");
+            }
+
+            let children = await findChildren(rootNode._id);
+            console.log("children:", rootNode._id, children.length);
+        }
+
         // Fetch all documents from the collection
         const data = await Model.Node.find({});
         const jsonData = JSON.stringify(data, null, 2);
 
         // Write data to a file in JSON format
-        fs.writeFileSync(outputFile, jsonData);
+        fs.writeFile(outputFile, jsonData, 'utf8', async(err) => {
+            let status = 0;
+            if (err) {
+                console.log("err:", err);
+            } else {
+                console.log("File has been saved.");
+                status = 1;
+            }
+            let newTree = {
+                userId: mongoose.Types.ObjectId('66c4b084cd538705b46a616b'),
+                path: outputFile,
+                fileName: path.basename(outputFile),
+                status
+            };
+            await Model.CalTree.create([newTree], { session });
 
-        console.log(`Data successfully written to ${outputFile}`);
-
-
-        // const result = await Model.Node.insertMany(documents, {session});
-
-        let newTree =  {
-                            userId: mongoose.Types.ObjectId('66c4b084cd538705b46a616b'),
-                            path: outputFile,
-                            status: 1
-                        }
-
-        await Model.CalTree.create([newTree], { session });
-
-        // Commit the transaction
-        await session.commitTransaction();
+            // Commit the transaction
+            await session.commitTransaction();
+            session.endSession();
+        });
     } catch (err) {
-        // console.error('Error fetching data or writing to file:', err);
-        fs.unlink(outputFile);
+        try {
+            fs.unlink(outputFile);
+        } catch (unlinkErr) {
+            console.error('Error deleting file:', unlinkErr);
+        }
 
+        console.error('Error deleting file:', err);
         await session.abortTransaction();
-
-        throw new AppError(Constants.ERROR, err)
-    } finally {
-
         session.endSession();
+        throw new AppError(Constants.ERROR, err);
+    } finally {
+        console.log('@finally');
     }
 }

@@ -10,8 +10,8 @@ const historySchema = new Schema({
 const nodeSchema = new Schema({
     current: {
         ownerId: { type: Schema.Types.ObjectId, required: [true, "Owner ID is a required field"] },
-        parentNodeId: { type: Schema.Types.ObjectId, required: [true, "Parent Node ID is a required field"] },
-        // level: { type: Number, required: [true, "Level is a required field"] },
+        // parentNodeId: { type: Schema.Types.ObjectId, required: [true, "Parent Node ID is a required field"] },
+        parentNodeId: { type: Schema.Types.ObjectId, default: null },
         number: { type: Number },
         isParent: {
             type: Boolean,
