@@ -27,18 +27,14 @@ export default {
     async test(parent, args, context, info){
       let start = Date.now()
       let { req } = context
-      let { id, level } = args?.input
-
+      // let { id, level } = args?.input
       // let childen = await Utils.findChildren(mongoose.Types.ObjectId(id), level)
-
-      console.log("test :", process.env, JSON.parse(process.env.INIT_USER_ADMIN))
-
+      // console.log("test :", process.env, JSON.parse(process.env.INIT_USER_ADMIN))
       // let newInput ={ current:JSON.parse(process.env.USER_ADMIN_CURRENT) }  
-
       // let newUser = await Model.Member.create(newInput);
       return {
         status: true,
-        args,
+        // args,
         // newUser,
         // newInput,
         // env: JSON.parse(process.env.INIT_USER_ADMIN),

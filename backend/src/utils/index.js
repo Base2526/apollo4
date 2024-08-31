@@ -1928,7 +1928,7 @@ export const calculateTree = async () => {
                 status = 1;
             }
             let newTree = {
-                userId: mongoose.Types.ObjectId('66c4b084cd538705b46a616b'),
+                userId: mongoose.Types.ObjectId(process.env.ID_USER_ADMIN),
                 path: outputFile,
                 fileName: path.basename(outputFile),
                 status
