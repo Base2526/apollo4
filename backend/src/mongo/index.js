@@ -300,18 +300,8 @@ const modelExists =()=>{
 
   Model.Member.find({}, async(err, result)=> {
     if (result.length > 0) {
-    } else {
-      /*{
-        parentId: new mongoose.Types.ObjectId(),
-        username: "username",
-        password: "password",
-        email: "email@banlist.info",
-        tel: "091111111111",
-        displayName: "displayName",
-        idCard: "123456789"
-      }
-      */
-      let newMember = new Model.Member({ current: JSON.parse(process.env.INIT_USER_ADMIN) });
+    } else {  
+      let newMember = new Model.Member(JSON.parse(process.env.INIT_USER_ADMIN));
       await newMember.save();
     }
   });

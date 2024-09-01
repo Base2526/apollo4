@@ -94,10 +94,24 @@ server.start().then(() => {
   app.use(bodyParser.json({ type: "text/*" }));
   app.use(bodyParser.urlencoded({ extended: false }));
 
+  const allowedOrigins = [
+    'http://localhost:5173', // Example frontend URL
+    'http://localhost',      // Another allowed origin
+    'http://167.99.75.91',
+    'http://167.99.75.91:1984'
+    // Add more origins as needed
+  ];
+
   // Configure CORS
   const corsOptions = {
     // origin: 'http://localhost:5173', // Replace with your frontend URL
-    origin: 'http://localhost', 
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   };
 

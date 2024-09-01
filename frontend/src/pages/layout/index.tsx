@@ -159,9 +159,8 @@ const LayoutPage: FC = () => {
             </Suspense>
           </div>
         </Content>
-        <FooterComponent>footer</FooterComponent>
       </Layout>
-      
+      <FooterComponent>footer</FooterComponent>
     </Layout>
   );
 };
