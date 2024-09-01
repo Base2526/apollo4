@@ -1,0 +1,77 @@
+# Stage 1: Build
+FROM node:18-alpine AS build
+
+# Install build dependencies
+RUN apk add --no-cache \
+  build-base \
+  cairo-dev \
+  pango-dev \
+  libjpeg-turbo-dev \
+  giflib-dev
+
+WORKDIR /app
+
+# Install dependencies
+COPY package.json package-lock.json ./
+RUN npm ci --legacy-peer-deps
+
+# Copy the rest of the application
+COPY . .
+
+# Build the application
+ENV NODE_OPTIONS="--max_old_space_size=4096"
+RUN npm run build
+
+# Stage 2: Serve
+FROM nginx:alpine
+
+# Copy the build output to the Nginx directory
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Copy a custom Nginx configuration file if needed
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
+
+
+# # Stage 1: Build
+# FROM node:18-alpine AS build
+
+# # Install build dependencies
+# RUN apk add --no-cache \
+#   build-base \
+#   cairo-dev \
+#   pango-dev \
+#   libjpeg-turbo-dev \
+#   giflib-dev
+
+# WORKDIR /app
+
+# # Install dependencies
+# COPY package.json package-lock.json ./
+# RUN npm ci --legacy-peer-deps
+
+# # Copy the rest of the application
+# COPY . .
+
+# # Build the application
+# RUN npm run build
+
+# # Stage 2: Serve
+# FROM nginx:alpine
+
+# # Copy the build output to the Nginx directory
+# COPY --from=build /app/dist /usr/share/nginx/html
+
+# # Copy a custom Nginx configuration file if needed
+# # COPY nginx.conf /etc/nginx/nginx.conf
+
+# # Expose port 80
+# EXPOSE 80
+
+# # Start Nginx
+# CMD ["nginx", "-g", "daemon off;"]
