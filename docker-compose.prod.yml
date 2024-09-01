@@ -101,7 +101,7 @@ services:
     # depends_on:
     #   - mongo
     networks:
-      - a4
+      - insurance-network
   ################################
   
   ################################
@@ -141,6 +141,5 @@ services:
   # ################################
 
 networks:
-  a4:
-    external: true 
-    # name: a4-network
+  insurance-network:
+    external: true
