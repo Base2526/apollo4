@@ -11,6 +11,8 @@ import { updateProfile } from '../../stores/user.store';
 import { mutationLogin } from "../../apollo/gqlQuery";
 import { setCookie, getHeaders } from "../../utils";
 
+import handlerError from "../../utils/handlerError"
+
 const initialValues: LoginParams = {
   username: '',
   password: '',
@@ -26,12 +28,14 @@ interface LoginData {
 }
 
 const LoginForm: FC = () => {
-  const [passwordVisible, setPasswordVisible] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
   const { formatMessage } = useLocale();
 
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
   const [onLogin, resultLogin] = useMutation<LoginData>(mutationLogin, {
     context: { headers: getHeaders(location) },
     onCompleted: async (data: LoginData) => {
@@ -41,13 +45,20 @@ const LoginForm: FC = () => {
         dispatch(updateProfile({ profile }));
         navigate("/");
       }
+
+      setLoading(false);
     },
-    onError: (err: Error) => {
-      console.error("onError :", err);
+    onError(error) {
+      setLoading(false);
+
+      handlerError({}, error)
     },
   });
 
   const onFinished = (input: LoginParams) => {
+    console.log("onFinished :", input);
+
+    setLoading(true);
     onLogin({ variables: { input } });
   };
 
@@ -55,7 +66,7 @@ const LoginForm: FC = () => {
     <Layout>
       <div className="login-page">
         <Form onFinish={onFinished} className="login-page-form" initialValues={initialValues}>
-          <h2>LOGIN</h2>
+          <h2><LocaleFormatter id="gloabal.tips.login" /></h2>
           <Form.Item
             name="username"
             rules={[
@@ -73,7 +84,7 @@ const LoginForm: FC = () => {
             <Input.Password
               type={passwordVisible ? "text" : "password"}
               placeholder={formatMessage({ id: 'gloabal.tips.password' })}
-              iconRender={visible => (visible ? <EyeOutlined /> : <EyeInvisibleOutlined />)}
+              iconRender={(visible: boolean) => (visible ? <EyeOutlined /> : <EyeInvisibleOutlined />)}
               onClick={() => setPasswordVisible(!passwordVisible)}
             />
           </Form.Item>
@@ -83,7 +94,7 @@ const LoginForm: FC = () => {
             </Checkbox>
           </Form.Item>
           <Form.Item>
-            <Button htmlType="submit" type="primary" className="login-page-form_button">
+            <Button htmlType="submit" type="primary" className="login-page-form_button" loading={loading}>
               <LocaleFormatter id="gloabal.tips.login" />
             </Button>
           </Form.Item>

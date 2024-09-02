@@ -11,6 +11,8 @@ import { getHeaders } from "../../utils";
 import { updateProfile } from '../../stores/user.store';
 import "./index.less";
 
+import handlerError from "../../utils/handlerError"
+
 // type FileType = Parameters<typeof Upload.beforeUpload>[0];
 type FileType = Parameters<NonNullable<UploadProps['beforeUpload']>>[0];
 
@@ -46,6 +48,8 @@ const ProfilePage: FC = () => {
     },
     onError(error) {
       console.error("onError:", error);
+
+      handlerError({}, error)
     }
   });
 
@@ -76,8 +80,36 @@ const ProfilePage: FC = () => {
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    message.success('Copied to clipboard!');
+    if (navigator.clipboard) {
+      // Use the Clipboard API if available
+      navigator.clipboard.writeText(text)
+        .then(() => {
+          message.success('Copied to clipboard!');
+        })
+        .catch((error) => {
+          console.error('Failed to copy text to clipboard:', error);
+          message.error('Failed to copy text to clipboard.');
+        });
+    } else {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          message.success('Copied to clipboard!');
+        } else {
+          throw new Error('Failed to copy text');
+        }
+      } catch (error) {
+        console.error('Failed to copy text to clipboard:', error);
+        message.error('Failed to copy text to clipboard.');
+      } finally {
+        document.body.removeChild(textarea);
+      }
+    }
   };
 
   const downloadQRCode = () => {

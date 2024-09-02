@@ -8,6 +8,7 @@ import { setGlobalState } from '@/stores/global.store';
 import { mutationRegister } from "../../apollo/gqlQuery";
 import { updateProfile } from '../../stores/user.store';
 import { getHeaders } from "../../utils";
+import handlerError from "../../utils/handlerError"
 import "./index.less";
 
 const userNameRegex = /^[a-zA-Z0-9]+$/;
@@ -33,7 +34,7 @@ const initialValues = {
 //   id: string;
 // };
 
-const RegisterPage: FC = () => {
+const RegisterPage: FC = (props) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const location = useLocation();
@@ -59,15 +60,19 @@ const RegisterPage: FC = () => {
       navigate(`/login${'?from=' + encodeURIComponent(location.pathname)}`, { replace: true })
     },
     onError(error) {
-      console.error(error);
-      message.error('An error occurred while updating the profile.');
+      // console.error(error);
+      // message.error('An error occurred while updating the profile.');
+
       setLoading(false);
+
+      handlerError({}, error)
     }
   });
 
   const handleSubmit = async (input: any) => {
-    setLoading(true);
     console.log("handlerSubmit :", input);
+    
+    setLoading(true);
     onMutationRegister({ variables: { input } });
   };
 

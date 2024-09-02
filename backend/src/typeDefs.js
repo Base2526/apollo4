@@ -75,6 +75,7 @@ export default gql`
   input LoginInput {
     username: String!
     password: String!
+    remember: Boolean
     deviceAgent: String
   }
 
