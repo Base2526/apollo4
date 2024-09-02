@@ -27,13 +27,6 @@ const initialValues = {
   packages: 1
 };
 
-// interface RouteParams {
-//   id: string;
-// }
-// type RouteParams = {
-//   id: string;
-// };
-
 const RegisterPage: FC = (props) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);

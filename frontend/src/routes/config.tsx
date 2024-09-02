@@ -1,19 +1,19 @@
 import type { FC, ReactElement } from 'react';
-import type { RouteProps } from 'react-router';
-
+import { PathRouteProps, LayoutRouteProps, IndexRouteProps } from 'react-router-dom';
 import { useIntl } from 'react-intl';
 
 import PrivateRoute from './privateRoute';
 
-export interface WrapperRouteProps extends RouteProps {
+type RouteProps = PathRouteProps | LayoutRouteProps | IndexRouteProps;
+
+export type WrapperRouteProps = RouteProps & {
   /** document title locale id */
   titleId: string;
-  /** authorization？ */
+  /** authorization? */
   requireAuth?: boolean;
-
-  isAdmin?: boolean
-}
-// 
+  /** isAdmin? */
+  isAdmin?: boolean;
+};
 
 const WrapperRouteComponent: FC<WrapperRouteProps> = ({ titleId, requireAuth, isAdmin=false, ...props }) => {
   const { formatMessage } = useIntl();

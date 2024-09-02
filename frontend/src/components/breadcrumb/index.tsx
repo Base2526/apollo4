@@ -2,9 +2,11 @@
 import React from 'react';
 import { Breadcrumb } from 'antd';
 import { useLocation, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const Breadcrumbs: React.FC = () => {
     const location = useLocation();
+    const { t } = useTranslation();
     
     // Split the path into segments
     const pathSegments = location.pathname.split('/').filter((segment) => segment);
@@ -22,7 +24,7 @@ const Breadcrumbs: React.FC = () => {
     // Add the home breadcrumb
     breadcrumbItems.unshift(
         <Breadcrumb.Item key="/">
-            <Link to="/">Home</Link>
+            <Link to="/">{t('home')}</Link>
         </Breadcrumb.Item>
     );
 

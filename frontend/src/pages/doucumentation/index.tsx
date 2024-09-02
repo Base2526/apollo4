@@ -1,85 +1,84 @@
 import type { FC } from 'react';
-
 import { Typography } from 'antd';
-
-import { LocaleFormatter } from '@/locales';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Paragraph } = Typography;
 
 const div = <div style={{ height: 200 }}>2333</div>;
 
 const DocumentationPage: FC = () => {
+  const { t } = useTranslation();
   return (
     <div>
       <Typography className="innerText">
         <Title>
-          <LocaleFormatter id="app.documentation.introduction.title" />
+          {t('title')}
         </Title>
         <Paragraph>
-          <LocaleFormatter id="app.documentation.introduction.description" />
+          {t('description')}
         </Paragraph>
         <Title>
-          <LocaleFormatter id="app.documentation.catalogue.title" />
+          {t('title')}
         </Title>
         <Paragraph>
-          <LocaleFormatter id="app.documentation.catalogue.description" />
+          {t('description')}
         </Paragraph>
         <Paragraph>
           <ul>
             <li>
               <a href="#layout">
-                <LocaleFormatter id="app.documentation.catalogue.list.layout" />
+                {t('layout')}
               </a>
             </li>
             <li>
               <a href="#routes">
-                <LocaleFormatter id="app.documentation.catalogue.list.routes" />
+                {t('routes')}
               </a>
             </li>
             <li>
               <a href="#request">
-                <LocaleFormatter id="app.documentation.catalogue.list.request" />
+                {t('request')}
               </a>
             </li>
             <li>
               <a href="#theme">
-                <LocaleFormatter id="app.documentation.catalogue.list.theme" />
+                {t('theme')}
               </a>
             </li>
             <li>
               <a href="#typescript">
-                <LocaleFormatter id="app.documentation.catalogue.list.typescript" />
+                {t('typescript')}
               </a>
             </li>
             <li>
               <a href="#international">
-                <LocaleFormatter id="app.documentation.catalogue.list.international" />
+                {t('international')}
               </a>
             </li>
           </ul>
         </Paragraph>
         <Title id="layout" level={2}>
-          <LocaleFormatter id="app.documentation.catalogue.list.layout" />
+          {t('layout')}
         </Title>
         <Paragraph>{div}</Paragraph>
         <Title id="routes" level={2}>
-          <LocaleFormatter id="app.documentation.catalogue.list.routes" />
+          {t('routes')}
         </Title>
         <Paragraph>{div}</Paragraph>
         <Title id="request" level={2}>
-          <LocaleFormatter id="app.documentation.catalogue.list.request" />
+          {t('request')}
         </Title>
         <Paragraph>{div}</Paragraph>
         <Title id="theme" level={2}>
-          <LocaleFormatter id="app.documentation.catalogue.list.theme" />
+          {t('theme')}
         </Title>
         <Paragraph>{div}</Paragraph>
         <Title id="typescript" level={2}>
-          <LocaleFormatter id="app.documentation.catalogue.list.typescript" />
+          {t('typescript')}
         </Title>
         <Paragraph>{div}</Paragraph>
         <Title id="international" level={2}>
-          <LocaleFormatter id="app.documentation.catalogue.list.international" />
+          {t('international')}
         </Title>
         <Paragraph>{div}</Paragraph>
       </Typography>

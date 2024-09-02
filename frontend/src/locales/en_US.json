@@ -1,0 +1,21 @@
+{
+    "welcome": "Welcome to our application",
+    "greeting": "Hello, {{name}}!",
+
+
+    "loading": "Loading...",
+    "account": "Account",
+    "settings": "Settings",
+    "administrator": "Administrator",
+    "logout": "Logout",
+    "traffic": "Traffic",
+    "payments": "Payments",
+
+    "home": "Home",
+    "login": "Login",
+    "username": "Username",
+    "enterUsernameMessage": "Please enter your Username!",
+    "password": "Password",
+    "enterPasswordMessage": "Please enter your Password!",
+    "rememberUser": "Remember"
+}

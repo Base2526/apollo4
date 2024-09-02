@@ -1,6 +1,6 @@
 import type { MenuList } from '../../interface/layout/menu.interface';
 import type { FC } from 'react';
-
+import { useTranslation } from 'react-i18next';
 import { Menu } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -19,20 +19,18 @@ interface MenuProps {
 
 const MenuComponent: FC<MenuProps> = props => {
   const { menuList, openKey, onChangeOpenKey, selectedKey, onChangeSelectedKey } = props;
-  // const { device, locale } = useSelector(state => state.user);
   const { device, locale } = useSelector((state: { user: UserState }) => state.user);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
-  console.log("openKeys ", openKey)
+  const { t } = useTranslation();
 
   const getTitle = (menu: MenuList[0]) => {
     return (
       <span style={{ display: 'flex', alignItems: 'center' }}>
         <CustomIcon type={menu.icon!} />
-        {/* <span>{menu.label[locale]}</span> */}
-        <span>{menu.label[locale as keyof typeof menu.label]}</span>
+        {/* <span>{menu.label[locale as keyof typeof menu.label]}</span> */}
+        <span>{t(menu.label[locale as keyof typeof menu.label])}</span>
       </span>
     );
   };
@@ -69,7 +67,7 @@ const MenuComponent: FC<MenuProps> = props => {
               label: getTitle(menu),
               children: menu.children.map(child => ({ 
                                                       key: child.path, 
-                                                      label: child.label[locale],
+                                                      label: t(child.label[locale]),
                                                      })),
             }
           : {

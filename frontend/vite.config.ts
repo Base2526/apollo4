@@ -4,32 +4,19 @@ import path from 'path';
 import vitePluginImp from 'vite-plugin-imp';
 import svgrPlugin from 'vite-plugin-svgr';
 
+import removeConsole from 'vite-plugin-remove-console';
 
-// https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
-      '@': path.join(__dirname, 'src'),
-    },
-  },
-  server: {
-    host: '0.0.0.0', // Listen on all interfaces
-    port: 5173,
-    proxy: {
-      '/api': {
-        target: `http://localhost:${process.env.PORT}/api`,
-        rewrite: path => path.replace(/^\/api/, ''),
-      },
+      '@': path.resolve(__dirname, 'src'),
     },
   },
   plugins: [
-    react({
-      // Optional configuration for react plugin
-    }),
-    // dynamicImportVariables(),
+    react(),
     vitePluginImp({
       libList: [
-        // Configuration for vite-plugin-imp
+        // Your specific library configuration
       ],
     }),
     svgrPlugin({
@@ -37,16 +24,23 @@ export default defineConfig({
         icon: true,
       },
     }),
+     // Remove console logs in production builds
+    //  removeConsole({
+    //   exclude: ['error', 'warn'], // Optional: specify which types of console logs to keep
+    // }),
+    removeConsole({ custom: ["console.log()", "console.warn()" ] })
   ],
   build: {
-    sourcemap: true, // Enable source maps for easier debugging
+    sourcemap: mode !== 'production',
     rollupOptions: {
       output: {
-        // Configuration for Rollup output
+        entryFileNames: '[name].js',
+        chunkFileNames: '[name].[hash].js',
+        assetFileNames: '[name].[ext]',
       },
     },
   },
   define: {
     'import.meta.env': JSON.stringify(import.meta.env),
   },
-});
+}));

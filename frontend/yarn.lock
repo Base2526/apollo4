@@ -3700,6 +3700,13 @@
   dependencies:
     "@types/react" "*"
 
+"@types/react-i18next@^8.1.0":
+  "integrity" "sha512-d4xhcjX5b3roNMObRNMfb1HinHQlQLPo8xlDj60dnHeeAw2bBymR2cy/l1giJpHzo/ZFgSvgVUvIWr4kCrenCg=="
+  "resolved" "https://registry.npmjs.org/@types/react-i18next/-/react-i18next-8.1.0.tgz"
+  "version" "8.1.0"
+  dependencies:
+    "react-i18next" "*"
+
 "@types/react-redux@^7.1.20":
   "integrity" "sha512-q42es4c8iIeTgcnB+yJgRTTzftv3eYYvCZOh1Ckn2eX/3o5TdsQYKUWpLoLuGlcY/p+VAhV9IOEZJcWk/vfkXw=="
   "resolved" "https://registry.npmjs.org/@types/react-redux/-/react-redux-7.1.20.tgz"
@@ -8179,7 +8186,7 @@
   dependencies:
     "@babel/runtime" "^7.23.2"
 
-"i18next@^22.0.6", "i18next@>= 19.0.0":
+"i18next@^22.5.1", "i18next@>= 19.0.0":
   "integrity" "sha512-8TGPgM3pAD+VRsMtUMNknRz3kzqwp/gPALrWMsDnmC1mKqJwpWyooQRLMcbTwq8z8YwSmuj+ZYvc+xCuEpkssA=="
   "resolved" "https://registry.npmjs.org/i18next/-/i18next-22.5.1.tgz"
   "version" "22.5.1"
@@ -12042,7 +12049,7 @@
   dependencies:
     "htmlparser2" "^3.9.0"
 
-"react-i18next@^12.0.0":
+"react-i18next@*", "react-i18next@^12.3.1":
   "integrity" "sha512-5v8E2XjZDFzK7K87eSwC7AJcAkcLt5xYZ4+yTPDAW1i7C93oOY1dnr4BaQM7un4Hm+GmghuiPvevWwlca5PwDA=="
   "resolved" "https://registry.npmjs.org/react-i18next/-/react-i18next-12.3.1.tgz"
   "version" "12.3.1"
@@ -14601,6 +14608,11 @@
     "@babel/traverse" "^7.12.12"
     "chalk" "^4.1.0"
     "param-case" "^3.0.4"
+
+"vite-plugin-remove-console@^2.2.0":
+  "integrity" "sha512-qgjh5pz75MdE9Kzs8J0kBwaCfifHV0ezRbB9rpGsIOxam+ilcGV7WOk91vFJXquzRmiKrFh3Hxlh0JJWAmXTbQ=="
+  "resolved" "https://registry.npmjs.org/vite-plugin-remove-console/-/vite-plugin-remove-console-2.2.0.tgz"
+  "version" "2.2.0"
 
 "vite-plugin-svgr@^0.6.0":
   "integrity" "sha512-+9eiWLzdlLK3ktnO7gzazMmR/KJyXTy7z6GeRbhv5HKEOFjLdNk3eB0qJaSpzJC3dr2pKWml0jAmxH7O6CcQtg=="
