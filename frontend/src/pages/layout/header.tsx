@@ -4,6 +4,7 @@ import { Dropdown, Layout, theme as antTheme, Tooltip } from 'antd';
 import { createElement, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import Avator from '@/assets/header/avator.jpeg';
 import { ReactComponent as EnUsSvg } from '@/assets/header/en_US.svg';
@@ -12,7 +13,7 @@ import { ReactComponent as MoonSvg } from '@/assets/header/moon.svg';
 import { ReactComponent as SunSvg } from '@/assets/header/sun.svg';
 import { ReactComponent as ZhCnSvg } from '@/assets/header/zh_CN.svg';
 import { ReactComponent as ThThSvg } from '@/assets/header/th_TH.svg';
-import { LocaleFormatter, useLocale } from '@/locales';
+import { useLocale } from '@/locales';
 import { setGlobalState } from '@/stores/global.store';
 import { setUserItem } from '@/stores/user.store';
 import InsuranceLogo from "@/assets/logo/InsuranceLogo"
@@ -42,9 +43,7 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
   const dispatch = useDispatch();
   const { formatMessage } = useLocale();
 
-  // useEffect(()=>{
-  //   console.log("utils.checkRole(profile) :", utils.checkRole(profile), import.meta.env.VITE_USER_ROLES)
-  // }, [])
+  const { t, i18n } = useTranslation();
 
   const onActionClick = async (action: Action) => {
     switch (action) {
@@ -64,8 +63,10 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
   };
 
   const selectLocale = ({ key }: { key: any }) => {
-    dispatch(setUserItem({ locale: key }));
-    localStorage.setItem('locale', key);
+    // dispatch(setUserItem({ locale: key }));
+    // localStorage.setItem('locale', key);
+
+    i18n.changeLanguage(key);
   };
 
   const onChangeTheme = () => {
@@ -80,7 +81,7 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
   };
 
   return (
-    <Header className="layout-page-header bg-2" style={{ backgroundColor: token.token.colorBgContainer }}>
+    <Header className="layout-page-header bg-2" style={{ backgroundColor: token.token.colorBgContainer }}>       
       {device !== 'MOBILE' && (
         <div className="logo" style={{ width: collapsed ? 80 : 200 }} onClick={()=>navigate('/')}>
           <InsuranceLogo color= { theme === 'dark' ? "#FFFFFF" : "#333333" } />
@@ -108,29 +109,22 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
             menu={{
               onClick: info => selectLocale(info),
               items: [
-                // {
-                //   key: 'zh_CN',
-                //   icon: <ThThSvg />,
-                //   disabled: locale === 'zh_CN',
-                //   label: 'ภาษาไทย',
-                // },
                 {
                   key: 'th_TH',
                   icon: <ThThSvg />,
-                  disabled: locale === 'th_TH',
+                  disabled: i18n.language === 'th_TH',
                   label: 'ภาษาไทย',
                 },
                 {
                   key: 'en_US',
                   icon: <EnUsSvg />,
-                  disabled: locale === 'en_US',
+                  disabled: i18n.language === 'en_US',
                   label: 'English',
                 },
               ],
             }}
           >
             <span>
-              {/* <LanguageSvg id="language-change" /> */}
               <LanguageSwitcher />
             </span>
           </Dropdown>
@@ -145,7 +139,7 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
                             icon: <UserOutlined />,
                             label: (
                               <span onClick={() => navigate('/profile')}>
-                                <LocaleFormatter id="header.avator.account" />
+                                {t('account')}
                               </span>
                             ),
                           },
@@ -154,7 +148,7 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
                             icon: <SettingOutlined />,
                             label: (
                               <span onClick={() => navigate('/settings')}>
-                                <LocaleFormatter id="header.avator.settings" />
+                                {t('settings')}
                               </span>
                             ),
                           },
@@ -163,7 +157,7 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
                             icon: <ToolOutlined />,
                             label: (
                               <span onClick={() => navigate('/administrator')}>
-                                <LocaleFormatter id="header.avator.administrator" />
+                                {t('administrator')}
                               </span>
                             ),
                           },
@@ -172,7 +166,7 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
                             icon: <LogoutOutlined />,
                             label: (
                               <span onClick={() => onActionClick('logout')}>
-                                <LocaleFormatter id="header.avator.logout" />
+                                {t('logout')}
                               </span>
                             ),
                           },
@@ -183,34 +177,16 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
                             icon: <UserOutlined />,
                             label: (
                               <span onClick={() => navigate('/profile')}>
-                                <LocaleFormatter id="header.avator.account" />
+                                {t('account')}
                               </span>
                             ),
                           },
-                          // {
-                          //   key: '2',
-                          //   icon: <SettingOutlined />,
-                          //   label: (
-                          //     <span onClick={() => navigate('/settings')}>
-                          //       <LocaleFormatter id="header.avator.settings" />
-                          //     </span>
-                          //   ),
-                          // },
-                          // {
-                          //   key: '3',
-                          //   icon: <ToolOutlined />,
-                          //   label: (
-                          //     <span onClick={() => navigate('/administrator')}>
-                          //       <LocaleFormatter id="header.avator.administrator" />
-                          //     </span>
-                          //   ),
-                          // },
                           {
                             key: '4',
                             icon: <LogoutOutlined />,
                             label: (
                               <span onClick={() => onActionClick('logout')}>
-                                <LocaleFormatter id="header.avator.logout" />
+                                {t('logout')}
                               </span>
                             ),
                           },

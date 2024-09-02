@@ -1,16 +1,15 @@
-import type { FC } from 'react';
-
 import './index.less';
 
+import type { FC } from 'react';
 import { Typography } from 'antd';
-
-import { LocaleFormatter } from '@/locales';
+import { useTranslation } from 'react-i18next';
 
 const RoutePermissionPage: FC = () => {
+  const { t } = useTranslation();
   return (
     <div className="permission-page">
       <Typography className="permission-intro">
-        <LocaleFormatter id="gloabal.tips.loginResult" />
+        {t('loginResult')}
       </Typography>
     </div>
   );

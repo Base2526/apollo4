@@ -1,8 +1,6 @@
+import './index.less';
 import type { MenuChild, MenuList } from '@/interface/layout/menu.interface';
 import type { FC } from 'react';
-
-import './index.less';
-
 import { Drawer, Layout, theme as antTheme } from 'antd';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,7 +9,6 @@ import { getMenuList } from '@/api/layout.api';
 import { setUserItem } from '@/stores/user.store';
 import { getFirstPathCode } from '@/utils/getFirstPathCode';
 import { getGlobalState } from '@/utils/getGloabal';
-
 
 import { useGuide } from '../guide/useGuide';
 import HeaderComponent from './header';
@@ -139,15 +136,13 @@ const LayoutPage: FC = () => {
             bodyStyle={{ padding: 0, height: '100%' }}
             closable={false}
             onClose={toggle}
-            open={!collapsed}
-          >
+            open={!collapsed}>
             <MenuComponent
               menuList={menuList}
               openKey={openKey}
               onChangeOpenKey={k => setOpenkey(k)}
               selectedKey={selectedKey}
-              onChangeSelectedKey={k => setSelectedKey(k)}
-            />
+              onChangeSelectedKey={k => setSelectedKey(k)} />
           </Drawer>
         )}
         <Content className="layout-page-content">

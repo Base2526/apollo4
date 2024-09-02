@@ -3,13 +3,13 @@ import type { FC } from 'react';
 import { SettingOutlined } from '@ant-design/icons';
 import { Dropdown } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
-
-import { LocaleFormatter } from '@/locales';
+import { useTranslation } from 'react-i18next';
 import { removeAllTag, removeOtherTag, removeTag } from '@/action/tags-view.store';
 
 const TagsViewAction: FC = () => {
   const { activeTagId } = useSelector(state => state.tagsView);
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   return (
     <Dropdown
@@ -18,17 +18,17 @@ const TagsViewAction: FC = () => {
           {
             key: '0',
             onClick: () => dispatch(removeTag(activeTagId)),
-            label: <LocaleFormatter id="tagsView.operation.closeCurrent" />,
+            label: t('closeCurrent'),
           },
           {
             key: '1',
             onClick: () => dispatch(removeOtherTag()),
-            label: <LocaleFormatter id="tagsView.operation.closeOther" />,
+            label: t('closeOther'),
           },
           {
             key: '2',
             onClick: () => dispatch(removeAllTag()),
-            label: <LocaleFormatter id="tagsView.operation.closeAll" />,
+            label: t('closeAll'),
           },
           {
             key: '3',
@@ -37,7 +37,7 @@ const TagsViewAction: FC = () => {
           {
             key: '4',
             onClick: () => dispatch(removeOtherTag()),
-            label: <LocaleFormatter id="tagsView.operation.dashboard" />,
+            label: t('dashboard'),
           },
         ],
       }}

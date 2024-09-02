@@ -4,9 +4,10 @@ import './index.less';
 import { Layout, Button, Checkbox, Form, Input } from 'antd';
 import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LocaleFormatter, useLocale } from '@/locales';
+import { useLocale } from '@/locales';
 import { useDispatch } from 'react-redux';
 import { useMutation } from "@apollo/client";
+import { useTranslation } from 'react-i18next';
 import { updateProfile } from '../../stores/user.store';
 import { mutationLogin } from "../../apollo/gqlQuery";
 import { setCookie, getHeaders } from "../../utils";
@@ -31,7 +32,9 @@ const LoginForm: FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const { formatMessage } = useLocale();
+  // const { formatMessage } = useLocale();
+
+  const { t } = useTranslation();
 
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -66,36 +69,36 @@ const LoginForm: FC = () => {
     <Layout>
       <div className="login-page">
         <Form onFinish={onFinished} className="login-page-form" initialValues={initialValues}>
-          <h2><LocaleFormatter id="gloabal.tips.login" /></h2>
+          <h2>{t('login')}</h2>
           <Form.Item
             name="username"
             rules={[
-              { required: true, message: formatMessage({ id: 'gloabal.tips.enterUsernameMessage' }) },
+              { required: true, message: t("enterPasswordMessage") || '' },
             ]}
           >
-            <Input placeholder={formatMessage({ id: 'gloabal.tips.username' })} />
+            <Input  placeholder={t("username") || ''} />
           </Form.Item>
           <Form.Item
             name="password"
             rules={[
-              { required: true, message: formatMessage({ id: 'gloabal.tips.enterPasswordMessage' }) },
+              { required: true, message: t("enterPasswordMessage") || '' },
             ]}
           >
             <Input.Password
               type={passwordVisible ? "text" : "password"}
-              placeholder={formatMessage({ id: 'gloabal.tips.password' })}
+              placeholder={t("password") || ''}
               iconRender={(visible: boolean) => (visible ? <EyeOutlined /> : <EyeInvisibleOutlined />)}
               onClick={() => setPasswordVisible(!passwordVisible)}
             />
           </Form.Item>
           <Form.Item name="remember" valuePropName="checked">
             <Checkbox>
-              <LocaleFormatter id="gloabal.tips.rememberUser" />
+              {t('rememberUser')}
             </Checkbox>
           </Form.Item>
           <Form.Item>
             <Button htmlType="submit" type="primary" className="login-page-form_button" loading={loading}>
-              <LocaleFormatter id="gloabal.tips.login" />
+              {t('login')}
             </Button>
           </Form.Item>
         </Form>

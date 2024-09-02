@@ -37,7 +37,7 @@
     "graphql": "^16.5.0",
     "graphql-ws": "^5.6.3",
     "history": "^5.0.1",
-    "i18next": "^22.0.6",
+    "i18next": "^22.5.1",
     "i18next-browser-languagedetector": "^7.0.1",
     "identicon": "^3.1.1",
     "identicon.js": "^2.3.3",
@@ -64,7 +64,7 @@
     "react-ga4": "^1.4.1",
     "react-google-login": "5.2.2",
     "react-helmet-async": "^2.0.3",
-    "react-i18next": "^12.0.0",
+    "react-i18next": "^12.3.1",
     "react-icons": "^4.8.0",
     "react-icons-kit": "^2.0.0",
     "react-image-lightbox": "5.1.4",
@@ -137,6 +137,7 @@
     "@types/node": "^16.11.6",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^18.3.0",
+    "@types/react-i18next": "^8.1.0",
     "@types/react-redux": "^7.1.20",
     "@types/react-table": "^7.7.20",
     "@types/recharts": "^1.8.13",
@@ -156,6 +157,7 @@
     "typescript": "^4.9.5",
     "vite": "^2.6.4",
     "vite-plugin-imp": "^2.0.10",
+    "vite-plugin-remove-console": "^2.2.0",
     "vite-plugin-svgr": "^0.6.0"
   }
 }
