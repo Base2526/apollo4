@@ -1,0 +1,20 @@
+{
+    "welcome": "ยินดีต้อนรับสู่แอปพลิเคชันของเรา",
+    "greeting": "สวัสดี, {{name}}!",
+
+    "loading": "รอ...",
+    "account": "Account",
+    "settings": "Settings",
+    "administrator": "Administrator",
+    "logout": "Logout",
+    "traffic": "Traffic",
+    "payments": "Payments",
+
+    "home": "หน้าหลัก",
+    "login": "เข้าใช้ระบบ",
+    "username": "Username",
+    "enterUsernameMessage": "Please enter your Username!",
+    "password": "Password",
+    "enterPasswordMessage": "Please enter your Password!",
+    "rememberUser": "Remember"
+}

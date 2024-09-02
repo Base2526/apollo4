@@ -1633,10 +1633,10 @@ export async function createChildNodes(_id, currentUser, packages) {
     session.startTransaction();
     try {
         // หา node แรกที่ _id เป็นเจ้าของ
-        let rootNode = await Model.Node.findOne({'current.ownerId': mongoose.Types.ObjectId(_id), 'current.isParent': true });
+        let rootNode = await Model.Node.findOne({'current.ownerId': _id, 'current.isParent': true });
 
         if(_.isEmpty(rootNode)){
-            throw new Error("Root node is Empty.");
+            throw new Error("Root node is Empty _id :  " + _id);
         }
 
         // หา node ที่สามารถเพิ่มลงไปได้

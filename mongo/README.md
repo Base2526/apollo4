@@ -190,3 +190,25 @@ rs.status()
 docker logs mongo-express
 
 mongodb://root:example@mongo1:27017,mongo2:27017,mongo3:27017/?replicaSet=rs0
+
+
+
+# Step #1 docker exec -it xxxx bash
+# Step #2 mongosh
+# Step #3 rs.initiate({_id: "rs0", members: [{ _id: 0, host: "mongo1:27017" }, { _id: 1, host: "mongo2:27017" }, { _id: 2, host: "mongo3:27017" }]})
+
+# Step #4
+# ต้อง add user ก่อนด้วย
+# use admin
+# db.createUser({
+#   user: "admin",
+#   pwd: "Somkid058848391",
+#   roles: [{ role: "root", db: "admin" }]
+# })
+
+# db.createUser({
+#   user: "insurance",
+#   pwd: "Somkid058848391",
+#   roles: [{ role: "readWrite", db: "insurance" }]
+# })
+
