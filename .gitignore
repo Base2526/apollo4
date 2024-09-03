@@ -2,6 +2,7 @@ frontend/node_modules
 frontend/ssl
 frontend/ssl-banlist
 frontend/package-lock.json
+frontend/.env.production
 
 backend/package-lock.json
 backend/node_modules

@@ -53,19 +53,26 @@ export const isValidUrl = (urlString: string): boolean => {
   }
 };
 
-export const checkRole = (user :any) =>{
-  if(user?.current?.roles){
-    // console.log("checkRole :", user?.current?.roles)
-    const VITE_USER_ROLES = import.meta.env.VITE_USER_ROLES as string
-    if( _.includes( user?.current?.roles, parseInt(_.split(VITE_USER_ROLES, ',' )[0])) ){
+export const checkRole = (user: any) => {
+  if (user?.current?.roles) {
+    // Ensure VITE_USER_ROLES is a string before using it
+    const { VITE_USER_ROLES } = import.meta.env;
+    
+    if (typeof VITE_USER_ROLES === 'string') {
+      const rolesArray = VITE_USER_ROLES.split(',');
+
+      if (_.includes(user.current.roles, parseInt(rolesArray[0]))) {
         return Constants.ADMINISTRATOR;
-    }
-    else if(_.includes( user?.current?.roles, parseInt(_.split(VITE_USER_ROLES, ',' )[2])) ){
+      } else if (_.includes(user.current.roles, parseInt(rolesArray[2]))) {
         return Constants.SELLER;
-    }
-    else if(_.includes( user?.current?.roles, parseInt(_.split(VITE_USER_ROLES, ',' )[1])) ){
-      return Constants.AUTHENTICATED;
+      } else if (_.includes(user.current.roles, parseInt(rolesArray[1]))) {
+        return Constants.AUTHENTICATED;
+      }
+    } else {
+      // Handle the case where VITE_USER_ROLES is not a string
+      console.error("VITE_USER_ROLES is not a string");
     }
   }
+  
   return Constants.ANONYMOUS;
-}
+};

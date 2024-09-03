@@ -1,23 +1,20 @@
-// apolloClient.ts
 import { ApolloClient, InMemoryCache, split } from '@apollo/client';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient } from 'graphql-ws';
-import { HttpLink } from '@apollo/client';
 import { getMainDefinition } from "@apollo/client/utilities";
 import { createUploadLink } from "apollo-upload-client";
 
+const { PROD, VITE_HOST_GRAPHAL }  = import.meta.env
+
 const httpLink = createUploadLink({
-  // uri: 'http://' + import.meta.env.VITE_HOST_GRAPHAL + "/graphql", // Replace with your Apollo Server URL
-  uri: 'http://167.99.75.91:1984/graphql',
+  uri: 'http://' + VITE_HOST_GRAPHAL + "/graphql", // Replace with your Apollo Server URL
 });
 
 const wsLink = new GraphQLWsLink(
   createClient({
-    // url: 'ws://' + import.meta.env.VITE_HOST_GRAPHAL + "/graphql", // Your Apollo Server WebSocket endpoint
-    url: 'ws://167.99.75.91:1984/graphql',
+    url: 'ws://' + VITE_HOST_GRAPHAL + "/graphql", // Your Apollo Server WebSocket endpoint
   })
 );
-
 
 // Combine the HTTP link and WebSocket link
 const splitLink = split(
@@ -35,6 +32,7 @@ const splitLink = split(
 const client = new ApolloClient({
   link: splitLink,
   cache: new InMemoryCache(),
+  connectToDevTools: PROD
 });
 
 export default client;

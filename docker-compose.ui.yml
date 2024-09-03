@@ -1,8 +1,5 @@
 version: "3"
 services:
-  ################################
-  # Setup Insurance Frontend container
-  ################################
   frontend:
     build: 
       context: ./frontend
@@ -21,8 +18,6 @@ services:
       - ./uploads:/var/storage
     networks:
       - insurance-network
-  ################################
-  
 networks:
   insurance-network:
     external: true 
