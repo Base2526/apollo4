@@ -1653,14 +1653,14 @@ export async function createChildNodes(_id, currentUser, packages) {
             case 1: {
                 // Create root node
                 const _id0_0 = mongoose.Types.ObjectId();
-                documents.push({ _id: _id0_0, current: { ownerId: currentUser._id, parentNodeId: parentId, number, isParent: true } });
+                documents.push({ _id: _id0_0, current: { suggester: rootNode._id,  ownerId: currentUser._id, parentNodeId: parentId, number, isParent: true } });
                 break;
             }
 
             case 2: {
                 // Create root node
                 const _id0_0 = mongoose.Types.ObjectId();
-                documents.push({ _id: _id0_0, current: { ownerId: currentUser._id, parentNodeId: parentId, number, isParent: true } });
+                documents.push({ _id: _id0_0, current: { suggester: rootNode._id, ownerId: currentUser._id, parentNodeId: parentId, number, isParent: true } });
 
                 // Create level 1 nodes
                 const level1Ids = [];

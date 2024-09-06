@@ -22,6 +22,8 @@ const nodeSchema = new Schema({
             enum : [0/*unpaid*/, 1/*paid*/],
             default: 0
         },
+        // 6/Sep/24 คนแนะนำ
+        suggester: { type: Schema.Types.ObjectId, default: null },  
     },
     history: [historySchema]
 },
