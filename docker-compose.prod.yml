@@ -2,14 +2,14 @@ version: "3"
 services:
   frontend:
     build: 
-      context: ./frontend
-      dockerfile: Dockerfile.vite.prod
+      context: ./frontend-webpack
+      dockerfile: Dockerfile.prod
     container_name: insurance_frontend
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./frontend/src:/app/src
+      - ./frontend-webpack/src:/app/src
       - ./uploads:/var/storage
     networks:
       - insurance-network
