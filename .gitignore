@@ -5,6 +5,7 @@ frontend/package-lock.json
 frontend/.env.production
 
 frontend-webpack/node_modules
+frontend-webpack/package-lock.json
 
 backend/package-lock.json
 backend/node_modules
