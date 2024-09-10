@@ -8,7 +8,8 @@ import rootReducer from './rootReducer'; // Your root reducer
 // Define the root state type
 export type RootState = ReturnType<typeof rootReducer>;
 
-const { PROD }  = import.meta.env
+console.log("process.env :", process.env)
+const { mode } = process.env;
 
 // Configure Redux Persist
 const persistConfig = {
@@ -16,8 +17,8 @@ const persistConfig = {
   storage,
   transforms: [
     {
-      in: (state: any) => PROD ?  encrypt(JSON.stringify(state)) : JSON.stringify(state), // Encrypt the state before persisting
-      out: (state: string) => PROD ? JSON.parse(decrypt(state)) : JSON.parse(state), // Decrypt the state when rehydrating
+      in: (state: any) => mode !== 'development' ?  encrypt(JSON.stringify(state)) : JSON.stringify(state), // Encrypt the state before persisting
+      out: (state: string) => mode !== 'development' ? JSON.parse(decrypt(state)) : JSON.parse(state), // Decrypt the state when rehydrating
       // in: (state: any) => JSON.stringify(state) , // Encrypt the state before persisting
       // out: (state: string) => JSON.parse(state) , // Decrypt the state when rehydrating
     }

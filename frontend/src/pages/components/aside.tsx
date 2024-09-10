@@ -1,8 +1,7 @@
-import type { MySideOption } from '@/components/business/aside';
-import type { FC } from 'react';
-
+import React, { FC } from 'react';
 import { Typography } from 'antd';
 
+import type { MySideOption } from '@/components/business/aside';
 import MyAside from '@/components/business/aside';
 
 const { Title } = Typography;

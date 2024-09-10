@@ -37,7 +37,7 @@ const Import: React.FC = () => {
           {data.map((row, index) => (
             <tr key={index}>
               {Object.values(row).map((cell, cellIndex) => (
-                <td key={cellIndex}>{cell}</td>
+                 <></>// <td key={cellIndex}>{cell}</td> 
               ))}
             </tr>
           ))}

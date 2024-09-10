@@ -1,5 +1,4 @@
-import type { FC } from 'react';
-
+import React, { FC } from 'react';
 import { Select } from 'antd';
 
 // import { SelectProps, SelectValue } from 'antd/es/select';

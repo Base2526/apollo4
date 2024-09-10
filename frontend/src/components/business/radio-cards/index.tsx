@@ -1,6 +1,5 @@
+import React, { FC } from 'react';
 import type { RadioGroupProps } from 'antd';
-import type { FC } from 'react';
-
 import { css } from '@emotion/react';
 
 import MyRadio from '@/components/basic/radio';
@@ -18,7 +17,7 @@ const MyRadioCards: FC<MyRadioCardsProps> = props => {
   const { options, ...rest } = props;
 
   return (
-    <div css={styles}>
+    <div /*css={styles}*/>
       <MyRadio.Group buttonStyle="solid" {...rest}>
         {options?.map(option => (
           <MyRadio.Button style={{ width: `calc(100% / ${options.length})` }} key={option.value} value={option.value}>

@@ -2,7 +2,7 @@ import 'driver.js/dist/driver.min.css';
 import './index.less';
 
 import Driver from 'driver.js';
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 import { useDispatch } from 'react-redux';
 
 import { useLocale } from '@/locales';

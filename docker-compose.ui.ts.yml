@@ -2,9 +2,9 @@ version: "3"
 services:
   frontend:
     build: 
-      context: ./frontend-webpack
+      context: ./frontend
       dockerfile: Dockerfile.dev
-    container_name: insurance_frontend.webpack
+    container_name: insurance_frontend
     env_file:
       - ./env/.env.ui.ts
     environment:
@@ -12,7 +12,7 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - ./frontend-webpack/src:/app/src
+      - ./frontend/src:/app/src
       - ./uploads:/var/storage
     networks:
       - insurance-network

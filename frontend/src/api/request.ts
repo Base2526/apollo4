@@ -1,5 +1,4 @@
 import type { AxiosRequestConfig, Method } from 'axios';
-
 import { message as $message } from 'antd';
 import axios from 'axios';
 

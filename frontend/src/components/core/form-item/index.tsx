@@ -1,8 +1,7 @@
 import type { FormItemProps } from 'antd/es/form';
-import type { FC } from 'react';
+import React, { FC, ReactNode, useMemo } from 'react';
 
 import { Checkbox, DatePicker, Form, Input, InputNumber, Radio, Select, Switch } from 'antd';
-import React, { useMemo } from 'react';
 
 export type ControlTypes = 'input' | 'input-number' | 'switch' | 'date-picker' | 'checkbox' | 'radio' | 'select';
 
@@ -60,17 +59,17 @@ export class ControlMap {
 
   checkbox() {
     // highlight-next-line
-    return <Checkbox.Group children={this.props.children} options={this.props.options} {...this.innerProps} />;
+    return <Checkbox.Group children={this.props.children  as ReactNode} options={this.props.options} {...this.innerProps} />;
   }
 
   radio() {
     // highlight-next-line
-    return <Radio.Group children={this.props.children} options={this.props.options} {...this.innerProps} />;
+    return <Radio.Group children={this.props.children  as ReactNode} options={this.props.options} {...this.innerProps} />;
   }
 
   select() {
     // highlight-next-line
-    return <Select children={this.props.children} options={this.props.options} {...this.innerProps} />;
+    return <Select children={this.props.children as ReactNode} options={this.props.options} {...this.innerProps} />;
   }
 }
 

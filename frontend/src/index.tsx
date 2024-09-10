@@ -1,21 +1,17 @@
-import './styles/index.less';
-import './mock';
+import '@/styles/index.less';
+import '@/mock';
 
-
-// import ReactDOM from 'react-dom';
+import React from 'react';
 import { createRoot } from 'react-dom/client'; // Import createRoot
 import { Provider } from "react-redux";
 import { ApolloProvider } from '@apollo/client';
 import { PersistGate } from 'redux-persist/integration/react';
 import { I18nextProvider } from 'react-i18next';
 
-import App from './App';
-import { store, persistor } from './stores';
-
-import client from './apollo/ConfigureApolloClient';
-// import { getCookie } from './utils'
-
-import i18n from "./i18n"
+import App from '@/App';
+import { store, persistor } from '@/stores';
+import client from '@/apollo/ConfigureApolloClient';
+import i18n from "@/i18n"
 
 const container = document.getElementById('root'); // Get the root element
 const root = createRoot(container!); // Create a root

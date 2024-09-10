@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { UsergroupAddOutlined, UserOutlined } from '@ant-design/icons';
-import { Tree, TreeProps, Spin } from 'antd';
+import { Tree, TreeProps, Spin, Button } from 'antd';
 import { useQuery } from "@apollo/client";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from 'react-redux';
@@ -8,8 +8,8 @@ import _ from "lodash";
 import moment from "moment";
 import { DataNode as RcTreeDataNode } from 'rc-tree/lib/interface'; // This is the type from rc-tree
 
-import { querytest_fetch_node } from "../../apollo/gqlQuery";
-import { getHeaders } from "../../utils";
+import { querytest_fetch_node } from "@/apollo/gqlQuery";
+import { getHeaders } from "@/utils";
 
 interface DataNode extends RcTreeDataNode {
   owner?: {
@@ -84,6 +84,7 @@ const TreePage: React.FC = () => {
 
   return (
     <div>
+      <Button type="primary" onClick={()=>navigate("/administrator/userlist/tree/orgchart")}>Visual Tree</Button>
       {loadingNode ? (
         <Spin tip="Loading..." />
       ) : (

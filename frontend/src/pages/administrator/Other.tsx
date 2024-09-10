@@ -35,7 +35,7 @@ const Other: React.FC = () => {
     });
   };
 
-  const treeData = generateTreeData(import.meta.env);
+  const treeData = generateTreeData(process.env);
 
   return (
     <div>

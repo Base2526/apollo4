@@ -1,20 +1,19 @@
-import type { MyAsideProps } from '../aside';
-import type { MyRadioCardssOption } from '../radio-cards';
-import type { MyTabsOption } from '../tabs';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
+import type { ColumnsType } from 'antd/es/table/interface';
+import { css } from '@emotion/react';
+
+import type { MyAsideProps } from '@/components/business/aside';
+import type { MyRadioCardssOption } from '@/components/business/radio-cards';
+import type { MyTabsOption } from '@/components/business/tabs';
 import type { MyResponse } from '@/api/request';
 import type { PageData } from '@/interface';
-import type { ColumnsType } from 'antd/es/table/interface';
-
-import { css } from '@emotion/react';
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
-
 import MyTable from '@/components/core/table';
 import { useStates } from '@/utils/use-states';
 
-import MyAside from '../aside';
-import MyRadioCards from '../radio-cards';
-import MySearch from '../search';
-import MyTabs from '../tabs';
+import MyAside from '@/components/business/aside';
+import MyRadioCards from '@/components/business/radio-cards';
+import MySearch from '@/components/business/search';
+import MyTabs from '@/components/business/tabs';
 
 interface SearchApi {
   (params?: any): MyResponse<PageData<any>>;
@@ -71,7 +70,7 @@ const BasePage = <S extends SearchApi>(props: PageProps<S>, ref: React.Ref<RefPa
 
   useEffect(() => {
     if (asideData) {
-      setAsideCheckedKey(asideData[0].key);
+      // setAsideCheckedKey(asideData[0].key);
     }
   }, [asideData]);
 
@@ -106,7 +105,7 @@ const BasePage = <S extends SearchApi>(props: PageProps<S>, ref: React.Ref<RefPa
   };
 
   const onSelectAsideTree: MyAsideProps['onSelect'] = ([key]) => {
-    setAsideCheckedKey(key);
+    // setAsideCheckedKey(key);
   };
 
   const onPageChange = (pageNum: number, pageSize?: number) => {
@@ -123,7 +122,7 @@ const BasePage = <S extends SearchApi>(props: PageProps<S>, ref: React.Ref<RefPa
   }));
 
   return (
-    <div css={styles}>
+    <div /*css={styles}*/ >
       {tabsData && <MyTabs className="tabs" options={tabsData} defaultValue={tabsData[0].value || tabsValue} />}
       <div className="tabs-main">
         {asideData && (

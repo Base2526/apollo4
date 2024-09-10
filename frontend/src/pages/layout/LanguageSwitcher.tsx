@@ -1,30 +1,15 @@
-import React, { FC, useState } from 'react';
-// import ThailandFlag from './ThailandFlag'; // Adjust the path as necessary
-// import EnglandFlag from './EnglandFlag'; // Adjust the path as necessary
+import React, { FC } from 'react';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 
 import { ReactComponent as EnglandFlag } from '@/assets/header/en_US.svg';
-// import { ReactComponent as LanguageSvg } from '@/assets/header/language.svg';
-// import { ReactComponent as MoonSvg } from '@/assets/header/moon.svg';
-// import { ReactComponent as SunSvg } from '@/assets/header/sun.svg';
 import { ReactComponent as ThailandFlag } from '@/assets/header/zh_CN.svg';
-
+import  { DefaultRootState } from '@/interface/DefaultRootState';
 
 
 const LanguageSwitcher: FC = () => {
-//   const [language, setLanguage] = useState<'en' | 'th'>('en');
-
-  const { logged, locale, device } = useSelector(state => state.user);
-
-  const { theme } = useSelector(state => state.global);
-
-
+  const { theme } = useSelector((state: DefaultRootState )=> state.global);
   const { i18n } = useTranslation();
-
-//   const toggleLanguage = () => {
-//     setLanguage((prev) => (prev === 'en' ? 'th' : 'en'));
-//   };
 
   return (
     <div  style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>

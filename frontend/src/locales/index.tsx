@@ -1,6 +1,5 @@
-import type { FC } from 'react';
+import React, { FC } from 'react';
 import type { MessageDescriptor } from 'react-intl';
-
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import en_US from './en-US';

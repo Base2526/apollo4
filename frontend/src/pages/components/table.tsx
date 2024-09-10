@@ -1,5 +1,4 @@
-import type { FC } from 'react';
-
+import React, { FC } from 'react';
 import { Space, Tag } from 'antd';
 
 import MyButton from '@/components/basic/button';

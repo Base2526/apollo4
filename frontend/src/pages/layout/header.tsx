@@ -1,4 +1,6 @@
-import type { FC } from 'react';
+import "@/pages/layout/index.less"
+
+import React, { FC } from 'react';
 import { LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined, SettingOutlined, ToolOutlined } from '@ant-design/icons';
 import { Dropdown, Layout, theme as antTheme, Tooltip } from 'antd';
 import { createElement, useEffect } from 'react';
@@ -6,25 +8,33 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import Avator from '@/assets/header/avator.jpeg';
+// import Avator from '@/assets/header/avator.jpeg';
+// import EnUsSvg from '@/assets/header/en_US.svg';
+// import LanguageSvg from '@/assets/header/language.svg';
+// import MoonSvg from '@/assets/header/moon.svg';
+// import SunSvg from '@/assets/header/sun.svg';
+// import ZhCnSvg from '@/assets/header/zh_CN.svg';
+// import ThThSvg from '@/assets/header/th_TH.svg';
+
+import  Avator from '@/assets/header/avator.jpeg';
 import { ReactComponent as EnUsSvg } from '@/assets/header/en_US.svg';
-import { ReactComponent as LanguageSvg } from '@/assets/header/language.svg';
+// import { ReactComponent as LanguageSvg }from '@/assets/header/language.svg';
 import { ReactComponent as MoonSvg } from '@/assets/header/moon.svg';
 import { ReactComponent as SunSvg } from '@/assets/header/sun.svg';
-import { ReactComponent as ZhCnSvg } from '@/assets/header/zh_CN.svg';
+// import { ReactComponent as ZhCnSvg } from '@/assets/header/zh_CN.svg';
 import { ReactComponent as ThThSvg } from '@/assets/header/th_TH.svg';
+
 import { useLocale } from '@/locales';
 import { setGlobalState } from '@/stores/global.store';
 import { setUserItem } from '@/stores/user.store';
 import InsuranceLogo from "@/assets/logo/InsuranceLogo"
-import { logoutAsync } from '../../action/user.action';
-import HeaderNoticeComponent from './notice';
-import LanguageSwitcher from "./LanguageSwitcher"
+import { logoutAsync } from '@/action/user.action';
+import HeaderNoticeComponent from '@/pages/layout/notice';
+import LanguageSwitcher from "@/pages/layout/LanguageSwitcher"
 
-import "./index.less"
-
-import * as utils from "../../utils"
-import * as Constants from "../../constants"
+import * as utils from "@/utils"
+import * as Constants from "@/constants"
+import  { DefaultRootState } from '@/interface/DefaultRootState';
 
 const { Header } = Layout;
 
@@ -36,8 +46,8 @@ interface HeaderProps {
 type Action = 'userInfo' | 'userSetting' | 'logout';
 
 const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
-  const { logged, locale, device, profile } = useSelector(state => state.user);
-  const { theme } = useSelector(state => state.global);
+  const { logged, locale, device, profile } = useSelector((state: DefaultRootState) => state.user);
+  const { theme } = useSelector((state: DefaultRootState) => state.global);
   const navigate = useNavigate();
   const token = antTheme.useToken();
   const dispatch = useDispatch();

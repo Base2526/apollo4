@@ -1,9 +1,8 @@
-import type { MyPageTableOptions } from '@/components/business/page';
-import type { BuniesssUser } from '@/interface/business';
-import type { FC } from 'react';
-
+import React, { FC } from 'react';
 import { Space, Tag } from 'antd';
 
+import type { MyPageTableOptions } from '@/components/business/page';
+import type { BuniesssUser } from '@/interface/business';
 import { getBusinessUserList } from '@/api/business';
 import MyButton from '@/components/basic/button';
 import MyPage from '@/components/business/page';
