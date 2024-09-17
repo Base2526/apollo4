@@ -107,6 +107,7 @@ server.start().then(() => {
   const corsOptions = {
     // origin: 'http://localhost:5173', // Replace with your frontend URL
     origin: (origin, callback) => {
+      console.log("graphql +++++++++++++ :", origin)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {

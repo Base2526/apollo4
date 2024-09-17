@@ -8,25 +8,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-// import Avator from '@/assets/header/avator.jpeg';
-// import EnUsSvg from '@/assets/header/en_US.svg';
-// import LanguageSvg from '@/assets/header/language.svg';
-// import MoonSvg from '@/assets/header/moon.svg';
-// import SunSvg from '@/assets/header/sun.svg';
-// import ZhCnSvg from '@/assets/header/zh_CN.svg';
-// import ThThSvg from '@/assets/header/th_TH.svg';
-
 import  Avator from '@/assets/header/avator.jpeg';
 import { ReactComponent as EnUsSvg } from '@/assets/header/en_US.svg';
-// import { ReactComponent as LanguageSvg }from '@/assets/header/language.svg';
 import { ReactComponent as MoonSvg } from '@/assets/header/moon.svg';
 import { ReactComponent as SunSvg } from '@/assets/header/sun.svg';
-// import { ReactComponent as ZhCnSvg } from '@/assets/header/zh_CN.svg';
 import { ReactComponent as ThThSvg } from '@/assets/header/th_TH.svg';
 
 import { useLocale } from '@/locales';
 import { setGlobalState } from '@/stores/global.store';
-import { setUserItem } from '@/stores/user.store';
 import InsuranceLogo from "@/assets/logo/InsuranceLogo"
 import { logoutAsync } from '@/action/user.action';
 import HeaderNoticeComponent from '@/pages/layout/notice';
