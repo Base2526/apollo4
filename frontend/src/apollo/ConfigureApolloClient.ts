@@ -4,15 +4,15 @@ import { createClient } from 'graphql-ws';
 import { getMainDefinition } from "@apollo/client/utilities";
 import { createUploadLink } from "apollo-upload-client";
 
-const { PROD, VITE_HOST_GRAPHAL }  = import.meta.env
+const { mode, REACT_APP_HOST_GRAPHAL }  = process.env
 
 const httpLink = createUploadLink({
-  uri: 'http://' + VITE_HOST_GRAPHAL + "/graphql", // Replace with your Apollo Server URL
+  uri: 'http://' + REACT_APP_HOST_GRAPHAL + "/graphql", // Replace with your Apollo Server URL
 });
 
 const wsLink = new GraphQLWsLink(
   createClient({
-    url: 'ws://' + VITE_HOST_GRAPHAL + "/graphql", // Your Apollo Server WebSocket endpoint
+    url: 'ws://' + REACT_APP_HOST_GRAPHAL + "/graphql", // Your Apollo Server WebSocket endpoint
   })
 );
 
@@ -32,7 +32,7 @@ const splitLink = split(
 const client = new ApolloClient({
   link: splitLink,
   cache: new InMemoryCache(),
-  connectToDevTools: PROD
+  connectToDevTools: mode === 'development'
 });
 
 export default client;

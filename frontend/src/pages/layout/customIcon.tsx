@@ -1,15 +1,11 @@
-import type { FC } from 'react';
+import React, { FC } from 'react';
 
-
-import { HomeOutlined, ControlOutlined, DingdingOutlined, BugOutlined, FireOutlined } from '@ant-design/icons';
-
-// dingding
-
-import { ReactComponent as AccountSvg } from '@/assets/menu/account.svg';
-import { ReactComponent as DashboardSvg } from '@/assets/menu/dashboard.svg';
-import { ReactComponent as DocumentationSvg } from '@/assets/menu/documentation.svg';
-import { ReactComponent as GuideSvg } from '@/assets/menu/guide.svg';
-import { ReactComponent as PermissionSvg } from '@/assets/menu/permission.svg';
+import { HomeOutlined, ControlOutlined, BugOutlined, FireOutlined } from '@ant-design/icons';
+import AccountSvg from '@/assets/menu/account.svg';
+import DashboardSvg from '@/assets/menu/dashboard.svg';
+import DocumentationSvg from '@/assets/menu/documentation.svg';
+import GuideSvg from '@/assets/menu/guide.svg';
+import PermissionSvg from '@/assets/menu/permission.svg';
 
 interface CustomIconProps {
   type: string;

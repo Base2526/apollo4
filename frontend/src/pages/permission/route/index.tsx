@@ -1,6 +1,6 @@
 import './index.less';
 
-import type { FC } from 'react';
+import React, { FC } from 'react';
 import { Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 

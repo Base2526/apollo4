@@ -1,8 +1,11 @@
-import type { FC } from 'react';
+import React, { FC } from 'react';
+import { Switch, SwitchProps } from 'antd';
 
-import { Switch } from 'antd';
+interface BaseSwitchProps extends SwitchProps {
+  children?: React.ReactNode;
+}
 
-const BaseSwitch: FC = ({ children: _, ...props }) => {
+const BaseSwitch: FC<BaseSwitchProps> = ({ children: _, ...props }) => {
   return <Switch {...props} />;
 };
 

@@ -1,5 +1,5 @@
 import type { ColProps } from 'antd/es/col';
-import type { FC } from 'react';
+import React, { FC } from 'react';
 
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Badge, Card, Col, Progress, Row, Tooltip } from 'antd';
@@ -8,8 +8,8 @@ import { Area, AreaChart, Bar, BarChart, ResponsiveContainer, Tooltip as RToolti
 
 import { useLocale } from '@/locales';
 
-import { ReactComponent as CaretDownIcon } from './assets/caret-down.svg';
-import { ReactComponent as CaretUpIcon } from './assets/caret-up.svg';
+import CaretDownIcon from '@/assets/caret-down.svg';
+import CaretUpIcon from '@/assets/caret-up.svg';
 
 const data = new Array(14).fill(null).map((_, index) => ({
   name: dayjs().add(index, 'day').format('YYYY-MM-DD'),
@@ -65,12 +65,12 @@ const Trend: FC<TrendProps> = ({ wow, dod, style = {} }) => {
       <div className="trend-item">
         <span className="trend-item-label">{formatMessage({ id: 'app.dashboard.overview.wowChange' })}</span>
         <span className="trend-item-text">{wow}</span>
-        <CaretUpIcon color="#f5222d" />
+        {/* <CaretUpIcon color="#f5222d" /> */}
       </div>
       <div className="trend-item">
         <span className="trend-item-label">{formatMessage({ id: 'app.dashboard.overview.dodChange' })}</span>
         <span className="trend-item-text">{dod}</span>
-        <CaretDownIcon color="#52c41a" />
+        {/* <CaretDownIcon color="#52c41a" /> */}
       </div>
     </div>
   );

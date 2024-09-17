@@ -1,8 +1,7 @@
-import type { BuniesssUser } from '@/interface/business';
-
 import qs from 'query-string';
 
-import { intercepter, mock } from '../config';
+import { intercepter, mock } from '@/mock/config';
+import type { BuniesssUser } from '@/interface/business';
 
 const data: BuniesssUser[] = [
   {

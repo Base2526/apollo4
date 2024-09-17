@@ -1,8 +1,8 @@
-import type { FC, ReactElement } from 'react';
+import React, { FC, ReactElement } from 'react';
 import { PathRouteProps, LayoutRouteProps, IndexRouteProps } from 'react-router-dom';
 import { useIntl } from 'react-intl';
 
-import PrivateRoute from './privateRoute';
+import PrivateRoute from '@/routes/privateRoute';
 
 type RouteProps = PathRouteProps | LayoutRouteProps | IndexRouteProps;
 

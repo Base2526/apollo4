@@ -1,7 +1,7 @@
 import _ from 'lodash'; // Import lodash if you're using it
 import UniversalCookie, { CookieSetOptions } from 'universal-cookie';
 
-import * as Constants from "../constants"
+import * as Constants from "@/constants"
 
 const cookies = new UniversalCookie();
 
@@ -56,10 +56,10 @@ export const isValidUrl = (urlString: string): boolean => {
 export const checkRole = (user: any) => {
   if (user?.current?.roles) {
     // Ensure VITE_USER_ROLES is a string before using it
-    const { VITE_USER_ROLES } = import.meta.env;
+    const { REACT_APP_USER_ROLES } = process.env;
     
-    if (typeof VITE_USER_ROLES === 'string') {
-      const rolesArray = VITE_USER_ROLES.split(',');
+    if (typeof REACT_APP_USER_ROLES === 'string') {
+      const rolesArray = REACT_APP_USER_ROLES.split(',');
 
       if (_.includes(user.current.roles, parseInt(rolesArray[0]))) {
         return Constants.ADMINISTRATOR;
@@ -70,7 +70,7 @@ export const checkRole = (user: any) => {
       }
     } else {
       // Handle the case where VITE_USER_ROLES is not a string
-      console.error("VITE_USER_ROLES is not a string");
+      console.error("REACT_APP_USER_ROLES is not a string");
     }
   }
   

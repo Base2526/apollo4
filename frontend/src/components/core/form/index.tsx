@@ -1,9 +1,9 @@
-import type { ControlTypes, MyFormItemProps } from '../form-item';
+import React from "react"
+import MyFormItem, { ControlTypes, MyFormItemProps } from '@/components/core/form-item';
 import type { FormProps } from 'antd/es/form/Form';
-
 import { Form } from 'antd';
 
-import MyFormItem from '../form-item';
+// import MyFormItem from '../form-item';
 
 export interface MyFormOptions extends Array<MyFormItemProps<ControlTypes>> {}
 
@@ -19,7 +19,7 @@ const BaseForm = <Values extends object>(props: MyFormProps<Values>) => {
       {options?.map(option => {
         return <MyFormItem {...option} />;
       })}
-      {children}
+      {/* {children} */}
     </Form>
   );
 };

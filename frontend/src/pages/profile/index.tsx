@@ -6,12 +6,11 @@ import { useMutation } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
 import QRCode from 'react-qr-code';
 
-import { mutationProfile } from "../../apollo/gqlQuery";
-import { getHeaders } from "../../utils";
-import { updateProfile } from '../../stores/user.store';
-import "./index.less";
-
-import handlerError from "../../utils/handlerError"
+import { mutationProfile } from "@/apollo/gqlQuery";
+import { getHeaders } from "@/utils";
+import { updateProfile } from '@/stores/user.store';
+import "@/pages/profile/index.less";
+import handlerError from "@/utils/handlerError"
 
 // type FileType = Parameters<typeof Upload.beforeUpload>[0];
 type FileType = Parameters<NonNullable<UploadProps['beforeUpload']>>[0];

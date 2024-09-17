@@ -1,15 +1,14 @@
+import React, { FC } from 'react';
 import type { ColProps } from 'antd/es/col';
-import type { FC } from 'react';
-
 import { Badge, Card, Col, List, Radio, Row } from 'antd';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 import { useLocale } from '@/locales';
+import type { UserState } from '@/interface/user/user';
 
 type DataType = 'all' | 'online' | 'offline';
-
 interface Values {
   name: {
     zh_CN: string;
@@ -64,7 +63,7 @@ const wrapperCol: ColProps = {
 
 const SalePercent: FC<{ loading: boolean }> = ({ loading }) => {
   const [dataType, setDataType] = useState<DataType>('all');
-  const { locale } = useSelector(state => state.user);
+  const { locale } = useSelector((state:{user: UserState}) => state.user);
   const { formatMessage } = useLocale();
 
   return (

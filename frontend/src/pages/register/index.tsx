@@ -33,7 +33,7 @@ const RegisterPage: FC = (props) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { theme } = useSelector(state => state.global);
+  // const { theme } = useSelector(state => state.global);
   const [form] = Form.useForm();
 
   const { id } = useParams();

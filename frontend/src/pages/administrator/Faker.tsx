@@ -10,7 +10,7 @@ import { getHeaders, getCookie } from "../../utils"
 import { queryMembers, faker_agent, faker_insurance, mutationTest_addmember, mutationMlm } from "../../apollo/gqlQuery"
 
 
-import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
+// import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 import SaleOrderPDF from './PDF';
 
 
@@ -322,9 +322,9 @@ const Faker: React.FC = () => {
         {({ loading }) => (loading ? 'Loading document...' : 'Download PDF')}
       </PDFDownloadLink> */}
 
-<PDFDownloadLink document={<SaleOrderPDF items={saleItems} />} fileName="sale-report.pdf">
+{/* <PDFDownloadLink document={<SaleOrderPDF items={saleItems} />} fileName="sale-report.pdf">
       {({ loading }) => (loading ? 'Loading document...' : 'Download Sale Report')}
-    </PDFDownloadLink>
+    </PDFDownloadLink> */}
 
 {/* <SaleOrderPDF content={content} /> */}
   </div>

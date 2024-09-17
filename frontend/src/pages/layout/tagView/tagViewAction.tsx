@@ -1,13 +1,14 @@
-import type { FC } from 'react';
-
+import React, { FC } from 'react';
 import { SettingOutlined } from '@ant-design/icons';
 import { Dropdown } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
+
 import { removeAllTag, removeOtherTag, removeTag } from '@/action/tags-view.store';
+import  { DefaultRootState } from '@/interface/DefaultRootState';
 
 const TagsViewAction: FC = () => {
-  const { activeTagId } = useSelector(state => state.tagsView);
+  const { activeTagId } = useSelector((state :DefaultRootState ) => state.tagsView);
   const dispatch = useDispatch();
   const { t } = useTranslation();
 

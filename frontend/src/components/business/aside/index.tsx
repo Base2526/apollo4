@@ -1,9 +1,7 @@
-import type { TreeProps } from 'antd';
+import React, { FC } from 'react';
 import type { DataNode } from 'rc-tree/lib/interface';
-import type { FC } from 'react';
-
 import { css } from '@emotion/react';
-import { Divider, Tree } from 'antd';
+import { Divider, Tree, TreeProps } from 'antd';
 
 export interface MySideOption extends DataNode {}
 
@@ -17,7 +15,7 @@ const MyAside: FC<MyAsideProps> = props => {
   const { options, header, footer, ...rest } = props;
 
   return (
-    <div css={styles} className="bg-2">
+    <div /*css={styles}*/ className="bg-2">
       {header && (
         <div className="header">
           {header}

@@ -1,4 +1,4 @@
-import type { FC } from 'react';
+import React, { FC } from 'react';
 
 import MyButton from '@/components/basic/button';
 import MyForm from '@/components/core/form';

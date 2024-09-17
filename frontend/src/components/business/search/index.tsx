@@ -1,3 +1,4 @@
+import React from 'react'
 import type { MyFormProps } from '@/components/core/form';
 
 import { css } from '@emotion/react';
@@ -24,9 +25,9 @@ const BaseSearch = <T extends object>(props: SearchProps<T>) => {
   };
 
   return (
-    <div css={styles}>
+    <div /*css={styles}*/>
       <MyForm {...rest} form={form} layout="inline">
-        {children}
+        {/* {children} */}
         <MyForm.Item>
           <MyButton type="primary" onClick={onSubmit}>
             {formatMessage({ id: 'component.search.request' })}

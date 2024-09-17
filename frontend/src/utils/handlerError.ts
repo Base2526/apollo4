@@ -1,7 +1,7 @@
 import { ApolloError } from '@apollo/client';
 import _ from 'lodash';
 import { message } from 'antd';
-import * as constants from '../constants'; // Adjust the import path to your constants
+import * as constants from '@/constants'; // Adjust the import path to your constants
 
 interface GraphQLErrorExtensions {
     code?: string;

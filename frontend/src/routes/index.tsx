@@ -1,10 +1,8 @@
-import { FC } from 'react';
+import React, { FC } from 'react';
 import type { RouteObject } from 'react-router';
-
 import { lazy } from 'react';
-import { Navigate } from 'react-router';
+// import { Navigate } from 'react-router';
 import { useRoutes } from 'react-router-dom';
-
 
 import InsurancePage from '@/pages/insurance/insurancePage';
 import SelectInsurancePage from '@/pages/insurance/selectInsurancePage'
@@ -38,6 +36,8 @@ import ImportPage from "@/pages/administrator/Import"
 import TreePage from "@/pages/administrator/Tree"
 import OtherPage from "@/pages/administrator/Other"
 
+import OrgChartPage from "@/pages/administrator/orgchart"
+
 import BillListPage from "@/pages/administrator/BillList"
 import BillPage from "@/pages/administrator/Bill"
 
@@ -49,7 +49,7 @@ import CalTreeHistoryListPage from "@/pages/administrator/CalTreeHistoryList"
 
 import NoticeListPage from "@/pages/administrator/NoticeList"
 
-import WrapperRouteComponent from './config';
+import WrapperRouteComponent from '@/routes/config';
 
 const NotFound = lazy(() => import(/* webpackChunkName: "404'"*/ '@/pages/404'));
 const Documentation = lazy(() => import(/* webpackChunkName: "404'"*/ '@/pages/doucumentation'));
@@ -204,6 +204,11 @@ const routeList: RouteObject[] = [
       {
         path: 'administrator/userlist/tree',
         element: <WrapperRouteComponent requireAuth={true} element={<TreePage />} titleId="title.insurance" />,
+      },
+      // 
+      {
+        path: 'administrator/userlist/tree/orgchart',
+        element: <WrapperRouteComponent requireAuth={true} element={<OrgChartPage />} titleId="title.insurance" />,
       },
       {
         path: 'administrator/faker',

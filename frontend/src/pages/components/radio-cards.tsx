@@ -1,6 +1,6 @@
-import type { MyRadioCardssOption } from '@/components/business/radio-cards';
-import type { FC } from 'react';
+import React, { FC } from 'react';
 
+import type { MyRadioCardssOption } from '@/components/business/radio-cards';
 import MyRadioCards from '@/components/business/radio-cards';
 
 const options: MyRadioCardssOption[] = [

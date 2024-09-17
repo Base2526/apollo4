@@ -1,5 +1,6 @@
 import 'dayjs/locale/zh-cn';
 
+import React from 'react';
 import { ConfigProvider, Spin, theme as antdTheme } from 'antd';
 import enUS from 'antd/es/locale/en_US';
 import zhCN from 'antd/es/locale/zh_CN';
@@ -13,7 +14,7 @@ import { HistoryRouter, history } from '@/routes/history';
 import _ from "lodash"
 import { useTranslation } from 'react-i18next';
 
-import type { UserState } from '@/interface/user/user';
+import  { DefaultRootState } from '@/interface/DefaultRootState';
 
 import { localeConfig } from './locales';
 import RenderRouter from './routes';
@@ -21,8 +22,8 @@ import { setGlobalState } from './stores/global.store';
 import { healthCheck, userConnected } from "./apollo/gqlQuery"
 
 const App: FC = () => {
-  const { locale } = useSelector(state => state.user as UserState);
-  const { theme, loading } = useSelector(state => state.global);
+  const { locale } = useSelector((state : DefaultRootState) => state.user);
+  const { theme, loading } = useSelector((state : DefaultRootState) => state.global);
   const dispatch = useDispatch();
   const { t } = useTranslation();
 
@@ -44,6 +45,10 @@ const App: FC = () => {
     );
   };
 
+  function matchMode(e: MediaQueryListEvent) {
+    setTheme(e.matches);
+  }
+
   /** initial theme */
   useEffect(() => {
     // console.log("import.meta.env:", env);
@@ -53,11 +58,6 @@ const App: FC = () => {
     // watch system theme change
     if (!localStorage.getItem('theme')) {
       const mql = window.matchMedia('(prefers-color-scheme: dark)');
-
-      function matchMode(e: MediaQueryListEvent) {
-        setTheme(e.matches);
-      }
-
       mql.addEventListener('change', matchMode);
     }
   }, []);

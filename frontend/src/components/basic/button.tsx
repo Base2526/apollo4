@@ -1,6 +1,5 @@
 import type { ButtonProps } from 'antd/es/button';
-import type { FC } from 'react';
-
+import React, { FC } from 'react';
 import { Button } from 'antd';
 
 interface MyButtonProps extends ButtonProps {}

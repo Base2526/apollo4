@@ -1,13 +1,15 @@
-import type { MenuList } from '../../interface/layout/menu.interface';
-import type { FC } from 'react';
+import React, { FC } from 'react';
+
+
 import { useTranslation } from 'react-i18next';
 import { Menu } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 import { setUserItem } from '@/stores/user.store';
-import { CustomIcon } from './customIcon';
+import { CustomIcon } from '@/pages/layout/customIcon';
 import type { UserState } from '@/interface/user/user';
+import type { MenuList } from '@/interface/layout/menu.interface';
 
 interface MenuProps {
   menuList: MenuList;

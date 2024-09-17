@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from 'react';
+import React, { FC } from 'react';
 import { PathRouteProps, LayoutRouteProps, IndexRouteProps } from 'react-router-dom';
 
 import { Button, Result } from 'antd';
@@ -8,9 +8,9 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import { useLocale } from '@/locales';
-
-import * as utils from "../utils"
-import * as Constants from "../constants"
+import * as utils from "@/utils"
+import * as Constants from "@/constants"
+import  { DefaultRootState } from '@/interface/DefaultRootState';
 
 type RouteProps = PathRouteProps | LayoutRouteProps | IndexRouteProps;
 
@@ -24,7 +24,7 @@ export type WrapperRouteProps = RouteProps & {
 };
 
 const PrivateRoute: FC<WrapperRouteProps> = (props) => {
-  const { logged, profile } = useSelector(state => state.user);
+  const { logged, profile } = useSelector((state: DefaultRootState) => state.user);
   const navigate = useNavigate();
   const { formatMessage } = useLocale();
   const location = useLocation();

@@ -1,6 +1,6 @@
 import './index.less';
-import type { MenuChild, MenuList } from '@/interface/layout/menu.interface';
-import type { FC } from 'react';
+
+import React, { FC } from 'react';
 import { Drawer, Layout, theme as antTheme } from 'antd';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,13 +9,15 @@ import { getMenuList } from '@/api/layout.api';
 import { setUserItem } from '@/stores/user.store';
 import { getFirstPathCode } from '@/utils/getFirstPathCode';
 import { getGlobalState } from '@/utils/getGloabal';
+import type { MenuChild, MenuList } from '@/interface/layout/menu.interface';
 
-import { useGuide } from '../guide/useGuide';
-import HeaderComponent from './header';
-import MenuComponent from './menu';
-import TagsView from './tagView';
-import FooterComponent from './footer'
-import DynamicBreadcrumb from '../../components/breadcrumb'
+import { useGuide } from '@/pages/guide/useGuide';
+import HeaderComponent from '@/pages/layout/header';
+import MenuComponent from '@/pages/layout/menu';
+// import TagsView from '@/pages/layout/tagView';
+import FooterComponent from '@/pages/layout/footer'
+import DynamicBreadcrumb from '@/components/breadcrumb'
+import  { DefaultRootState } from '@/interface/DefaultRootState';
 
 const { Sider, Content } = Layout;
 const WIDTH = 992;
@@ -26,7 +28,7 @@ const LayoutPage: FC = () => {
   const [openKey, setOpenkey] = useState<string>();
   const [selectedKey, setSelectedKey] = useState<string>(location.pathname);
   const [menuList, setMenuList] = useState<MenuList>([]);
-  const { device, collapsed, newUser, logged } = useSelector(state => state.user);
+  const { device, collapsed, newUser, logged } = useSelector((state: DefaultRootState) => state.user);
   const token = antTheme.useToken();
 
   
@@ -155,7 +157,7 @@ const LayoutPage: FC = () => {
           </div>
         </Content>
       </Layout>
-      <FooterComponent>footer</FooterComponent>
+      <FooterComponent />
     </Layout>
   );
 };

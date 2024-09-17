@@ -1,4 +1,4 @@
-import type { FC } from 'react';
+import React, { FC } from 'react';
 import { Badge, Card } from 'antd';
 import dayjs from 'dayjs';
 import { Brush, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
