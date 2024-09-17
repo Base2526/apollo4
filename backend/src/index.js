@@ -99,7 +99,8 @@ server.start().then(() => {
     'http://localhost',      // Another allowed origin
     'http://167.99.75.91',
     'http://167.99.75.91:1984',
-    'http://167.99.75.91:5173'
+    'http://167.99.75.91:5173',
+    'http://localhost:1984'
     // Add more origins as needed
   ];
 

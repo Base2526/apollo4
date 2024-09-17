@@ -414,6 +414,21 @@ const modelExists =()=>{
       await Model.CalTree.deleteMany({})
     }
   });  
+
+  // Product
+  Model.Product.find({}, async(err, result)=> {
+    if (result.length > 0) {
+    } else {
+      let newProduct = new Model.Product({    
+                                            ownerId: new mongoose.Types.ObjectId(), 
+                                            name: new mongoose.Types.ObjectId(), 
+                                            plan: [1], 
+                                            packages: [1]
+                                          });
+      await newProduct.save();
+      await Model.Product.deleteMany({})
+    }
+  });  
 }
 
 // TODO: initial and connect to MongoDB

@@ -3,15 +3,21 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const webpack = require('webpack');
 
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+
 module.exports = {
   mode: 'development',
   entry: './src/index.tsx',
   stats: {
     warnings: false,
   },
+  cache: {
+    type: 'filesystem',
+  },
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
+    publicPath: '/',
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.png', '.jpg', '.svg', '.css', '.less', '.json'],
@@ -19,7 +25,7 @@ module.exports = {
       '@': path.resolve(__dirname, 'src'),
     },
   },
-  devtool: 'source-map',
+  devtool: 'eval-source-map',
   devServer: {
     // contentBase: path.join(__dirname, 'dist'),
     static: {
@@ -30,12 +36,21 @@ module.exports = {
     port: 5173,
     historyApiFallback: true,  // Enable support for single-page applications
     open: true,                // Automatically opens the browser
+    liveReload: true,  // Ensure the browser reloads on file changes
   },
   module: {
     rules: [
       {
         test: /\.tsx?$/,
-        use: 'ts-loader',
+        // use: 'ts-loader',
+        use: [
+          {
+            loader: 'ts-loader',
+            options: {
+              transpileOnly: true,
+            },
+          },
+        ],
         exclude: /node_modules/,
       },
       {
@@ -83,6 +98,7 @@ module.exports = {
     ],
   },
   plugins: [
+    new BundleAnalyzerPlugin(),
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       template: './public/index.html',

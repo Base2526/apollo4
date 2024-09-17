@@ -18,10 +18,10 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$
 
 const initialValues = {
   parentId: '', // Hidden field value
-  username: 'test',
-  idCard: '1234567890123',
-  email: 'test@test.local',
-  tel: '0988268000',
+  username: '',
+  idCard: '',
+  email: '',
+  tel: '',
   password: '',
   confirmPassword: '',
   packages: 1
@@ -172,11 +172,11 @@ const RegisterPage: FC = (props) => {
         >
           <Select defaultValue={1} style={{ width: 120 }}>
             <Select.Option value={1}>1</Select.Option>
-            <Select.Option value={2}>7</Select.Option>
-            <Select.Option value={3}>49</Select.Option>
-            <Select.Option value={4}>343</Select.Option>
+            <Select.Option value={2}>8</Select.Option>
+            <Select.Option value={3}>57</Select.Option>
+            {/* <Select.Option value={4}>343</Select.Option>
             <Select.Option value={5}>2,401</Select.Option>
-            <Select.Option value={6}>16,807</Select.Option>
+            <Select.Option value={6}>16,807</Select.Option> */}
           </Select>
         </Form.Item>
         <Form.Item>

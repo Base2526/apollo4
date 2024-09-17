@@ -527,6 +527,8 @@ export default gql`
     bill(_id: ID!): JSON
 
     cals: JSON
+    products: JSON
+    product(_id: ID!): JSON
   }  
   
   input RoomInput {
@@ -870,6 +872,8 @@ export default gql`
 
     paid_bill(input: JSON): JSON
     calculate_tree: JSON
+
+    product(input: JSON): JSON
   }
 
   type Subscription {

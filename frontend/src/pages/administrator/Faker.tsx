@@ -7,7 +7,9 @@ import _ from "lodash"
 import { faker } from '@faker-js/faker';
 
 import { getHeaders, getCookie } from "../../utils"
-import { queryMembers, faker_agent, faker_insurance, mutationTest_addmember, mutationMlm } from "../../apollo/gqlQuery"
+import { queryMembers, faker_agent, 
+        faker_insurance, mutationTest_addmember, 
+        mutationMlm, mutation_product } from "../../apollo/gqlQuery"
 
 
 // import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
@@ -66,6 +68,18 @@ const Faker: React.FC = () => {
         },
         onError(error){
           console.log("faker_insurance onError :", error)
+        }
+    });
+
+    
+    const [onProduct] = useMutation(mutation_product, {
+        context: { headers: getHeaders(location) },
+        update: (cache, { data: { product } }) => {
+          console.log("product:", product);
+        },
+        onCompleted: (data) => {
+        },
+        onError: (error) => {
         }
     });
 
@@ -267,6 +281,34 @@ const Faker: React.FC = () => {
         }
     };
 
+    const onFinishProduct=  (values: any) => {
+
+        /*
+          name: string;
+  detail: string;
+  plan: number[];
+  price: number;
+  packages: number[];
+  images: RcFile[];
+        */
+
+        const plans = [1, 2];
+        const pakg = [1, 2 ,3];
+
+        for ( var i = 0; i < 100; i++ ) {
+            let newInput = {
+                mode:'added',
+                name: faker.name.jobTitle(),
+                detail: faker.name.lastName(),
+                plan:  [plans[Math.floor(Math.random() * plans.length)]],
+                price: faker.commerce.price(),
+                packages: [pakg[Math.floor(Math.random() * pakg.length)]]
+            }
+
+            console.log("newInput :", newInput)
+            onProduct({ variables: { input: newInput } });
+        }
+    }
 
     const sampleData = [
         { code: 'A001', description: 'Item 1', quantity: 2, unit: 'pcs', unitPrice: 10.0 },
@@ -304,6 +346,16 @@ const Faker: React.FC = () => {
             </Card>
             <Card title="Create Insurance" style={{ marginBottom: '10px' }}>
                 <Form layout="vertical" onFinish={onFinishInsurance}>
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit">
+                            Create
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Card>
+
+            <Card title="Create Product" style={{ marginBottom: '10px' }}>
+                <Form layout="vertical" onFinish={onFinishProduct}>
                     <Form.Item>
                         <Button type="primary" htmlType="submit">
                             Create

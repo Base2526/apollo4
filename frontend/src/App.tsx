@@ -51,7 +51,7 @@ const App: FC = () => {
 
   /** initial theme */
   useEffect(() => {
-    // console.log("import.meta.env:", env);
+    console.log("process.env :", process.env);
 
     setTheme(theme === 'dark');
 

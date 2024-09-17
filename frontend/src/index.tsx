@@ -14,14 +14,18 @@ import client from '@/apollo/ConfigureApolloClient';
 import i18n from "@/i18n"
 
 const container = document.getElementById('root'); // Get the root element
-const root = createRoot(container!); // Create a root
 
-root.render(<Provider store={store}>
-              <I18nextProvider i18n={i18n}>
-                <PersistGate loading={<p>Loading...</p>} persistor={persistor}>
-                  <ApolloProvider client={client}>
-                    <App />
-                  </ApolloProvider>
-                </PersistGate>
-              </I18nextProvider>
-            </Provider>); // Render the App component
+if (container) {
+  const root = createRoot(container!); // Create a root
+  root.render(<Provider store={store}>
+    <I18nextProvider i18n={i18n}>
+      <PersistGate loading={<p>Loading...</p>} persistor={persistor}>
+        <ApolloProvider client={client}>
+          <App />
+        </ApolloProvider>
+      </PersistGate>
+    </I18nextProvider>
+  </Provider>); // Render the App component
+} else {
+  console.error('Root element not found');
+}

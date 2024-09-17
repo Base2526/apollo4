@@ -31,10 +31,14 @@ import UserListPage from "@/pages/administrator/UserList"
 import UserPage from "@/pages/administrator/User"
 import FakerPage from "@/pages/administrator/Faker"
 import FileListPage from "@/pages/administrator/FileList"
-import DblogPage  from "@/pages/administrator/Dblog"
-import ImportPage from "@/pages/administrator/Import"
-import TreePage from "@/pages/administrator/Tree"
-import OtherPage from "@/pages/administrator/Other"
+import DblogPage  from "@/pages/administrator/Dblog";
+import ImportPage from "@/pages/administrator/Import";
+import TreePage from "@/pages/administrator/Tree";
+import OtherPage from "@/pages/administrator/Other";
+
+import ProductListPage from "@/pages/administrator/product";
+import ProductPage from "@/pages/administrator/product/ProductForm";
+import ViewProductPage from "@/pages/administrator/product/ViewProduct";
 
 import OrgChartPage from "@/pages/administrator/orgchart"
 
@@ -169,6 +173,24 @@ const routeList: RouteObject[] = [
         path: 'administrator/userlist/user',
         element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<UserPage />} titleId="title.insurance" />,
       },
+
+      {
+        path: 'administrator/products',
+        element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<ProductListPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'administrator/products/new',
+        element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<ProductPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'administrator/products/edit',
+        element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<ProductPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'administrator/products/view',
+        element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<ViewProductPage />} titleId="title.insurance" />,
+      },
+
       {
         path: 'administrator/billlist',
         element: <WrapperRouteComponent requireAuth={true}  element={<BillListPage />} titleId="title.billlist" />,

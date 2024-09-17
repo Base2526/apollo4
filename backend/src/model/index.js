@@ -30,7 +30,7 @@ import LogUserAccessModel from './LogUserAccessModel'
 
 import MemberModel from "./MemberModel"
 import MLMModel from './MLMModel'
-import FileModel from "./FileModel"
+import { file } from "./FileModel"
 
 import InsuranceModel from "./InsuranceModel"
 import AgentModel from "./AgentModel"
@@ -38,6 +38,8 @@ import AgentModel from "./AgentModel"
 import NodeModel from "./NodeModel"
 
 import CalTreeModel from "./CalTreeModel"
+
+import ProductModel from "./ProductModel"
 
 module.exports =  {
     Bank:BankModel,
@@ -71,7 +73,7 @@ module.exports =  {
     Member: MemberModel,
     MLM: MLMModel,
     LogUserAccess: LogUserAccessModel,
-    File: FileModel,
+    File: file,
 
     Insurance: InsuranceModel,
     Agent: AgentModel,
@@ -79,5 +81,7 @@ module.exports =  {
 
     Node: NodeModel,
 
-    CalTree: CalTreeModel
+    CalTree: CalTreeModel,
+
+    Product: ProductModel
 };

@@ -118,3 +118,8 @@ export const mutation_paid_bill = gql`mutation paid_bill($input: JSON) { paid_bi
 export const query_cals  = gql`query cals { cals }`;
 
 export const mutation_calculate_tree = gql`mutation calculate_tree { calculate_tree }`;
+
+export const guery_products     = gql`query products { products }`;
+export const guery_product      = gql`query product($id: ID!) { product(_id: $id) }`;
+
+export const mutation_product   = gql`mutation product($input: JSON) { product(input: $input) }`;
