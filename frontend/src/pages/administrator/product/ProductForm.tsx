@@ -9,7 +9,7 @@ import { getHeaders } from "@/utils";
 import { guery_product, mutation_product } from "@/apollo/gqlQuery";
 import handlerError from "@/utils/handlerError";
 
-import AttackFileField from "@/components/basic/attack-file";
+import AttackFileField from "@/components/basic/attack-file"
 
 const { TextArea } = Input;
 const { Item } = Form;
@@ -78,15 +78,15 @@ const ProductForm: React.FC = (props) => {
           // setInitialValues({ name: "string" })
           let product = dataProduct.product.data
           form.setFieldsValue({
-            name: product.name,
-            detail: product.detail,
-            plan: product.plan,
-            price: product.price,
-            packages: product.packages,
-            images: product.images
+            name: product.current.name,
+            detail: product.current.detail,
+            plan: product.current.plan,
+            price: product.current.price,
+            packages: product.current.packages,
+            images: product.current.images
           });
 
-          let newImages = _.map(product.images, (v)=>{return {...v, url: `http://${VITE_HOST_GRAPHAL}/${v.url}`}})
+          let newImages = _.map(product.current.images, (v)=>{return {...v, url: `http://${VITE_HOST_GRAPHAL}/${v.url}`}})
           setImages( newImages )
         }
       }
@@ -105,6 +105,8 @@ const ProductForm: React.FC = (props) => {
 
     if (mode === 'added') {
       setLoading(true);  // Set loading to true when form is submitted
+
+      // console.log("onFinish :", { ...input, mode, images } )
       onProduct({ variables: { input: { ...input, mode, images } } });
     }else{
       setLoading(true);  // Set loading to true when form is submitted

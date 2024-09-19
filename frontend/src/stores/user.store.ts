@@ -6,6 +6,8 @@ import { createSlice } from '@reduxjs/toolkit';
 
 import { getGlobalState } from '@/utils/getGloabal';
 
+import { ProductItem } from "@/interface/user/user"
+
 const initialState: UserState = {
   ...getGlobalState(),
   noticeCount: 0,
@@ -18,7 +20,9 @@ const initialState: UserState = {
 
   ramdom: 0,
 
-  profile:{}
+  profile:{},
+
+  carts:[]
 };
 
 const userSlice = createSlice({
@@ -43,10 +47,28 @@ const userSlice = createSlice({
       console.log("updateProfile :",state, action.payload)
 
       Object.assign(state, { ...action.payload, logged: true });
-    }
+    },
+
+
+    // for cart
+    addCart: (state, action: PayloadAction<ProductItem>) => {
+      // state.cart.push(action.payload);
+      const item = action.payload;
+      // Check if item already exists in the cart
+      if (!state.carts.some(existingItem => existingItem._id === item._id)) {
+        state.carts.push(item);
+      }
+    },
+    removeCart: (state, action: PayloadAction<string>) => {
+      state.carts = state.carts.filter(item => item._id !== action.payload);
+    },
+    clearAllCart: (state) => {
+      state.carts = [];
+    },
+    // for cart
   },
 });
 
-export const { setUserItem, testSetRamdom, updateProfile } = userSlice.actions;
+export const { setUserItem, testSetRamdom, updateProfile, addCart, removeCart, clearAllCart } = userSlice.actions;
 
 export default userSlice.reducer;

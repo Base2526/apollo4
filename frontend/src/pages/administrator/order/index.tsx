@@ -11,20 +11,7 @@ import { useSelector } from 'react-redux';
 import { guery_products, mutation_product } from '@/apollo/gqlQuery';
 import { getHeaders } from '@/utils';
 import handlerError from '@/utils/handlerError';
-
 import { ProductItem } from "@/interface/user/user"
-
-// interface DataType {
-//     _id?: string;
-//     key: string;
-//     displayName: string;
-//     email: string;
-//     avatar?: string;
-//     roles: number[];
-//     timestamp: any;
-//     user?: any;
-//     filename?: string;
-// }
 
 interface MenuItem {
     key: string;
@@ -152,7 +139,7 @@ const columns = (navigate: ReturnType<typeof useNavigate>, onDelete: (item: Prod
     },
 ];
 
-const ProductList: React.FC = (props) => {
+const OrderList: React.FC = (props) => {
     const navigate = useNavigate();
     const location = useLocation();
     const [searchText, setSearchText] = useState<string>('');
@@ -255,7 +242,7 @@ const ProductList: React.FC = (props) => {
                 </Button>
                 <Button
                     type="primary"
-                    onClick={() => navigate('/administrator/orders')}
+                    onClick={() => navigate('/administrator/products/order')}
                 >
                     Order
                 </Button>
@@ -280,4 +267,4 @@ const ProductList: React.FC = (props) => {
     );
 };
 
-export default ProductList;
+export default OrderList;

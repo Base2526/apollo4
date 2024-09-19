@@ -36,6 +36,10 @@ import ImportPage from "@/pages/administrator/Import";
 import TreePage from "@/pages/administrator/Tree";
 import OtherPage from "@/pages/administrator/Other";
 
+import HomePage from "@/pages/home";
+import CartPage from "@/pages/cart";
+import OrderPage from "@/pages/administrator/order"
+
 import ProductListPage from "@/pages/administrator/product";
 import ProductPage from "@/pages/administrator/product/ProductForm";
 import ViewProductPage from "@/pages/administrator/product/ViewProduct";
@@ -90,12 +94,22 @@ const routeList: RouteObject[] = [
     // element: <WrapperRouteComponent element={<LayoutPage />} titleId="" />,
     element: <LayoutPage />,
     children: [
+      // {
+      //   path: '/',
+      //   element: <WrapperRouteComponent requireAuth={true} element={<Dashboard />} titleId="title.dashboard" />,
+      // },
       {
         path: '/',
-        element: <WrapperRouteComponent requireAuth={true} element={<Dashboard />} titleId="title.dashboard" />,
+        element: <WrapperRouteComponent requireAuth={true} element={<HomePage />} titleId="title.dashboard" />,
       },
-      // 
-
+      {
+        path: 'view',
+        element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<ViewProductPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'cart',
+        element: <WrapperRouteComponent requireAuth={true} element={<CartPage />} titleId="title.dashboard" />,
+      },
       {
         path: 'insurance',
         element: <WrapperRouteComponent requireAuth={true} element={<InsurancePage />} titleId="title.insurance" />,
@@ -174,6 +188,10 @@ const routeList: RouteObject[] = [
         element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<UserPage />} titleId="title.insurance" />,
       },
 
+      {
+        path: 'administrator/orders',
+        element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<OrderPage />} titleId="title.insurance" />,
+      },
       {
         path: 'administrator/products',
         element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<ProductListPage />} titleId="title.insurance" />,

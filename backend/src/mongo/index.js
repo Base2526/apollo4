@@ -419,16 +419,34 @@ const modelExists =()=>{
   Model.Product.find({}, async(err, result)=> {
     if (result.length > 0) {
     } else {
-      let newProduct = new Model.Product({    
-                                            ownerId: new mongoose.Types.ObjectId(), 
-                                            name: new mongoose.Types.ObjectId(), 
-                                            plan: [1], 
-                                            packages: [1]
+      let newProduct = new Model.Product({     
+                                            current : { 
+                                              ownerId: new mongoose.Types.ObjectId(), 
+                                              name: new mongoose.Types.ObjectId(), 
+                                              plan: [1], 
+                                              packages: [1]
+                                            }
                                           });
       await newProduct.save();
       await Model.Product.deleteMany({})
     }
   });  
+
+  // Order
+  Model.Order.find({}, async(err, result)=> {
+    if (result.length > 0) {
+    } else {
+      let newOrder = new Model.Order({     
+                                        current : { 
+                                          productId: [new mongoose.Types.ObjectId()], 
+                                          ownerId: new mongoose.Types.ObjectId(), 
+                                          status: 1
+                                        }
+                                      });
+      await newOrder.save();
+      await Model.Order.deleteMany({})
+    }
+  }); 
 }
 
 // TODO: initial and connect to MongoDB

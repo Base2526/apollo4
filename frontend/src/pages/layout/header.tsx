@@ -18,6 +18,8 @@ import { useLocale } from '@/locales';
 import { setGlobalState } from '@/stores/global.store';
 import InsuranceLogo from "@/assets/logo/InsuranceLogo"
 import { logoutAsync } from '@/action/user.action';
+
+import CartComponent from "@/pages/layout/cart";
 import HeaderNoticeComponent from '@/pages/layout/notice';
 import LanguageSwitcher from "@/pages/layout/LanguageSwitcher"
 
@@ -91,6 +93,7 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
           <span id="sidebar-trigger">{collapsed ? <MenuUnfoldOutlined style={{ color: theme === 'dark' ? "#FFFFFF" : "#333333", fontSize: '24px' }} /> : <MenuFoldOutlined style={{ color: theme === 'dark' ? "#FFFFFF" : "#333333", fontSize: '24px' }}/>}</span>
         </div>
         <div className="actions">
+          <CartComponent />
           <Tooltip
             title={formatMessage({
               id: theme === 'dark' ? 'gloabal.tips.theme.lightTooltip' : 'gloabal.tips.theme.darkTooltip',
@@ -110,13 +113,13 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
               items: [
                 {
                   key: 'th_TH',
-                  icon: <ThThSvg />,
+                  icon: <ThThSvg style={{ width: '25px', height: '25px' }}/>,
                   disabled: i18n.language === 'th_TH',
                   label: 'ภาษาไทย',
                 },
                 {
                   key: 'en_US',
-                  icon: <EnUsSvg />,
+                  icon: <EnUsSvg style={{ width: '25px', height: '25px' }}/>,
                   disabled: i18n.language === 'en_US',
                   label: 'English',
                 },

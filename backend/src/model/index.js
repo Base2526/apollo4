@@ -41,6 +41,8 @@ import CalTreeModel from "./CalTreeModel"
 
 import ProductModel from "./ProductModel"
 
+import OrderModel from "./OrderModel"
+
 module.exports =  {
     Bank:BankModel,
     Post:PostModel,
@@ -69,19 +71,15 @@ module.exports =  {
     ContactUs: ContactUsModel,
     Test: TestModel,
     ManageLottery: ManageLotteryModel,
-
     Member: MemberModel,
     MLM: MLMModel,
     LogUserAccess: LogUserAccessModel,
     File: file,
-
     Insurance: InsuranceModel,
     Agent: AgentModel,
-
-
     Node: NodeModel,
-
     CalTree: CalTreeModel,
+    Product: ProductModel,
 
-    Product: ProductModel
+    Order: OrderModel,
 };

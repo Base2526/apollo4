@@ -529,6 +529,9 @@ export default gql`
     cals: JSON
     products: JSON
     product(_id: ID!): JSON
+
+    orders: JSON
+    order(_id: ID!): JSON
   }  
   
   input RoomInput {
@@ -874,6 +877,7 @@ export default gql`
     calculate_tree: JSON
 
     product(input: JSON): JSON
+    order(input: JSON): JSON
   }
 
   type Subscription {

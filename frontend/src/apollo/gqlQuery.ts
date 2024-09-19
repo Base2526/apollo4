@@ -121,5 +121,8 @@ export const mutation_calculate_tree = gql`mutation calculate_tree { calculate_t
 
 export const guery_products     = gql`query products { products }`;
 export const guery_product      = gql`query product($id: ID!) { product(_id: $id) }`;
-
 export const mutation_product   = gql`mutation product($input: JSON) { product(input: $input) }`;
+
+export const guery_orders     = gql`query orders { orders }`;
+export const guery_order      = gql`query order($id: ID!) { order(_id: $id) }`;
+export const mutation_order   = gql`mutation order($input: JSON) { order(input: $input) }`;

@@ -4,6 +4,37 @@ import type { MenuChild } from '@/interface/layout/menu.interface';
 
 export type Locale = 'zh_CN' | 'en_US' | 'th_TH';
 
+interface profileType{
+  _id?: string;
+  current?: object;
+  history?: [];
+}
+
+interface imageType{
+  userId: string;
+  url: string;
+  filename: string;
+  mimetype: string;
+  encoding: string;
+}
+
+export interface ProductItem {
+  _isDEV: boolean;
+  _id: string;
+  current: {
+    ownerId: string;
+    name: string;
+    detail: string;
+    plan: number[];
+    price: string;
+    packages: number[];
+    images: imageType[];
+  }
+  history: [];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface UserState {
   username: string;
 
@@ -31,8 +62,11 @@ export interface UserState {
   newUser: boolean;
 
   /* for test */
-  ramdom: number
+  ramdom: number;
 
   /* for profile */
-  profile: object 
+  profile: profileType;
+
+  /* for cart */
+  carts: ProductItem[];
 }

@@ -8,7 +8,7 @@ import rootReducer from './rootReducer'; // Your root reducer
 // Define the root state type
 export type RootState = ReturnType<typeof rootReducer>;
 
-console.log("process.env :", process.env)
+// console.log("process.env :", process.env)
 const { mode } = process.env;
 
 // Configure Redux Persist

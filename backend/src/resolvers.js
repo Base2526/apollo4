@@ -1469,8 +1469,7 @@ export default {
                                                     }
                                                   ])
 
-      console.log("members :", members)
-
+      // console.log("members :", members)
       return {
         status:true,
         data: members,
@@ -1657,6 +1656,71 @@ export default {
       return {
         status:true,
         data: product.length > 0 ? product[0] : undefined,
+        args,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+
+    async orders(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+      let orders = await Model.Order.aggregate([{
+                                                      $lookup: {
+                                                        localField: "ownerId",
+                                                        from: "member",
+                                                        foreignField: "_id",
+                                                        as: "creator"
+                                                      }
+                                                    },
+                                                    {
+                                                      $unwind: {
+                                                        path: "$creator",
+                                                        preserveNullAndEmptyArrays: true
+                                                      }
+                                                    }
+                                                    ]);
+      return {
+        status: true,
+        data: orders,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+
+    async order(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+
+      let { _id } = args
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+
+      let order = await Model.Order.aggregate([{ $match: { _id: mongoose.Types.ObjectId(_id) } },
+                                                    {
+                                                      $lookup: {
+                                                        localField: "ownerId",
+                                                        from: "member",
+                                                        foreignField: "_id",
+                                                        as: "creator"
+                                                      }
+                                                    },
+                                                    {
+                                                      $unwind: {
+                                                        path: "$creator",
+                                                        preserveNullAndEmptyArrays: true
+                                                      }
+                                                    }
+                                                    ]);
+      return {
+        status:true,
+        data: order.length > 0 ? order[0] : undefined,
         args,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
@@ -4665,54 +4729,68 @@ export default {
           const session = await mongoose.startSession();
           session.startTransaction();
           try {
-            let promises = []; 
-            if(!_.isEmpty(input.images)){
-              for (let i = 0; i < input.images.length; i++) {
-                const { createReadStream, filename, encoding, mimetype } = (await input.images[i]).file //await input.files[i];
-      
-                const stream = createReadStream();
-                const assetUniqName = Utils.fileRenamer(filename);
-                let pathName = `/app/uploads/${assetUniqName}`;
-      
-                const output = fs.createWriteStream(pathName)
-                stream.pipe(output);
-      
-                const promise = await new Promise(function (resolve, reject) {
-                  // output.on('close', () => {
-                  //   resolve("close");
-                  // });
+            if(input?._isDEV === true){
+              console.log(input?._isDEV, input);
+              // let newInput = _.omit(input?.current, ['mode']);
 
-                  output.on('finish', async () => {
-                    try {
-                        // Save data to MongoDB after the stream has finished writing
-                        // await saveDataToMongoDB(data, dbUrl, dbName, collectionName);
-                        // console.log("finish : ", { url: `images/${assetUniqName}`, filename, encoding, mimetype })
-                        
-                        // let newInput ={current: { parentId: input?.parentId, childs: [{childId: current_user?._id}]}}  
-                        let file = await Model.File.insertMany([{userId:current_user._id, url: `images/${assetUniqName}`, filename, encoding, mimetype }], {session});
-                        // console.log("file ", file)
-                        resolve(file !== null ? file[0] : undefined );
-                    } catch (error) {
-                        reject(`Failed to save data to MongoDB: ${error.message}`);
-                    }
+              let current  = {...input?.current, ownerId: current_user._id }
+
+              console.log("@@@1 product current : ", current)
+
+              await Model.Product.insertMany([{ _isDEV: true, current }], { session });
+            }else{
+              let promises = []; 
+              if(!_.isEmpty(input.images)){
+                for (let i = 0; i < input.images.length; i++) {
+                  const { createReadStream, filename, encoding, mimetype } = (await input.images[i]).file //await input.files[i];
+        
+                  const stream = createReadStream();
+                  const assetUniqName = Utils.fileRenamer(filename);
+                  let pathName = `/app/uploads/${assetUniqName}`;
+        
+                  const output = fs.createWriteStream(pathName)
+                  stream.pipe(output);
+        
+                  const promise = await new Promise(function (resolve, reject) {
+                    // output.on('close', () => {
+                    //   resolve("close");
+                    // });
+
+                    output.on('finish', async () => {
+                      try {
+                          // Save data to MongoDB after the stream has finished writing
+                          // await saveDataToMongoDB(data, dbUrl, dbName, collectionName);
+                          // console.log("finish : ", { url: `images/${assetUniqName}`, filename, encoding, mimetype })
+                          
+                          // let newInput ={current: { parentId: input?.parentId, childs: [{childId: current_user?._id}]}}  
+                          let file = await Model.File.insertMany([{userId:current_user._id, url: `images/${assetUniqName}`, filename, encoding, mimetype }], {session});
+                          // console.log("file ", file)
+                          resolve(file !== null ? file[0] : undefined );
+                      } catch (error) {
+                          reject(`Failed to save data to MongoDB: ${error.message}`);
+                      }
+                    });
+              
+                    output.on('error', async(err) => {
+                      await Utils.loggerError(req, err.toString());
+        
+                      reject(err);
+                    });
                   });
-            
-                  output.on('error', async(err) => {
-                    await Utils.loggerError(req, err.toString());
-      
-                    reject(err);
-                  });
-                });
-                promises.push(promise);
+                  promises.push(promise);
+                }
               }
+
+              let images = await Promise.all(promises);
+              // console.log("All files processed: ", images );
+
+              const newInput = _.omit(input, ['mode']);
+              let current  = {...newInput, images, ownerId: current_user._id }
+              
+              console.log("@@@2 product current : ", current)
+              
+              await Model.Product.insertMany([{ current }], { session });
             }
-
-            let images = await Promise.all(promises);
-            console.log("All files processed: ", images );
-
-            const newInput = _.omit(input, ['mode']);
-            await Model.Product.insertMany([{ ...newInput, images, ownerId:current_user._id }], { session });
-
             // Commit the transaction
             await session.commitTransaction();
           }catch(error){
@@ -4805,11 +4883,9 @@ export default {
 
             let images = await Promise.all(promises);
             
-
             let newInput = _.omit(input, ['_id', 'mode']);
-            newInput = {...newInput, images: [...images, ...newFiles]}
-
-            let result = await Model.Product.updateOne({ _id: input._id }, { $set: newInput }, { session });
+            
+            let result = await Model.Product.updateOne({ _id: input._id }, { $set: { current: {...newInput, images: [...images, ...newFiles]} } }, { session });
 
             console.log("All files processed @@@ : ", result, input._id, newInput );
             // Commit the transaction
@@ -4847,6 +4923,49 @@ export default {
         }
       }
       
+      return {
+        status: true,
+        input,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+
+    async order(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+      let { input } = args
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !==Constants.ADMINISTRATOR &&
+          role !==Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+          
+      console.log("order : ", input)
+
+      switch(input.mode){
+        case 'added':{
+          const session = await mongoose.startSession();
+          session.startTransaction();
+          try {
+            let current  = { productId: input.productId, 
+                             ownerId: current_user._id,
+                             status: 1 }
+              
+            await Model.Order.insertMany([{ current }], { session });
+            // Commit the transaction
+            await session.commitTransaction();
+          }catch(error){
+            console.log("error @@@@@@@1 :", error)
+            await session.abortTransaction();
+        
+            throw new AppError(Constants.ERROR, error)
+          }finally {
+            session.endSession();
+            console.log("finally @@@@@@@1 :")
+          } 
+        }
+      }
+
       return {
         status: true,
         input,

@@ -24,4 +24,5 @@ export const enUS_globalTips = {
   'gloabal.tips.theme.darkTooltip': 'Switch to dark theme',
   'gloabal.tips.theme.lightTooltip': 'Switch to light theme',
   'gloabal.tips.theme.noticeTooltip': 'Notifications',
+  'gloabal.tips.theme.cartTooltip': 'Cart',
 };
