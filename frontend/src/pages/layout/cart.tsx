@@ -60,13 +60,14 @@ const CartComponent: FC = () => {
           >
             <List
               style={{ maxHeight: '300px', overflowY: 'auto' }} 
-              dataSource={carts /*noticeListFilter('notification')*/}
+              dataSource={carts}
               renderItem={item => (
-                <List.Item>
+                <List.Item onClick={()=> navigate(`/view?v=${item._id}`, { state: { _id: item._id } }) }>
                   <List.Item.Meta
                     avatar={<Avatar src={ item.current.images?.length > 0 ? item.current.images[0]?.url : "" } />}
                     title={<a >{item.current.name}</a>}
                     description={item.current.name}
+                    
                   />
                 </List.Item>
               )}

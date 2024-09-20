@@ -1,15 +1,14 @@
-import "./index.less"
+import "./index.less";
 import React, { useState } from 'react';
-import { message, List, Avatar, Button, Popconfirm } from 'antd';
+import { message, List, Avatar, Button, Popconfirm, InputNumber } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import _ from 'lodash';
 import { useSelector, useDispatch } from 'react-redux';
 import { useMutation } from '@apollo/client';
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import { DefaultRootState } from '@/interface/DefaultRootState';
-import { removeCart, clearAllCart } from '@/stores/user.store';
+import { removeCart, clearAllCart, updateCartQuantities } from '@/stores/user.store';
 import { ProductItem } from "@/interface/user/user";
-
 import { mutation_order } from '@/apollo/gqlQuery';
 import { getHeaders } from '@/utils';
 import handlerError from '@/utils/handlerError';
@@ -19,27 +18,22 @@ const Cart: React.FC = (props) => {
   const location = useLocation();
   const dispatch = useDispatch();
   const { carts } = useSelector((state: DefaultRootState) => state.user);
-  
-  console.log("carts :", carts)
-  // Loading state for the Checkout button
+
   const [loading, setLoading] = useState(false);
+  // const [quantities, setQuantities] = useState<Record<string, number>>(() => 
+  //   _.reduce(carts, (acc, item) => ({ ...acc, [item._id]: 1 }), {})
+  // );
 
   const [onOrder] = useMutation(mutation_order, {
     context: { headers: getHeaders(location) },
     update: (cache, { data: { order } }) => {
-      console.log("order:", order);
-    },
-    onCompleted: () => {
-
       dispatch(clearAllCart());
-
-      setLoading(false); // Stop loading when the mutation is completed
+      setLoading(false);
       message.success('Order placed successfully!');
-
-      navigate("/")
+      navigate("/");
     },
     onError: (error) => {
-      setLoading(false); // Stop loading in case of error
+      setLoading(false);
       handlerError(props, error);
     }
   });
@@ -49,16 +43,32 @@ const Cart: React.FC = (props) => {
   };
 
   const onDelete = (_id: string) => {
-    console.log(`Delete product ${_id}`);
     dispatch(removeCart(_id));
+    // setQuantities((prev) => _.omit(prev, _id));
     message.warning('Deleted from cart!');
   };
 
-  const onCheckout = () => {
-    setLoading(true); // Set loading to true when starting checkout
+  // const onQuantityChange = (value: number, _id: string) => {
+  //   setQuantities((prev) => ({ ...prev, [_id]: value }));
+  // };
 
-    const productId = _.map(carts, '_id');
-    onOrder({ variables: { input: { mode: 'added', productId } } });
+  const onQuantitiesChange = (id: string, quantities: number) => {
+    if (quantities <= 0) {
+      message.warning('Quantity cannot be less than 1');
+      return;
+    }
+    dispatch(updateCartQuantities({id, quantities}));
+  };
+
+  const onCheckout = () => {
+    setLoading(true);
+
+    const productIds =   _.map(carts, item => ({
+                            productId: item._id,
+                            quantities: item.current.quantities
+                          }));
+
+    onOrder({ variables: { input: { mode: 'added', productIds } } });
   };
 
   return (
@@ -70,12 +80,10 @@ const Cart: React.FC = (props) => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px' }}>
             <div style={{ fontSize: 20 }}>{`List product (${carts.length})`}</div>
             <div style={{ display: 'flex', alignItems: 'center' }}>
-              <div style={{ marginRight: 8 }}>Total: ${_.sumBy(carts, (item) => parseFloat(item.current.price))}</div>
-              <Button
-                type="primary"
-                onClick={onCheckout}
-                loading={loading} // Show loading spinner when loading is true
-              >
+              <div style={{ marginRight: 8, fontSize:20 }}>
+                Total: ${_.sumBy(carts, (item) => item.current.quantities !== undefined ? parseFloat(item.current.price) * item.current.quantities  : parseFloat(item.current.price) )}
+              </div>
+              <Button type="primary" onClick={onCheckout} loading={loading}>
                 {`Checkout (${carts.length})`}
               </Button>
             </div>
@@ -92,8 +100,7 @@ const Cart: React.FC = (props) => {
                 title="Are you sure to delete this product?"
                 onConfirm={() => onDelete(item._id)}
                 okText="Yes"
-                cancelText="No"
-              >
+                cancelText="No">
                 <Button type="link" danger icon={<DeleteOutlined />}>
                   Delete
                 </Button>
@@ -101,9 +108,23 @@ const Cart: React.FC = (props) => {
             ]}
           >
             <List.Item.Meta
-              avatar={<Avatar shape="square" size={64} src={item.current.images.length > 0 ? item.current.images[0]?.url : ""} />}
+              avatar={<Avatar shape="square" size={100} src={item.current.images.length > 0 ? item.current.images[0]?.url : ""} />}
               title={item.current.name}
-              description={`Price: $${item.current.price} - ${item.current.detail}`}
+              description={
+                <div>
+                  <div>{`Price: $${ item.current.quantities !== undefined ? parseInt(item.current.price) * item.current.quantities : parseInt(item.current.price)  } - ${item.current.detail}`}</div>
+                  <div>Max quantity: { item.current.quantity }</div>
+                  <div style={{ marginTop: 8 }}>
+                    <span>Quantity: </span>
+                    <InputNumber
+                      min={1}
+                      max={item.current.quantity}
+                      value={item.current.quantities} 
+                      onChange={(value) => onQuantitiesChange(item._id, value || 1)}
+                    />
+                  </div>
+                </div>
+              }
             />
           </List.Item>
         )}

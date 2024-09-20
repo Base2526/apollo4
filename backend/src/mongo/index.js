@@ -438,7 +438,12 @@ const modelExists =()=>{
     } else {
       let newOrder = new Model.Order({     
                                         current : { 
-                                          productId: [new mongoose.Types.ObjectId()], 
+                                          productIds: [
+                                            {
+                                              productId: new mongoose.Types.ObjectId(),
+                                              quantities: 1
+                                            }
+                                          ], 
                                           ownerId: new mongoose.Types.ObjectId(), 
                                           status: 1
                                         }

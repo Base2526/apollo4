@@ -11,6 +11,7 @@ interface ProductCardProps {
   imageUrl: string;
   details: string;
   price: string;
+  quantity: number;
   onClick: () => void;
   onAddToCart: () => void;
   onDeleteForCart: () => void;
@@ -23,6 +24,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   imageUrl,
   details,
   price,
+  quantity,
   onClick,
   onAddToCart,
   onDeleteForCart,
@@ -34,14 +36,23 @@ const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <Card
       hoverable
-      cover={<img alt={title} src={imageUrl} />}
-      // onClick={onClick}
-    //   actions={[<HeartOutlined key="heart" />]}
-    >
+      cover={<img alt={title} src={imageUrl} />}>
       <div onClick={onClick} style={{ cursor: 'pointer' }}>
-        <Card.Meta title={title} description={details}   />
+        <Card.Meta 
+          title={title} 
+          description={
+            <div style={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}>
+              {details}
+            </div>
+          }   
+        />
       </div>
       <div style={{ marginTop: '16px' }}>
+        <p onClick={onClick} style={{ fontSize: '12px', color:"rgba(0, 0, 0, 0.45)" }}>Max quantity: {quantity}</p>
         <p style={{ fontSize: '18px', fontWeight: 'bold' }}>${price}</p>
         <div style={{ 
           display: 'flex', 
@@ -51,11 +62,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           <Button
             className='ant-btn-product-card'
             type="dashed"
-            
-            // style={{ color: isBuy ? 'red' : 'black', borderColor: isBuy ? 'red' : 'black' }}
-            // disabled={isBuy}
-            onClick={inCart ? onDeleteForCart : onAddToCart}
-          >
+            onClick={inCart ? onDeleteForCart : onAddToCart}>
             {inCart ? 'Delete form cart' : 'Add to cart'}
           </Button>
           <Button className='ant-btn-product-card' type="primary" onClick={onBuy}>

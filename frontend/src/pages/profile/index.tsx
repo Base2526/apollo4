@@ -235,6 +235,14 @@ const ProfilePage: FC = () => {
                 navigate('/administrator/userlist/tree')
               }}>Show Tree</Button>
           </Descriptions.Item>
+          <Descriptions.Item label="Purchases">
+            <Button 
+              type="primary" 
+              style={{ marginRight: '10px' }}
+              onClick={()=>{
+                navigate('/purchases/1')
+              }}>Purchases</Button>
+          </Descriptions.Item>
         </Descriptions>
       </Card>
     </div>

@@ -320,14 +320,15 @@ const Faker: React.FC = () => {
             return imgs
         }
 
-        for ( var i = 0; i < 20; i++ ) {
+        for ( var i = 0; i < 200; i++ ) {
             let newInput = {
                 name: faker.name.jobTitle(),
                 detail: faker.name.jobTitle(),
                 plan:  [plans[Math.floor(Math.random() * plans.length)]],
                 price: faker.commerce.price(),
                 packages: [pakg[Math.floor(Math.random() * pakg.length)]],
-                images: generate_img( Math.floor(Math.random() * (10 - 1 + 1)) + 1 )
+                images: generate_img( Math.floor(Math.random() * (10 - 1 + 1)) + 1 ),
+                quantity: Math.floor(Math.random() * 1000) + 100
             }
 
             console.log("newInput :", newInput)

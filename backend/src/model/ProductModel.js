@@ -24,18 +24,13 @@ const productSchema = new Schema({
                     enum: [1,2,3], // 1, 8, 57
                     required:[true, "Packages Request is a required field"] },
         images: { type: [file], default: [] }, 
+        quantity:  { type: Number , default: 0 },
     },
     history: [historySchema]
 },
 {
     timestamps: true
 })
-
-/*
- type: [Number],
-            enum: [AUTHENTICATED, ADMINISTRATOR],
-            default: [AUTHENTICATED],
-*/
 
 const product = mongoose.model('product', productSchema,'product')
 export default product

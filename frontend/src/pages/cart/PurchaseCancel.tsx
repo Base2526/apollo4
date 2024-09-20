@@ -5,13 +5,18 @@ import moment from 'moment';
 import { useQuery, useMutation } from '@apollo/client';
 import { useNavigate, useLocation } from 'react-router-dom';
 import _ from 'lodash';
-import { EyeOutlined } from '@ant-design/icons';
+import { DownOutlined } from '@ant-design/icons';
 import { useSelector } from 'react-redux';
 import { guery_orders, mutation_product } from '@/apollo/gqlQuery';
 import { getHeaders } from '@/utils';
 import handlerError from '@/utils/handlerError';
 import { OrderItem, OrderProductDetail } from "@/interface/user/user"
+
 const { Paragraph, Text } = Typography;
+
+interface PurchaseCancelProps {
+  purchaseData: any;
+}
 
 interface MenuItem {
   key: string;
@@ -23,17 +28,17 @@ const menuItems: MenuItem[] = [
   { key: '2', label: 'Delete' },
 ];
 
-
 const columns = (navigate: ReturnType<typeof useNavigate>, onDelete: (item: OrderItem) => void) => [
   {
     title: 'Code ID',
     dataIndex: '_id',
-    render: (_id: string) => <Paragraph copyable>{_id}</Paragraph>
+    render: (_id: string) => <Paragraph copyable>{_id}</Paragraph>,
   },
   {
     title: 'Products',
     dataIndex: 'productDetails',
     render: (values: OrderProductDetail[]) => {
+        // console.log("values :", values)
       return (
         <Tree
           treeData={values.map((detail, index) => ({
@@ -52,8 +57,8 @@ const columns = (navigate: ReturnType<typeof useNavigate>, onDelete: (item: Orde
     render: (values: OrderProductDetail[]) => {
         return <Typography>${  _.sumBy(values, (item) => item.current.price )} </Typography>
     }
-  },  
-  // status
+  },
+//   status
   {
     title: 'Status',
     dataIndex: ['current', 'status'],
@@ -61,41 +66,19 @@ const columns = (navigate: ReturnType<typeof useNavigate>, onDelete: (item: Orde
         // 1 : waiting, 2: complete, 3: cancel
         switch(status){
             case 1: {
-              return <Tag color="#2db7f5" key={status}>{"WAITING"}</Tag> 
+                return <Tag color="#2db7f5" key={status}>{"waiting".toUpperCase()}</Tag> 
             }
             case 2: {
-              return <Tag color="green" key={status}>{"COMPLETE"}</Tag> 
+                return <Tag color="green" key={status}>{"complete".toUpperCase()}</Tag> 
             }
             case 3: {
-              return <Tag color="red" key={status}>{"CANCEL"}</Tag> 
+                return <Tag color="red" key={status}>{"cancel".toUpperCase()}</Tag> 
             }
-            case 4: {
-              return <Tag color="red" key={status}>{"DELETE"}</Tag> 
-          }
         }
     }
-  },
-  // editer
+},
   {
-  title: 'Approver',
-  // dataIndex: ['current', 'status'],
-  render: (item: OrderItem) => {
-      console.log("item :", item)
-      if(item.editer && item.editer.current !== undefined){
-        return <Tag color="#2db7f5" key={status}>{item.editer.current.displayName}</Tag>
-      }
-      return <></>
-    }
-  },
-  {
-    title: 'Created at',
-    dataIndex: 'createdAt',
-    render: (updatedAt: string) => (
-      <div>{moment(new Date(updatedAt), 'YYYY-MM-DD HH:mm').format('MM Do YY, h:mm')}</div>
-    ),
-  },
-  {
-    title: 'Updated at',
+    title: 'Date',
     dataIndex: 'updatedAt',
     render: (updatedAt: string) => (
       <div>{moment(new Date(updatedAt), 'YYYY-MM-DD HH:mm').format('MM Do YY, h:mm')}</div>
@@ -106,7 +89,9 @@ const columns = (navigate: ReturnType<typeof useNavigate>, onDelete: (item: Orde
     key: 'action',
     render: (data: any) => (
         <Space size="middle">
-          <Button type="link" icon={<EyeOutlined />} onClick={() =>{ navigate('/administrator/orders/edit', { state: { _id: data._id } })   }} >View</Button>
+            <a onClick={() =>{   navigate('/administrator/orders/edit', { state: { _id: data._id } })  }}>
+                View
+            </a>
             {/* <Dropdown
                 overlay={() => (
                     <Menu
@@ -134,7 +119,7 @@ const columns = (navigate: ReturnType<typeof useNavigate>, onDelete: (item: Orde
 },
 ];
 
-const OrderList: React.FC = (props) => {
+const PurchaseCancel: React.FC<PurchaseCancelProps> = (props) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchText, setSearchText] = useState<string>('');
@@ -144,51 +129,17 @@ const OrderList: React.FC = (props) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { profile } = useSelector((state: any) => state.user);
 
-  const [onProduct] = useMutation(mutation_product, {
-    context: { headers: getHeaders(location) },
-    update: (cache, { data: { product } }) => {
-      console.log("product:", product);
-    },
-    onCompleted: (data, clientOptions) => {
-      let { variables: { input } } : any = clientOptions;
-      if(input?.mode === 'deleted'){
-        message.success('Delete successfully!');
-        // refetchProduct()
-      }
-    },
-    onError: (error) => {
-      handlerError(props, error);
-    }
-  });
-
-  const { loading: loadingOrders, data: dataOrders, error: errorOrders, refetch: refetchOrders } = useQuery(guery_orders, {
-    context: { headers: getHeaders(location) },
-    fetchPolicy: 'no-cache',
-    nextFetchPolicy: 'network-only',
-    notifyOnNetworkStatusChange: false,
-  });
-
-  if (errorOrders) {
-    handlerError(props, errorOrders);
-  }
-
-  useEffect(() => {
-    if (!loadingOrders && dataOrders?.orders) {
-      setData([]);
-      setFilteredData([]);
-      if (dataOrders.orders.status) {
-        console.log("dataOrders.orders.data : ", dataOrders.orders.data);
-        _.map(dataOrders.orders.data, (e, key) => {
-          setData((prevItems) => Array.isArray(prevItems) ? [...prevItems, e] : [e]);
-          setFilteredData((prevItems) => Array.isArray(prevItems) ? [...prevItems, e] : [e]);
-        });
-      }
-    }
-  }, [dataOrders, loadingOrders]);
+  let { purchaseData } = props
 
   const handleSearch = (value: string) => {
     // Add search functionality if needed
   };
+
+  useEffect(()=>{
+    const filtered = _.filter(purchaseData, (item) => item.current.status === 3);
+    setData(filtered);
+    setFilteredData(filtered);
+  }, [purchaseData])
 
   const showDeleteConfirm = (item: OrderItem) => {
     setSelectedItem(item);
@@ -197,7 +148,7 @@ const OrderList: React.FC = (props) => {
 
   const handleDelete = () => {
     if (selectedItem) {
-      onProduct({ variables: { input: { _id : selectedItem._id, mode: 'deleted'} } });
+    //   onProduct({ variables: { input: { _id : selectedItem._id, mode: 'deleted'} } });
       setIsModalVisible(false);
       setSelectedItem(null);
     }
@@ -238,4 +189,4 @@ const OrderList: React.FC = (props) => {
   );
 };
 
-export default OrderList;
+export default PurchaseCancel;

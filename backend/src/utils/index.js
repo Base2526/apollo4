@@ -504,10 +504,10 @@ export const checkBalance = async(userId) =>{
 } 
 
 export const checkRole = (user) =>{
-    console.log("@1 checkRole :", user)
+    // console.log("@1 checkRole :", user)
     if(user?.current?.roles){
         let { REACT_APP_USER_ROLES } = process.env
-        console.log("@2 checkRole :", user?.current?.roles, REACT_APP_USER_ROLES)
+        // console.log("@2 checkRole :", user?.current?.roles, REACT_APP_USER_ROLES)
         if(_.includes( user?.current?.roles, parseInt(_.split(REACT_APP_USER_ROLES, ',' )[0])) ){
             return Constants.ADMINISTRATOR;
         }
@@ -849,7 +849,7 @@ export const logUserAccess = async (mode, ctx) =>{
                         if(_.isNull(userAccess)){
                             await Model.LogUserAccess.create({"current.websocketKey": extra?.request?.headers['sec-websocket-key'], "current.userId": current_user?._id, "current.request": request, "current.connectTime": Date.now()});
                         }else{
-                            await Model.LogUserAccess.updateOne({"current.userId": current_user?._id }, {"current.websocketKey": extra?.request?.headers['sec-websocket-key'], "current.request": request, "current.connectTime": Date.now(), "current.disconnectTime": null, history: revision(userAccess) });
+                            await Model.LogUserAccess.updateOne({"current.userId": current_user?._id }, {"current.websocketKey": extra?.request?.headers['sec-websocket-key'], "current.request": request, "current.connectTime": Date.now(), "current.disconnectTime": null, history: createRevision(userAccess) });
                         }
                     }
                 }
@@ -888,7 +888,7 @@ export const logUserAccess = async (mode, ctx) =>{
     }
 }
 
-export const revision = (model) =>{
+export const createRevision = (model) =>{
     // Save the current version to history
     const current = model?.current;
     const version = model?.history.length + 1;
@@ -1123,7 +1123,7 @@ export const addMLM = async( ownerId, input ) =>{
                     // let child = _.find(childs, e =>e.childId.equals(mongoose.Types.ObjectId(childId)))
                     // if(_.isEmpty(child)){
                     //     childs = [...childs, { childId }]
-                    //     await Model.MLM.updateOne({ _id: mlm?._id }, { "current.childs": childs, history: Utils.revision(mlm) });
+                    //     await Model.MLM.updateOne({ _id: mlm?._id }, { "current.childs": childs, history: Utils.createRevision(mlm) });
                     //     return {
                     //         status: true,
                     //         message: "UPDATE CHILD",
@@ -1175,7 +1175,7 @@ export const addMLM = async( ownerId, input ) =>{
     //     // if(_.isEmpty(child)){
 
     //     //     childs = [...childs, { childId }]
-    //     //     await Model.MLM.updateOne({ _id: mlm?._id }, { "current.childs": childs, history: Utils.revision(mlm) });
+    //     //     await Model.MLM.updateOne({ _id: mlm?._id }, { "current.childs": childs, history: Utils.createRevision(mlm) });
     //     //     return {
     //     //         status: true,
     //     //         message: "UPDATE CHILD",

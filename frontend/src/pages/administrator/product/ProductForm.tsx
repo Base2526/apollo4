@@ -21,11 +21,11 @@ interface FormValues {
   price: number;
   packages: number[];
   images: RcFile[];
+  quantity: number; // Add quantity field to the form values interface
 }
 
 const { VITE_HOST_GRAPHAL } = process.env;
 
-// const mode = 'added';
 const ProductForm: React.FC = (props) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -43,8 +43,6 @@ const ProductForm: React.FC = (props) => {
     },
     onCompleted: (data) => {
       setLoading(false);  // Set loading to false when mutation completes
-      // Redirect or perform any action on completion
-
       navigate(-1);
     },
     onError: (error) => {
@@ -72,22 +70,19 @@ const ProductForm: React.FC = (props) => {
     if (mode === 'edited') {
       if (!loadingProduct && dataProduct?.product) {
         if (dataProduct.product.status) {
-          // setData(dataProduct.product.data);
-
-          console.log(">> :", dataProduct.product.data)
-          // setInitialValues({ name: "string" })
-          let product = dataProduct.product.data
+          let product = dataProduct.product.data;
           form.setFieldsValue({
             name: product.current.name,
             detail: product.current.detail,
             plan: product.current.plan,
             price: product.current.price,
             packages: product.current.packages,
-            images: product.current.images
+            images: product.current.images,
+            quantity: product.current.quantity, // Set quantity when in edit mode
           });
 
           let newImages = _.map(product.current.images, (v)=>{return {...v, url: `http://${VITE_HOST_GRAPHAL}/${v.url}`}})
-          setImages( newImages )
+          setImages(newImages);
         }
       }
     }
@@ -96,7 +91,6 @@ const ProductForm: React.FC = (props) => {
   useEffect(() => {
     if (mode === 'edited') {
       refetchProduct({ id: _id });
-      console.log("mode, _id :", mode, _id)
     }
   }, [mode, refetchProduct]);
 
@@ -104,13 +98,11 @@ const ProductForm: React.FC = (props) => {
     console.log('Form Values:', input);
 
     if (mode === 'added') {
-      setLoading(true);  // Set loading to true when form is submitted
-
-      // console.log("onFinish :", { ...input, mode, images } )
+      setLoading(true);
       onProduct({ variables: { input: { ...input, mode, images } } });
-    }else{
-      setLoading(true);  // Set loading to true when form is submitted
-      let newImages = _.map(images, (v :any)=>v.url !== undefined ? {...v, url: v.url.replace(`http://${VITE_HOST_GRAPHAL}/`, "") } : v )
+    } else {
+      setLoading(true);
+      let newImages = _.map(images, (v :any) => v.url !== undefined ? {...v, url: v.url.replace(`http://${VITE_HOST_GRAPHAL}/`, "") } : v );
       onProduct({ variables: { input: { ...input, _id, mode, images: newImages } } });
     }
   };
@@ -127,6 +119,7 @@ const ProductForm: React.FC = (props) => {
         price: 0,
         packages: [],
         images: [],
+        quantity: 0, // Set initial value for quantity
       }}
     >
       <Form.Item
@@ -143,6 +136,14 @@ const ProductForm: React.FC = (props) => {
         rules={[{ required: true, message: 'Please enter the product detail!' }]}
       >
         <TextArea rows={4} />
+      </Form.Item>
+
+      <Form.Item
+        label="Quantity"
+        name="quantity"
+        rules={[{ required: true, message: 'Please enter the quantity!' }]}
+      >
+        <InputNumber min={0} />
       </Form.Item>
 
       <Item
@@ -188,7 +189,7 @@ const ProductForm: React.FC = (props) => {
       </Form.Item>
 
       <Form.Item>
-        <Button type="primary" htmlType="submit" loading={loading}> {/* Add loading prop */}
+        <Button type="primary" htmlType="submit" loading={loading}>
           Submit
         </Button>
       </Form.Item>

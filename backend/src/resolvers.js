@@ -1602,7 +1602,7 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+      if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
       let products = await Model.Product.aggregate([{
                                                       $lookup: {
@@ -1634,7 +1634,7 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+      if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
 
       let product = await Model.Product.aggregate([{ $match: { _id: mongoose.Types.ObjectId(_id) } },
@@ -1668,22 +1668,53 @@ export default {
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
       if( role !== Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
-
-      let orders = await Model.Order.aggregate([{
-                                                      $lookup: {
-                                                        localField: "ownerId",
-                                                        from: "member",
-                                                        foreignField: "_id",
-                                                        as: "creator"
-                                                      }
-                                                    },
-                                                    {
-                                                      $unwind: {
-                                                        path: "$creator",
-                                                        preserveNullAndEmptyArrays: true
-                                                      }
+      
+        let orders = await Model.Order.aggregate([
+                                                  {
+                                                    $addFields: {
+                                                      ownerId: "$current.ownerId",  // Bring the nested field to the top level
+                                                      editerId: "$current.editer",   // Bring editerId to the top level
+                                                      productId: "$current.productIds.productId"
                                                     }
-                                                    ]);
+                                                  },{
+                                                    $lookup: {
+                                                      localField: "ownerId",
+                                                      from: "member",
+                                                      foreignField: "_id",
+                                                      as: "owner"
+                                                    }
+                                                  },
+                                                  {
+                                                    $unwind: {
+                                                      path: "$owner",
+                                                      preserveNullAndEmptyArrays: true
+                                                    }
+                                                  },
+                                                  // Lookup to fetch the editer details from the "member" collection
+                                                  {
+                                                    $lookup: {
+                                                      from: "member",  // Referencing the member collection
+                                                      localField: "editerId",  // Field from the current pipeline
+                                                      foreignField: "_id",  // Field from the member collection
+                                                      as: "editer"  // Output the result as "editer"
+                                                    }
+                                                  },
+                                                  {
+                                                    $unwind: {
+                                                      path: "$editer",
+                                                      preserveNullAndEmptyArrays: true  // Handle cases where there might be no editer
+                                                    }
+                                                  },
+                                                  // Lookup to fetch the product details from the "Product" collection based on productIds array
+                                                  {
+                                                    $lookup: {
+                                                      from: "product", // the collection you're referencing (Product collection)
+                                                      localField: "productId", // field in the Orders collection (array of ObjectId)
+                                                      foreignField: "_id", // field in the Product collection
+                                                      as: "productDetails" // field to store the resulting product details
+                                                    }
+                                                  },
+                                                ]);                                      
       return {
         status: true,
         data: orders,
@@ -1699,29 +1730,115 @@ export default {
 
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
-      if( role !== Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+      if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
+      console.log("order :", _id)
 
-      let order = await Model.Order.aggregate([{ $match: { _id: mongoose.Types.ObjectId(_id) } },
-                                                    {
-                                                      $lookup: {
-                                                        localField: "ownerId",
-                                                        from: "member",
-                                                        foreignField: "_id",
-                                                        as: "creator"
-                                                      }
-                                                    },
-                                                    {
-                                                      $unwind: {
-                                                        path: "$creator",
-                                                        preserveNullAndEmptyArrays: true
-                                                      }
+      try{
+        let order = await Model.Order.aggregate([ { $match: { _id: mongoose.Types.ObjectId(_id) } },
+                                                  {
+                                                    $addFields: {
+                                                      ownerId: "$current.ownerId",  // Bring the nested field to the top level
+                                                      editerId: "$current.editer",   // Bring editerId to the top level
+                                                      productId: "$current.productIds.productId"
                                                     }
-                                                    ]);
+                                                  },{
+                                                    $lookup: {
+                                                      localField: "ownerId",
+                                                      from: "member",
+                                                      foreignField: "_id",
+                                                      as: "owner"
+                                                    }
+                                                  },
+                                                  {
+                                                    $unwind: {
+                                                      path: "$owner",
+                                                      preserveNullAndEmptyArrays: true
+                                                    }
+                                                  },
+                                                  // Lookup to fetch the editer details from the "member" collection
+                                                  {
+                                                    $lookup: {
+                                                      from: "member",  // Referencing the member collection
+                                                      localField: "editerId",  // Field from the current pipeline
+                                                      foreignField: "_id",  // Field from the member collection
+                                                      as: "editer"  // Output the result as "editer"
+                                                    }
+                                                  },
+                                                  {
+                                                    $unwind: {
+                                                      path: "$editer",
+                                                      preserveNullAndEmptyArrays: true  // Handle cases where there might be no editer
+                                                    }
+                                                  },
+                                                  // Lookup to fetch the product details from the "Product" collection based on productIds array
+                                                  {
+                                                    $lookup: {
+                                                      from: "product", // the collection you're referencing (Product collection)
+                                                      localField: "productId", // field in the Orders collection (array of ObjectId)
+                                                      foreignField: "_id", // field in the Product collection
+                                                      as: "productDetails" // field to store the resulting product details
+                                                    }
+                                                  },
+                                                  ]);
+
+        return {
+          status:true,
+          data: order.length > 0 ? order[0] : undefined,
+          args,
+          executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+        }
+      }catch(error){
+        console.log("order error :", error)
+        
+        throw new AppError(Constants.ERROR, error)
+      }
+    },
+
+    async purchases(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+        let purchases = await Model.Order.aggregate([{
+                                                    $match: {
+                                                      "current.ownerId": current_user._id  // Replace xxxxx with the actual OwnerId value you're looking for
+                                                    }
+                                                  },
+                                                  {
+                                                    $addFields: {
+                                                      ownerId: "$current.ownerId",  // Bring the nested field to the top level
+                                                      productId: "$current.productIds.productId"
+                                                    }
+                                                  },{
+                                                    $lookup: {
+                                                      localField: "ownerId",
+                                                      from: "member",
+                                                      foreignField: "_id",
+                                                      as: "owner"
+                                                    }
+                                                  },
+                                                  {
+                                                    $unwind: {
+                                                      path: "$owner",
+                                                      preserveNullAndEmptyArrays: true
+                                                    }
+                                                  },
+                                                  // Lookup to fetch the product details from the "Product" collection based on productIds array
+                                                  {
+                                                    $lookup: {
+                                                      from: "product", // the collection you're referencing (Product collection)
+                                                      localField: "productId", // field in the Orders collection (array of ObjectId)
+                                                      foreignField: "_id", // field in the Product collection
+                                                      as: "productDetails" // field to store the resulting product details
+                                                    }
+                                                  },
+                                                ]);                                      
       return {
-        status:true,
-        data: order.length > 0 ? order[0] : undefined,
-        args,
+        status: true,
+        data: purchases,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
@@ -4469,7 +4586,7 @@ export default {
         if(_.isEmpty(child)){
 
           childs = [...childs, {childId: current_user?._id}]
-          await Model.MLM.updateOne({ _id: mlm?._id }, { "current.childs": childs, history: Utils.revision(mlm) });
+          await Model.MLM.updateOne({ _id: mlm?._id }, { "current.childs": childs, history: Utils.createRevision(mlm) });
           return {
             status: true,
             message: "UPDATE CHILD",
@@ -4505,7 +4622,7 @@ export default {
 
       let member = await Model.Member.findOne({ _id: mongoose.Types.ObjectId(current_user?._id) })
       await Model.Member.updateOne({ _id: mongoose.Types.ObjectId(current_user?._id) }, 
-                                   { "current.avatar": { url: prof.url, filename: prof.filename, encoding: prof.encoding, mimetype: prof.mimetype }, history: Utils.revision(member) }
+                                   { "current.avatar": { url: prof.url, filename: prof.filename, encoding: prof.encoding, mimetype: prof.mimetype }, history: Utils.createRevision(member) }
                                   );
 
       let user = await Utils.getMember({ _id: mongoose.Types.ObjectId(current_user?._id) }, false)
@@ -4651,7 +4768,7 @@ export default {
         // Update the node within the session
         await Model.Node.updateOne(
           { _id: input?.id },
-          { "current.status": 1, history: Utils.revision(node) },
+          { "current.status": 1, history: Utils.createRevision(node) },
           { session } // Include the session in the update
         );
 
@@ -4693,7 +4810,7 @@ export default {
       //   // Update the node within the session
       //   await Model.Node.updateOne(
       //     { _id: input?.id },
-      //     { "current.status": 1, history: Utils.revision(node) },
+      //     { "current.status": 1, history: Utils.createRevision(node) },
       //     { session } // Include the session in the update
       //   );
 
@@ -4885,7 +5002,8 @@ export default {
             
             let newInput = _.omit(input, ['_id', 'mode']);
             
-            let result = await Model.Product.updateOne({ _id: input._id }, { $set: { current: {...newInput, images: [...images, ...newFiles]} } }, { session });
+            let history = await Model.Product.findOne({ _id: mongoose.Types.ObjectId(input._id) })
+            let result = await Model.Product.updateOne({ _id: input._id }, { $set: { current: {...newInput, images: [...images, ...newFiles]}, history: Utils.createRevision(history) } }, { session });
 
             console.log("All files processed @@@ : ", result, input._id, newInput );
             // Commit the transaction
@@ -4947,11 +5065,30 @@ export default {
           const session = await mongoose.startSession();
           session.startTransaction();
           try {
-            let current  = { productId: input.productId, 
+            const promises =  _.map(input.productIds, async (vi) => {
+                                let { productId, quantities } = vi;
+                                const document = await Model.Product.findOne({ _id: mongoose.Types.ObjectId(productId) });
+                          
+                                if (document) {
+                                  if (quantities > document.current.quantity) {
+                                    throw new AppError(Constants.ERROR, "Quantity not enough");
+                                  }
+                                  await Model.Product.updateOne(
+                                    { _id: mongoose.Types.ObjectId(productId) },
+                                    { $inc: { 'current.quantity': -quantities } },
+                                    { session }
+                                  );
+                                }
+                              });
+        
+            // Wait for all promises to resolve
+            await Promise.all(promises);
+
+            let current  = { productIds: input.productIds, 
                              ownerId: current_user._id,
                              status: 1 }
-              
             await Model.Order.insertMany([{ current }], { session });
+
             // Commit the transaction
             await session.commitTransaction();
           }catch(error){
@@ -4963,6 +5100,96 @@ export default {
             session.endSession();
             console.log("finally @@@@@@@1 :")
           } 
+
+          break;
+        }
+
+        case 'edited':{
+          const session = await mongoose.startSession();
+          session.startTransaction();
+          try {
+
+            switch( input.type ){
+              case 2:
+              case 3:{
+                let promises = []; 
+                if(!_.isEmpty(input.attachFile)){
+                  for (let i = 0; i < input.attachFile.length; i++) {
+                    const { createReadStream, filename, encoding, mimetype } = (await input.attachFile[i]).file //await input.files[i];
+          
+                    const stream = createReadStream();
+                    const assetUniqName = Utils.fileRenamer(filename);
+                    let pathName = `/app/uploads/${assetUniqName}`;
+          
+                    const output = fs.createWriteStream(pathName)
+                    stream.pipe(output);
+          
+                    const promise = await new Promise(function (resolve, reject) {
+                      output.on('finish', async () => {
+                        try {
+                          let file = await Model.File.insertMany([{userId:current_user._id, url: `images/${assetUniqName}`, filename, encoding, mimetype }], {session});
+                          resolve(file !== null ? file[0] : undefined );
+                        } catch (error) {
+                          reject(`Failed to save data to MongoDB: ${error.message}`);
+                        }
+                      });
+                
+                      output.on('error', async(err) => {
+                        await Utils.loggerError(req, err.toString());
+                        reject(err);
+                      });
+                    });
+                    promises.push(promise);
+                  }
+                }
+                let attachFile = await Promise.all(promises);
+                console.log("save images :", attachFile)
+                
+                let history = await Model.Order.findOne({ _id: mongoose.Types.ObjectId(input._id) })
+    
+                const filter = { _id: input._id }
+                const update = {
+                  $set: {
+                      'current.editer': current_user._id,
+                      'current.status': input.type,
+                      'current.message': input.message,
+                      'current.attachFile': attachFile, // Add your file data here
+                      'history': Utils.createRevision(history) // Update history as needed
+                  }
+                };
+                await Model.Order.updateOne( filter , update, { session });
+
+                break;
+              }
+              case 4:{
+                let history = await Model.Order.findOne({ _id: mongoose.Types.ObjectId(input._id) })
+                const filter = { _id: input._id }
+                const update = {
+                  $set: {
+                      'current.editer': current_user._id,
+                      'current.status': input.type,
+                      'history': Utils.createRevision(history) // Update history as needed
+                  }
+                };
+                await Model.Order.updateOne( filter , update, { session });
+                break;
+              }
+            }
+
+
+            // Commit the transaction
+            await session.commitTransaction();
+          }catch(error){
+            console.log("error @@@@@@@1 :", error)
+            await session.abortTransaction();
+        
+            throw new AppError(Constants.ERROR, error)
+          }finally {
+            session.endSession();
+            console.log("finally @@@@@@@1 :")
+          } 
+
+          break;
         }
       }
 

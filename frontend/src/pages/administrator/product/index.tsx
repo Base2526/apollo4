@@ -105,11 +105,14 @@ const columns = (navigate: ReturnType<typeof useNavigate>, onDelete: (item: Prod
             </>
         },
     },
-    // {
-    //     title: 'Creator',
-    //     dataIndex: 'creator',
-    //     render: (creator: any) => <>price</> // <Tag color="#2db7f5">{creator.current.displayName}</Tag>,
-    // },
+    {
+        title: 'Quantity',
+        dataIndex: ['current', 'quantity'],
+        render: (quantity: number) =>{
+            console.log("quantity :", quantity)
+            return  <Tag color="#2db7f5">{quantity === undefined ? 0 : quantity}</Tag>
+        } 
+    },
     {
         title: 'Date',
         dataIndex: 'updatedAt',

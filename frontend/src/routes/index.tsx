@@ -39,6 +39,7 @@ import OtherPage from "@/pages/administrator/Other";
 import HomePage from "@/pages/home";
 import CartPage from "@/pages/cart";
 import OrderPage from "@/pages/administrator/order"
+import OrderFormPage from "@/pages/administrator/order/OrderForm"
 
 import ProductListPage from "@/pages/administrator/product";
 import ProductPage from "@/pages/administrator/product/ProductForm";
@@ -51,6 +52,8 @@ import BillPage from "@/pages/administrator/Bill"
 
 import WalletPage from "@/pages/administrator/Wallet"
 import WalletHistoryPage from "@/pages/administrator/WalletHistoryList"
+
+import PurchasePage from "@/pages/cart/Purchase"
 
 import CalTreePage from "@/pages/administrator/CalTree"
 import CalTreeHistoryListPage from "@/pages/administrator/CalTreeHistoryList"
@@ -104,11 +107,25 @@ const routeList: RouteObject[] = [
       },
       {
         path: 'view',
-        element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<ViewProductPage />} titleId="title.insurance" />,
+        element: <WrapperRouteComponent requireAuth={true} element={<ViewProductPage />} titleId="title.insurance" />,
       },
       {
         path: 'cart',
         element: <WrapperRouteComponent requireAuth={true} element={<CartPage />} titleId="title.dashboard" />,
+      },
+      {
+        path: 'purchases',
+        element: <WrapperRouteComponent requireAuth={true} element={<PurchasePage />} titleId="title.dashboard" />,
+        
+      },
+      {
+        path: 'purchases/:key',
+        element: <WrapperRouteComponent requireAuth={true} element={<PurchasePage />} titleId="title.dashboard" />,
+        
+      },
+      {
+        path: 'purchases/:key/view',
+        element: <WrapperRouteComponent requireAuth={true} element={<OrderFormPage />} titleId="title.insurance" />,
       },
       {
         path: 'insurance',
@@ -191,6 +208,10 @@ const routeList: RouteObject[] = [
       {
         path: 'administrator/orders',
         element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<OrderPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'administrator/orders/edit',
+        element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<OrderFormPage />} titleId="title.insurance" />,
       },
       {
         path: 'administrator/products',

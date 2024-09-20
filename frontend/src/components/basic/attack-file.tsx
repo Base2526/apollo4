@@ -1,9 +1,6 @@
 import React, { FC, useRef} from "react";
-
-import styled from 'styled-components';
-import { Space, Input, Avatar, Button, Typography } from 'antd';
-
-import { PlusSquareOutlined as AddBoxIcon, DeleteOutlined as RemoveCircleIcon, PlusOutlined } from '@ant-design/icons';
+import { Space, Avatar, Button, Typography } from 'antd';
+import { DeleteOutlined as RemoveCircleIcon, PlusOutlined } from '@ant-design/icons';
 import _ from "lodash";
 
 const { Text } = Typography;
@@ -66,28 +63,38 @@ const AttackFileField: FC<AttackFileFieldProps> = ({
       <Space direction="horizontal" size={2}>
         {_.map( _.filter(values, (v) => !v?.delete), (file, index) => {
             const isOldFile = file?.url;
-            console.log("AttackFileField :", file, index);
             return (
               <Space style={{ position: "relative" }} key={index}>
-                <Avatar style={{ 
-                   height: 80,
-                   width: 80,
-                   border: "1px solid #cccccc",
-                   padding: "5px",
-                   marginBottom: "5px"
-                  }} src={isOldFile ? file?.url : URL.createObjectURL(file)}></Avatar>
-                <Button 
-                  icon={<RemoveCircleIcon /> } 
-                  shape="circle"
+                <Avatar 
+                  style={{ 
+                    height: 150,
+                    width: 150,
+                    border: "1px solid #cccccc",
+                    padding: "5px",
+                    marginBottom: "5px"
+                  }} 
+                  shape={"square"} 
+                  src={isOldFile ? file?.url : URL.createObjectURL(file)} 
+                />
+                <Button
+                  icon={<RemoveCircleIcon />} 
+                  type="link"
+                  style={{
+                    position: "absolute",
+                    top: 10,
+                    right: 20,
+                    zIndex: 1,  // Ensure the button stays on top of the avatar
+                    height: "15px", // Set the button height
+                    width: "15px",  // Set the button width
+                  }}
                   onClick={() => {
                     const newInputList = [...values];
                     const i = _.findIndex(newInputList, (v) => v._id === file._id);
-
                     if (isOldFile) {
                       if (i !== -1) {
                         newInputList[i] = {
                           ...newInputList[i],
-                          delete: true
+                          delete: true,
                         };
                       }
                     } else {
@@ -95,7 +102,8 @@ const AttackFileField: FC<AttackFileFieldProps> = ({
                     }
                     onChange(newInputList);
                     onSnackbar({ open: true, message: "Delete image" });
-                  }}/>
+                  }}
+                />
               </Space>
             );
           }

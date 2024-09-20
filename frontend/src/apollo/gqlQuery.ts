@@ -126,3 +126,6 @@ export const mutation_product   = gql`mutation product($input: JSON) { product(i
 export const guery_orders     = gql`query orders { orders }`;
 export const guery_order      = gql`query order($id: ID!) { order(_id: $id) }`;
 export const mutation_order   = gql`mutation order($input: JSON) { order(input: $input) }`;
+
+
+export const guery_purchases  = gql`query purchases { purchases }`;

@@ -70,8 +70,6 @@ const ViewProduct: React.FC = (props) => {
         navigate("/cart"); 
     };
 
-    
-
     return (
         <Card 
             title="Product Details" 
@@ -103,7 +101,7 @@ const ViewProduct: React.FC = (props) => {
                         </Col>
                         <Col span={12}>
                             <Text strong>Price:</Text>
-                            <Text>${data.current.price}</Text>
+                            <Text>${data.current.price}/{data.current.quantity}</Text>
                         </Col>
                     </Row>
                     <Row gutter={16} style={{ marginTop: 16 }}>
