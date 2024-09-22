@@ -24,8 +24,6 @@ interface FormValues {
   quantity: number; // Add quantity field to the form values interface
 }
 
-const { VITE_HOST_GRAPHAL } = process.env;
-
 const ProductForm: React.FC = (props) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -71,6 +69,8 @@ const ProductForm: React.FC = (props) => {
       if (!loadingProduct && dataProduct?.product) {
         if (dataProduct.product.status) {
           let product = dataProduct.product.data;
+
+          console.log("ProductForm :", product)
           form.setFieldsValue({
             name: product.current.name,
             detail: product.current.detail,
@@ -81,8 +81,7 @@ const ProductForm: React.FC = (props) => {
             quantity: product.current.quantity, // Set quantity when in edit mode
           });
 
-          let newImages = _.map(product.current.images, (v)=>{return {...v, url: `http://${VITE_HOST_GRAPHAL}/${v.url}`}})
-          setImages(newImages);
+          setImages(product.current.images);
         }
       }
     }
@@ -95,15 +94,12 @@ const ProductForm: React.FC = (props) => {
   }, [mode, refetchProduct]);
 
   const onFinish = (input: FormValues) => {
-    console.log('Form Values:', input);
-
     if (mode === 'added') {
       setLoading(true);
       onProduct({ variables: { input: { ...input, mode, images } } });
     } else {
       setLoading(true);
-      let newImages = _.map(images, (v :any) => v.url !== undefined ? {...v, url: v.url.replace(`http://${VITE_HOST_GRAPHAL}/`, "") } : v );
-      onProduct({ variables: { input: { ...input, _id, mode, images: newImages } } });
+      onProduct({ variables: { input: { ...input, _id, mode, images } } });
     }
   };
 

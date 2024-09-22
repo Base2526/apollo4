@@ -15,10 +15,10 @@ import type { UserState } from '@/interface/user/user';
 import { DefaultRootState } from '@/interface/DefaultRootState';
 import { clearAllCart } from "@/stores/user.store"
 
+const { REACT_APP_HOST_GRAPHAL } = process.env;
+
 const antIcon = <LoadingOutlined style={{ fontSize: 24 }} spin />;
-
 const { TabPane } = Tabs;
-
 const CartComponent: FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -64,10 +64,9 @@ const CartComponent: FC = () => {
               renderItem={item => (
                 <List.Item onClick={()=> navigate(`/view?v=${item._id}`, { state: { _id: item._id } }) }>
                   <List.Item.Meta
-                    avatar={<Avatar src={ item.current.images?.length > 0 ? item.current.images[0]?.url : "" } />}
+                    avatar={<Avatar src={ item.current.images?.length > 0 ? `http://${REACT_APP_HOST_GRAPHAL}/${item.current.images[0]?.url }`: "" } />}
                     title={<a >{item.current.name}</a>}
-                    description={item.current.name}
-                    
+                    description={item.current.detail}
                   />
                 </List.Item>
               )}

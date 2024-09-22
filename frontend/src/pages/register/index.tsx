@@ -1,15 +1,13 @@
+import "./index.less";
+
 import React, { FC, useEffect, useState } from 'react';
 import { Card, Layout, Form, Input, Button, message, Select } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useMutation } from "@apollo/client";
 import { useLocation, useNavigate, useParams} from 'react-router-dom';
-
-import { setGlobalState } from '@/stores/global.store';
-import { mutationRegister } from "../../apollo/gqlQuery";
-import { updateProfile } from '../../stores/user.store';
-import { getHeaders } from "../../utils";
-import handlerError from "../../utils/handlerError"
-import "./index.less";
+import { mutationRegister } from "@/apollo/gqlQuery";
+import { getHeaders } from "@/utils";
+import handlerError from "@/utils/handlerError"
 
 const userNameRegex = /^[a-zA-Z0-9]+$/;
 const idCardRegex = /^\d{13}$/;

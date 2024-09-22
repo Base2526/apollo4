@@ -5,6 +5,8 @@ import _ from "lodash";
 
 const { Text } = Typography;
 
+const { REACT_APP_HOST_GRAPHAL } = process.env;
+
 interface AttackFileFieldProps {
   label: string;
   values: any; // Assuming values is an array of File objects
@@ -74,7 +76,7 @@ const AttackFileField: FC<AttackFileFieldProps> = ({
                     marginBottom: "5px"
                   }} 
                   shape={"square"} 
-                  src={isOldFile ? file?.url : URL.createObjectURL(file)} 
+                  src={isOldFile ? `http://${REACT_APP_HOST_GRAPHAL}/${file?.url}` : URL.createObjectURL(file)} 
                 />
                 <Button
                   icon={<RemoveCircleIcon />} 

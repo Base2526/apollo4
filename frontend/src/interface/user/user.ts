@@ -4,6 +4,7 @@ import type { MenuChild } from '@/interface/layout/menu.interface';
 
 export type Locale = 'zh_CN' | 'en_US' | 'th_TH';
 
+/*
 interface profileType{
   _id?: string;
   current?: {
@@ -11,8 +12,44 @@ interface profileType{
   };
   history?: [];
 }
+*/
 
-interface imageType{
+interface Avatar {
+  url?: string;
+  filename?: string;
+  mimetype?: string;
+  encoding?: string;
+}
+
+interface LockAccount {
+  lock: boolean;
+  date: Date;
+}
+
+interface Current {
+  parentId: string | null;  // Assuming Schema.Types.ObjectId is string
+  username: string;
+  password: string;
+  email: string;
+  tel: string;
+  displayName: string;
+  idCard: string;
+  address: string;
+  packages: 1 | 2 | 3;
+  roles: number[];  // AUTHENTICATED, ADMINISTRATOR enum values would be numbers
+  isActive: 0 | 1;
+  avatar?: Avatar;
+  lockAccount: LockAccount;
+  lastAccess: Date;
+}
+
+interface profileType {
+  _id?: string;
+  current?: Current;
+  history?: History[]; // Assuming `historySchema` has been defined elsewhere as `History`
+}
+
+export interface ProductImageType{
   userId: string;
   url: string;
   filename: string;
@@ -30,7 +67,7 @@ export interface ProductItem {
     plan: number[];
     price: string;
     packages: number[];
-    images: imageType[];
+    images: ProductImageType[];
     quantity: number;
     quantities?: number;
   }

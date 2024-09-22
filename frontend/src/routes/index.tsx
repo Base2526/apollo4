@@ -51,6 +51,7 @@ import BillListPage from "@/pages/administrator/BillList"
 import BillPage from "@/pages/administrator/Bill"
 
 import WalletPage from "@/pages/administrator/Wallet"
+import WalletCalculatePage  from "@/pages/administrator/WalletCalculate"
 import WalletHistoryPage from "@/pages/administrator/WalletHistoryList"
 
 import PurchasePage from "@/pages/cart/Purchase"
@@ -241,6 +242,10 @@ const routeList: RouteObject[] = [
       {
         path: 'administrator/wallet',
         element: <WrapperRouteComponent requireAuth={true} element={<WalletPage />} titleId="title.bill" />,
+      },
+      {
+        path: 'administrator/wallet/calculate',
+        element: <WrapperRouteComponent requireAuth={true}  element={<WalletCalculatePage />} titleId="title.billlist" />,
       },
       {
         path: 'administrator/wallet/history',

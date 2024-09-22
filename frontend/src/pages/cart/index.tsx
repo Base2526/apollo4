@@ -1,6 +1,6 @@
 import "./index.less";
 import React, { useState } from 'react';
-import { message, List, Avatar, Button, Popconfirm, InputNumber } from 'antd';
+import { message, List, Avatar, Button, Popconfirm, InputNumber, Image } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import _ from 'lodash';
 import { useSelector, useDispatch } from 'react-redux';
@@ -13,16 +13,15 @@ import { mutation_order } from '@/apollo/gqlQuery';
 import { getHeaders } from '@/utils';
 import handlerError from '@/utils/handlerError';
 
+const { REACT_APP_HOST_GRAPHAL } = process.env;
 const Cart: React.FC = (props) => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
   const { carts } = useSelector((state: DefaultRootState) => state.user);
 
+  console.log("Cart :", carts)
   const [loading, setLoading] = useState(false);
-  // const [quantities, setQuantities] = useState<Record<string, number>>(() => 
-  //   _.reduce(carts, (acc, item) => ({ ...acc, [item._id]: 1 }), {})
-  // );
 
   const [onOrder] = useMutation(mutation_order, {
     context: { headers: getHeaders(location) },
@@ -44,13 +43,8 @@ const Cart: React.FC = (props) => {
 
   const onDelete = (_id: string) => {
     dispatch(removeCart(_id));
-    // setQuantities((prev) => _.omit(prev, _id));
     message.warning('Deleted from cart!');
   };
-
-  // const onQuantityChange = (value: number, _id: string) => {
-  //   setQuantities((prev) => ({ ...prev, [_id]: value }));
-  // };
 
   const onQuantitiesChange = (id: string, quantities: number) => {
     if (quantities <= 0) {
@@ -89,45 +83,55 @@ const Cart: React.FC = (props) => {
             </div>
           </div>
         }
-        renderItem={(item: ProductItem) => (
-          <List.Item
-            style={{ padding: '10px' }}
-            actions={[
-              <Button type="link" icon={<EyeOutlined />} onClick={() => onView(item._id)}>
-                View
-              </Button>,
-              <Popconfirm
-                title="Are you sure to delete this product?"
-                onConfirm={() => onDelete(item._id)}
-                okText="Yes"
-                cancelText="No">
-                <Button type="link" danger icon={<DeleteOutlined />}>
-                  Delete
-                </Button>
-              </Popconfirm>,
-            ]}
-          >
-            <List.Item.Meta
-              avatar={<Avatar shape="square" size={100} src={item.current.images.length > 0 ? item.current.images[0]?.url : ""} />}
-              title={item.current.name}
-              description={
-                <div>
-                  <div>{`Price: $${ item.current.quantities !== undefined ? parseInt(item.current.price) * item.current.quantities : parseInt(item.current.price)  } - ${item.current.detail}`}</div>
-                  <div>Max quantity: { item.current.quantity }</div>
-                  <div style={{ marginTop: 8 }}>
-                    <span>Quantity: </span>
-                    <InputNumber
-                      min={1}
-                      max={item.current.quantity}
-                      value={item.current.quantities} 
-                      onChange={(value) => onQuantitiesChange(item._id, value || 1)}
+        renderItem={(item: ProductItem) => {
+          // let items = item.current.images
+
+          const items = _.map(item.current.images, v=> `http://${REACT_APP_HOST_GRAPHAL}/${v.url}`);
+          return  <List.Item
+                    style={{ padding: '10px' }}
+                    actions={[
+                      <Button type="link" icon={<EyeOutlined />} onClick={() => onView(item._id)}>
+                        View
+                      </Button>,
+                      <Popconfirm
+                        title="Are you sure to delete this product?"
+                        onConfirm={() => onDelete(item._id)}
+                        okText="Yes"
+                        cancelText="No">
+                        <Button type="link" danger icon={<DeleteOutlined />}>
+                          Delete
+                        </Button>
+                      </Popconfirm>,
+                    ]}>
+                    <List.Item.Meta
+                      avatar={ /*<Avatar shape="square" size={100} src={item.current.images.length > 0 ? item.current.images[0]?.url : ""} />*/ 
+                              <Image.PreviewGroup items={items}>
+                                <Image
+                                  style={{ borderRadius: 5 }}
+                                  src={items[0]}
+                                  width={80}
+                                />
+                              </Image.PreviewGroup>
+                      }
+                      title={item.current.name}
+                      description={
+                        <div>
+                          <div>{`Price: $${ item.current.quantities !== undefined ? parseInt(item.current.price) * item.current.quantities : parseInt(item.current.price)  } - ${item.current.detail}`}</div>
+                          <div>Max quantity: { item.current.quantity }</div>
+                          <div style={{ marginTop: 8 }}>
+                            <span>Quantity: </span>
+                            <InputNumber
+                              min={1}
+                              max={item.current.quantity}
+                              value={item.current.quantities} 
+                              onChange={(value) => onQuantitiesChange(item._id, value || 1)}
+                            />
+                          </div>
+                        </div>
+                      }
                     />
-                  </div>
-                </div>
-              }
-            />
-          </List.Item>
-        )}
+                  </List.Item>
+        }}
       />
     </div>
   );

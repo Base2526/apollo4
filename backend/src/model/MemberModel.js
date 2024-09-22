@@ -19,9 +19,10 @@ const memberSchema = new Schema({
         tel: { type: String, unique: true, required:[true, "Email Request is a required field"] },
         displayName: { type: String, required:[true, "Email Request is a required field"]},
         idCard: { type: String, required:[true, "ID Card Request is a required field"]},
+        address: { type: String },
         packages: { 
             type: Number,
-            enum : [1, 2, 3, 4, 5, 6],
+            enum : [1, 2, 3],
             default: 1
         },
         roles: {
@@ -34,7 +35,7 @@ const memberSchema = new Schema({
             enum : [0, 1], // 0: FALSE, 1: TRUE
             default: 0
         },
-        avatar :{
+        avatar:{
             url: { type: String },
             filename: { type: String },
             mimetype: { type: String },

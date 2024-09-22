@@ -1,30 +1,16 @@
 import "./index.less"
 import React, { useState, useEffect } from 'react';
-import { message, Table, Input, Tag, Avatar, Space, Dropdown, Button, Typography, Modal, Menu } from 'antd';
+import { message, Table, Input, Tag, Avatar, Space, Dropdown, Button, Typography, Modal, Menu, Image } from 'antd';
 import moment from 'moment';
 import { useQuery, useMutation } from '@apollo/client';
 import { useNavigate, useLocation } from 'react-router-dom';
 import _ from 'lodash';
-import { DownOutlined } from '@ant-design/icons';
+import { DownOutlined, EyeOutlined } from '@ant-design/icons';
 import { useSelector } from 'react-redux';
-
 import { guery_products, mutation_product } from '@/apollo/gqlQuery';
 import { getHeaders } from '@/utils';
 import handlerError from '@/utils/handlerError';
-
-import { ProductItem } from "@/interface/user/user"
-
-// interface DataType {
-//     _id?: string;
-//     key: string;
-//     displayName: string;
-//     email: string;
-//     avatar?: string;
-//     roles: number[];
-//     timestamp: any;
-//     user?: any;
-//     filename?: string;
-// }
+import { ProductItem, ProductImageType } from "@/interface/user/user"
 
 interface MenuItem {
     key: string;
@@ -36,32 +22,21 @@ const menuItems: MenuItem[] = [
     { key: '2', label: 'Delete' },
 ];
 
-const { VITE_HOST_GRAPHAL } = process.env;
+const { REACT_APP_HOST_GRAPHAL } = process.env;
 
 const columns = (navigate: ReturnType<typeof useNavigate>, onDelete: (item: ProductItem) => void) => [
     {
         title: 'Avatar',
-        // dataIndex: 'images',
-        render: (item: any) => {
-            // console.log("images :", item)
-            if( item._isDEV ){
-                return  <Avatar.Group
-                            max={{
-                                count: 2,
-                                style: { color: '#f56a00', backgroundColor: '#fde3cf' },
-                            }}>
-                            {_.map(item.images, (iv) => { return <Avatar src={iv.url} /> })}
-                        </Avatar.Group>
-            }
-            return  <Avatar.Group
-                        max={{
-                            count: 2,
-                            style: { color: '#f56a00', backgroundColor: '#fde3cf' },
-                        }}>
-                        {_.map(item.images, (iv) => {
-                            return <Avatar src={`http://${VITE_HOST_GRAPHAL}/${iv.url}`} />
-                        })}
-                    </Avatar.Group>
+        dataIndex: ['current', 'images'],
+        render: (images: ProductImageType[]) => {
+            const items = _.map(images, v=> `http://${REACT_APP_HOST_GRAPHAL}/${v.url}`);
+            return  <Image.PreviewGroup items={items}>
+                        <Image
+                        style={{ borderRadius: 5 }}
+                        width={80}
+                        src={`${items[0]}`}
+                        />
+                    </Image.PreviewGroup>
         },
     },
     {
@@ -109,7 +84,7 @@ const columns = (navigate: ReturnType<typeof useNavigate>, onDelete: (item: Prod
         title: 'Quantity',
         dataIndex: ['current', 'quantity'],
         render: (quantity: number) =>{
-            console.log("quantity :", quantity)
+            // console.log("quantity :", quantity)
             return  <Tag color="#2db7f5">{quantity === undefined ? 0 : quantity}</Tag>
         } 
     },
@@ -125,9 +100,7 @@ const columns = (navigate: ReturnType<typeof useNavigate>, onDelete: (item: Prod
         key: 'action',
         render: (data: any) => (
             <Space size="middle">
-                <a onClick={() => navigate('/administrator/products/view', { state: { _id: data._id } })}>
-                    View
-                </a>
+                <Button type="link" icon={<EyeOutlined />} onClick={() =>{ navigate('/administrator/products/view', { state: { _id: data._id } }) }} >View</Button>
                 <Dropdown
                     overlay={() => (
                         <Menu
@@ -146,7 +119,7 @@ const columns = (navigate: ReturnType<typeof useNavigate>, onDelete: (item: Prod
                     )}
                     trigger={['hover']}
                 >
-                    <Button style={{ borderWidth: 0 }}>
+                    <Button type="link">
                         More <DownOutlined />
                     </Button>
                 </Dropdown>
@@ -163,9 +136,6 @@ const ProductList: React.FC = (props) => {
     const [data, setData] = useState<ProductItem[]>();
     const [selectedItem, setSelectedItem] = useState<ProductItem | null>(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const { profile } = useSelector((state: any) => state.user);
-
-    const prevLocationRef = React.useRef(location);
 
     const [onProduct] = useMutation(mutation_product, {
         context: { headers: getHeaders(location) },
@@ -191,9 +161,7 @@ const ProductList: React.FC = (props) => {
         notifyOnNetworkStatusChange: false,
     });
 
-    if (errorProducts) {
-        handlerError(props, errorProducts);
-    }
+    if (errorProducts)handlerError(props, errorProducts);
 
     useEffect(() => {
         if (!loadingProducts && dataProducts?.products) {

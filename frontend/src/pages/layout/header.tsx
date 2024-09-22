@@ -2,32 +2,29 @@ import "@/pages/layout/index.less"
 
 import React, { FC } from 'react';
 import { LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined, SettingOutlined, ToolOutlined } from '@ant-design/icons';
-import { Dropdown, Layout, theme as antTheme, Tooltip } from 'antd';
+import { Dropdown, Layout, theme as antTheme, Tooltip, Avatar } from 'antd';
 import { createElement, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import  Avator from '@/assets/header/avator.jpeg';
 import { ReactComponent as EnUsSvg } from '@/assets/header/en_US.svg';
 import { ReactComponent as MoonSvg } from '@/assets/header/moon.svg';
 import { ReactComponent as SunSvg } from '@/assets/header/sun.svg';
 import { ReactComponent as ThThSvg } from '@/assets/header/th_TH.svg';
-
 import { useLocale } from '@/locales';
 import { setGlobalState } from '@/stores/global.store';
 import InsuranceLogo from "@/assets/logo/InsuranceLogo"
 import { logoutAsync } from '@/action/user.action';
-
 import CartComponent from "@/pages/layout/cart";
 import HeaderNoticeComponent from '@/pages/layout/notice';
 import LanguageSwitcher from "@/pages/layout/LanguageSwitcher"
-
 import * as utils from "@/utils"
 import * as Constants from "@/constants"
 import  { DefaultRootState } from '@/interface/DefaultRootState';
 
 const { Header } = Layout;
+const { REACT_APP_HOST_GRAPHAL }  = process.env
 
 interface HeaderProps {
   collapsed: boolean;
@@ -37,13 +34,12 @@ interface HeaderProps {
 type Action = 'userInfo' | 'userSetting' | 'logout';
 
 const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
-  const { logged, locale, device, profile } = useSelector((state: DefaultRootState) => state.user);
+  const { logged, device, profile } = useSelector((state: DefaultRootState) => state.user);
   const { theme } = useSelector((state: DefaultRootState) => state.global);
   const navigate = useNavigate();
   const token = antTheme.useToken();
   const dispatch = useDispatch();
   const { formatMessage } = useLocale();
-
   const { t, i18n } = useTranslation();
 
   const onActionClick = async (action: Action) => {
@@ -130,7 +126,6 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
               <LanguageSwitcher />
             </span>
           </Dropdown>
-
           {logged ? (
             <Dropdown
               menu={{
@@ -197,7 +192,11 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
               }}
             >
               <span className="user-action">
-                <img src={Avator} className="user-avator" alt="avator" />
+                <Avatar 
+                  src={`http://${REACT_APP_HOST_GRAPHAL}/` + profile?.current?.avatar?.url}
+                  className="user-avator" 
+                  size={40} 
+                  icon={<UserOutlined />} />
               </span>
             </Dropdown>
           ) : (

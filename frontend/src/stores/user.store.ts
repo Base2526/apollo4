@@ -48,15 +48,14 @@ const userSlice = createSlice({
 
       Object.assign(state, { ...action.payload, logged: true });
     },
-
-
     // for cart
     addCart: (state, action: PayloadAction<ProductItem>) => {
       // state.cart.push(action.payload);
-      const item = action.payload;
+      let item =_.cloneDeep(action.payload); // _.cloneDeep(item)
       // Check if item already exists in the cart
       if (!state.carts.some(existingItem => existingItem._id === item._id)) {
-        state.carts.push(_.set(item, 'current.quantities', 1));
+        item = _.set(item, 'current.quantities', 1);
+        state.carts.push(item);
       }
     },
     removeCart: (state, action: PayloadAction<string>) => {

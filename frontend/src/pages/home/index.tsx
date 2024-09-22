@@ -1,20 +1,15 @@
 import "./index.less"
 
 import React, { useState, useEffect } from 'react';
-import { Input, Select, List, Pagination, Card, message, Skeleton } from 'antd';
-import type { PaginationProps } from 'antd';
+import { Input, Select, List, Pagination, message, Skeleton } from 'antd';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { faker } from '@faker-js/faker';
 import _ from "lodash"
 import { useQuery } from '@apollo/client';
 
 import { addCart, removeCart } from '@/stores/user.store';
-import  { DefaultRootState } from '@/interface/DefaultRootState';
-import ProductCard from "./ProductCard"
-
+import HomeCard from "@/pages/home/HomeCard"
 import { ProductItem } from "@/interface/user/user"
-
 import { guery_products } from '@/apollo/gqlQuery';
 import { getHeaders } from '@/utils';
 import handlerError from '@/utils/handlerError';
@@ -28,7 +23,7 @@ const ProductList: React.FC = (props) => {
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<ProductItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(20); 
+  const [pageSize, setPageSize] = useState(20); 
 
   const { loading: loadingProducts, data: dataProducts, error: errorProducts, refetch: refetchProduct } = useQuery(guery_products, {
     context: { headers: getHeaders(location) },
@@ -40,6 +35,10 @@ const ProductList: React.FC = (props) => {
   if (errorProducts) {
       handlerError(props, errorProducts);
   }
+
+  // useEffect(()=>{
+  //   console.log("filteredProducts :", filteredProducts)
+  // }, [filteredProducts])
 
   useEffect(() => {
     if (!loadingProducts && dataProducts?.products) {
@@ -59,17 +58,27 @@ const ProductList: React.FC = (props) => {
     const filtered = products.filter(product =>
       product.current.name.toLowerCase().includes(searchValue)
     );
+
     setFilteredProducts(filtered);
     setCurrentPage(1); // Reset to the first page when searching
   };
 
   const handleFilterChange = (value: string) => {
-    setFilteredProducts(products);
+    if(value === undefined){
+      setFilteredProducts(products);
+    }else{
+      const filtered = products.filter(product =>{
+        return product.current.plan.includes( parseInt(value) )
+      });
+      setFilteredProducts(filtered);
+    }
     setCurrentPage(1); // Reset to the first page when filtering
   };
 
-  const handlePaginationChange: PaginationProps['onChange'] = (page) => {
+  // Function to handle page number and page size changes
+  const handlePaginationChange = (page: number, pageSize: number) => {
     setCurrentPage(page);
+    setPageSize(pageSize);
   };
 
   const paginatedProducts = filteredProducts.slice(
@@ -81,18 +90,18 @@ const ProductList: React.FC = (props) => {
     <div>
       <div style={{ marginBottom: 16, display: 'flex', gap: '10px' }}>
         <Search
-          placeholder="Search products"
+          placeholder="Search products name"
           onSearch={handleSearch}
-          style={{ width: 200 }}
+          style={{ width: 300 }}
         />
         <Select
-          placeholder="Filter by type"
+          placeholder="Filter by plan"
           onChange={handleFilterChange}
           allowClear
           style={{ width: 150 }}
         >
-          <Option value="1">Front</Option>
-          <Option value="2">Back</Option>
+          <Option value="1">Plan front</Option>
+          <Option value="2">Plan back</Option>
         </Select>
       </div>
 
@@ -102,13 +111,16 @@ const ProductList: React.FC = (props) => {
           dataSource={paginatedProducts}
           renderItem={item => (
             <List.Item  className={`list-item-product-card`}>
-              <ProductCard
-                _id={item._id}
-                title={item.current.name}
-                imageUrl="https://via.placeholder.com/300"
-                details={item.current.detail}
-                price={item.current.price}
-                quantity={item.current.quantity}
+              <HomeCard
+                _id= {item._id}
+                title= {item.current.name}
+                imageUrl= "https://via.placeholder.com/300"
+                details= {item.current.detail}
+                price= {item.current.price}
+                quantity= {item.current.quantity}
+
+                item= {item}
+
                 onClick={()=>{
                   navigate(`/view?v=${item._id}`, { state: { _id: item._id } });
                 }}

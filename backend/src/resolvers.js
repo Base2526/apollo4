@@ -41,6 +41,10 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
+
+    /*
+    ดึงข้อมูล Tree ข้อมูลของ user แต่ละคน
+    */
     async test_fetch_node(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -51,6 +55,9 @@ export default {
         throw new AppError(Constants.ERROR, "current user empty")
       }
 
+      /*
+      เราต้องเอา _id user เพือหา _id node ก่อน แล้วใช้ _id node วิ่งหาข้อมูล
+      */
       let rootNode = await Model.Node.findOne({'current.ownerId': current_user._id, 'current.isParent': true });
       if(_.isEmpty(rootNode)){
         throw new AppError(Constants.ERROR, "current user empty")
@@ -65,6 +72,26 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
+
+    async test_fetch_tree_by_node_id(parent, args, context, info){
+      let start = Date.now()
+      let { req } = context
+      let { node_id } = args
+
+      let { status, current_user } =  await Utils.checkAuth(req);
+      if(!status){
+        throw new AppError(Constants.ERROR, "current user empty")
+      }
+
+      let trees = await Utils.fetchTreeData(node_id)
+
+      return {
+        status: true,
+        data: trees,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+
     async test_add_node(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1536,8 +1563,15 @@ export default {
 
       let bills = await Model.Node.find({'current.ownerId': current_user._id})
 
-      console.log("members :", bills)
+      // Use Promise.all to resolve all promises in the map
+      bills = await Promise.all(
+        _.map(bills, async (bill) => {
+          let trees = await Utils.fetchTreeData(bill._id);
+          return { ...bill._doc, node_child: trees };
+        })
+      );
 
+      console.log("bills :", bills)
       return {
         status:true,
         data: bills,
@@ -2401,31 +2435,20 @@ export default {
                                   isOnline: true}
                       }
 
-
       const session = await mongoose.startSession();
       session.startTransaction();
       try {
-        // let memberNew = await Model.Member.create([newInput], { session });
-        // let check2    = await Utils.addMLM(memberNew._id, input)
-        // console.log("check2 :", check2);
+        let newMember = await Model.Member.create([newInput], { session });
 
-        let memberNew = await Model.Member.create([newInput], { session });
-
-        if (!memberNew || memberNew.length === 0) {
+        if (!newMember || newMember.length === 0) {
           throw new AppError("Member creation failed, returned undefined.");
         }
 
-        await Utils.createChildNodes(mongoose.Types.ObjectId(input.parentId), memberNew[0], input.packages);
+        let parentId     = mongoose.Types.ObjectId(input.parentId);
+        let current_user = newMember[0];
+        let packages     = input.packages;
 
-        // let parantNode = await Model.Node.find({ ownerId: input.parentId, level: 0, number: 1 }).session(session);
-        // if(!parantNode || parantNode.length === 0){
-        //   throw new AppError(Constants.ERROR, "Node find failed, returned undefined.");
-        // }
-
-        // console.log("@1 :", memberNew[0]._id, parantNode[0]._id)
-  
-        // const initialLevel = 0;
-        // await Utils.createChildNodes(memberNew[0]._id, parantNode[0]._id, initialLevel, input.packages, session);
+        await Utils.createChildNodes(parentId, current_user, packages, session);
 
         // Commit the transaction
         await session.commitTransaction();
@@ -2436,8 +2459,7 @@ export default {
         }
       }catch(error){
         console.log("error @@@@@@@1 :", error)
-        
-
+  
         await session.abortTransaction();
 
         throw new AppError(Constants.ERROR, error)
@@ -5196,6 +5218,28 @@ export default {
       return {
         status: true,
         input,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+
+    async tree_by_node_id(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+      let { input } = args
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !==Constants.ADMINISTRATOR &&
+          role !==Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+          
+      console.log("order : ", input)
+
+      let trees = await Utils.fetchTreeData(input.node_id)
+
+      return {
+        status: true,
+        input,
+        data: trees,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     }

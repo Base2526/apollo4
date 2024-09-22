@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-
 import { fileSchema as file } from "./FileModel";
 
 const Schema = mongoose.Schema

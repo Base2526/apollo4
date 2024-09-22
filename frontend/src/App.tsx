@@ -29,7 +29,6 @@ const App: FC = () => {
 
   const { data: useData, loading: useLoading, error: useError } = useSubscription(userConnected);
 
-  // const env = import.meta.env.VITE_HOST_GRAPHAL
   // Handle error here
   if (useError) {
     _.map(useError?.graphQLErrors, (e)=>{

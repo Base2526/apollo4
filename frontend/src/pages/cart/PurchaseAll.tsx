@@ -172,9 +172,10 @@ const PurchaseAll: React.FC<PurchaseAllProps> = (props) => {
   });
 
   useEffect(()=>{
-    const filtered = _.filter(purchaseData, (item) => item.current.status === 1 || 
+    let filtered = _.filter(purchaseData, (item) => item.current.status === 1 || 
                                                       item.current.status === 2 ||
                                                       item.current.status === 3);
+    filtered = _.sortBy(filtered, (item) => new Date(item.updatedAt)).reverse();                                           
     setData(filtered);
     setFilteredData(filtered);
   }, [purchaseData])

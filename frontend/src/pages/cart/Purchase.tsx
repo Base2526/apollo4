@@ -44,7 +44,6 @@ const Purchase: React.FC = (props) => {
       setData([]);
       setFilteredData([]);
       if (dataPurchases.purchases.status) {
-        console.log("dataPurchases.purchases.data : ", dataPurchases.purchases.data);
         _.map(dataPurchases.purchases.data, (e, key) => {
           setData((prevItems) => Array.isArray(prevItems) ? [...prevItems, e] : [e]);
           setFilteredData((prevItems) => Array.isArray(prevItems) ? [...prevItems, e] : [e]);

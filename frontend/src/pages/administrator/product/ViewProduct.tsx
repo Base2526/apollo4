@@ -5,6 +5,7 @@ import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import _ from "lodash";
 
+import { Image, List, Divider, Descriptions } from 'antd';
 import { guery_product } from "@/apollo/gqlQuery";
 import { getHeaders } from "@/utils";
 import handlerError from "@/utils/handlerError";
@@ -12,9 +13,32 @@ import { ProductItem } from "@/interface/user/user"
 import { addCart, removeCart } from '@/stores/user.store';
 import { DefaultRootState } from '@/interface/DefaultRootState';
 
-const { Text } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
-const { VITE_HOST_GRAPHAL }  = process.env;
+const product = {
+    ownerId: '123456',
+    name: 'Example Product',
+    detail: 'This is a sample product detail description.This is a sample product detail description.This is a sample product detail description.This is a sample product detail description.This is a sample product detail description.This is a sample product detail description.',
+    plan: [1, 2, 3],
+    price: '$99.99',
+    packages: [101, 102, 103],
+    images: [
+        { url: 'https://example.com/image1.jpg', alt: 'Image 1' },
+        { url: 'https://example.com/image2.jpg', alt: 'Image 2' },
+        { url: 'https://example.com/image1.jpg', alt: 'Image 1' },
+        { url: 'https://example.com/image2.jpg', alt: 'Image 2' },
+        { url: 'https://example.com/image1.jpg', alt: 'Image 1' },
+        { url: 'https://example.com/image2.jpg', alt: 'Image 2' },
+        { url: 'https://example.com/image1.jpg', alt: 'Image 1' },
+        { url: 'https://example.com/image2.jpg', alt: 'Image 2' },
+        { url: 'https://example.com/image1.jpg', alt: 'Image 1' },
+        { url: 'https://example.com/image2.jpg', alt: 'Image 2' },
+    ],
+    quantity: 50,
+    quantities: 100
+};
+
+const { REACT_APP_HOST_GRAPHAL }  = process.env;
 const ViewProduct: React.FC = (props) => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -66,76 +90,67 @@ const ViewProduct: React.FC = (props) => {
         } 
     };
 
-    const handleBuyNow = () => {
-        navigate("/cart"); 
-    };
+    if(data === null){
+        return <></>
+    }
 
     return (
-        <Card 
-            title="Product Details" 
-            loading={loadingProduct}
-            actions={[
-                <div style={{ display: 'flex', justifyContent: 'end', padding: '5px' }}>
-                    <Button type="default" onClick={handleAddToCart}>{inCart ? "Delete form cart" : "Add to cart"}</Button>
-                    <Button type="primary" onClick={handleBuyNow}>Buy Now</Button>
-                </div> 
-            ]}
-        >
-            {loadingProduct || data === null
-                ? <Skeleton active />
-                : <div className='ant-card-body-view-product'>
-                    <Row gutter={16}>
-                        <Col span={12}>
-                            <Text strong>Name:</Text>
-                            <Text>{data.current.name}</Text>
+        <div style={{ padding: '5px' }}>
+            <Row gutter={[16, 16]}>
+            {/* Left Column - Product Images */}
+            <Col xs={24} md={12}>
+                <Card title="Product Images">
+                <Skeleton loading={loadingProduct} active>
+                    <Row gutter={[16, 16]}>
+                    <Image.PreviewGroup>
+                        {data.current.images.map((img, index) => (
+                        <Col span={12} key={index}>
+                            <Image src={`http://${REACT_APP_HOST_GRAPHAL}/${img.url}`} width={200} />
                         </Col>
-                        <Col span={12}>
-                            <Text strong>Detail:</Text>
-                            <Text>{data.current.detail}</Text>
-                        </Col>
+                        ))}
+                    </Image.PreviewGroup>
                     </Row>
-                    <Row gutter={16} style={{ marginTop: 16 }}>
-                        <Col span={12}>
-                            <Text strong>Plan:</Text>
-                            { data.current.plan.map((v, index) => <Tag color="#2db7f5" key={index}>{ v == 1 ? "Frontend" : "Backend"}</Tag> ) }
-                        </Col>
-                        <Col span={12}>
-                            <Text strong>Price:</Text>
-                            <Text>${data.current.price}/{data.current.quantity}</Text>
-                        </Col>
-                    </Row>
-                    <Row gutter={16} style={{ marginTop: 16 }}>
-                        <Col span={12}>
-                            <Text strong>Packages:</Text>
-                            { data.current.packages.map((pkg, index) =>{
-                                switch(pkg){
-                                    case 1:
-                                        return <Tag color="#2db7f5" key={index}>1</Tag>;
-                                    case 2:
-                                        return <Tag color="#2db7f5" key={index}>8</Tag>;
-                                    case 3:
-                                        return <Tag color="#2db7f5" key={index}>57</Tag>;
-                                }
-                            }) }
-                        </Col>
-                        <Col span={12}>
-                            <Text strong>Images:</Text>
-                            <Avatar.Group
-                                max={{
-                                    count: 2,
-                                    style: { color: '#f56a00', backgroundColor: '#fde3cf' },
-                                }}>
-                                {
-                                    _.map(data.current.images, (iv, index) => {
-                                        return <Avatar key={index} src={`http://${VITE_HOST_GRAPHAL}/${iv.url}`} />;
-                                    })
-                                }
-                            </Avatar.Group>
-                        </Col>
-                    </Row>
-                </div>
-            }
-        </Card>
+                </Skeleton>
+                </Card>
+            </Col>
+    
+            {/* Right Column - Product Information */}
+            <Col xs={24} md={12}>
+                <Card title="Product Information">
+                <Skeleton loading={loadingProduct} active>
+                    <Descriptions column={1}>
+                    <Descriptions.Item label="Name">{data.current.name}</Descriptions.Item>
+                    <Descriptions.Item label="Details">{data.current.detail}</Descriptions.Item>
+                    <Descriptions.Item label="Price">${data.current.price}</Descriptions.Item>
+                    <Descriptions.Item label="Quantity">{data.current.quantity}</Descriptions.Item>
+                    </Descriptions>
+                    <Divider />
+    
+                    {/* Plan and Packages as Tags */}
+                    <div>
+                        <h4>Plans:</h4>
+                        {data.current.plan.map((planId, index) => (
+                            <Tag key={index} color="blue">
+                            {planId}
+                            </Tag>
+                        ))}
+                    </div>
+                    <Divider />
+
+                     {/* Add to Cart and Buy Now Buttons */}
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <Button type="primary" onClick={handleAddToCart}>
+                        {inCart ? "Delete from cart" : "Add to cart"}
+                        </Button>
+                        <Button type="default" onClick={()=>{navigate("/cart"); }}>
+                        Buy Now
+                        </Button>
+                    </div>
+                </Skeleton>
+                </Card>
+            </Col>
+            </Row>
+        </div>
     );
 };
 
