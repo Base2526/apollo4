@@ -43,6 +43,8 @@ import ProductModel from "./ProductModel"
 
 import OrderModel from "./OrderModel"
 
+import PeriodModel from "./PeriodModel"
+
 module.exports =  {
     Bank:BankModel,
     Post:PostModel,
@@ -82,4 +84,6 @@ module.exports =  {
     Product: ProductModel,
 
     Order: OrderModel,
+
+    Period: PeriodModel,
 };

@@ -15,6 +15,8 @@ import * as cache from "../cache"
 
 import logger from "./logger";
 
+import { generatePeriodsFromDates } from "./generatePeriods";
+
 export const loggerError = async(req, message) =>{
    let { current_user } = await checkAuth(req);
    let user_agent = userAgent(req)
@@ -1792,7 +1794,6 @@ async function buildTree(parentId = null, maxLevel = Infinity) {
     }));
 }
 
-
 /*
   ดึงข้อมูลนําไปสร้างเป้น tree 
   @param
@@ -1817,7 +1818,7 @@ export const  fetchTreeData = async(nodeId) => {
     return []
 }
 
-export const calculateTree = async () => {
+export const ___calculateTree = async () => {
     const session = await mongoose.startSession();
     session.startTransaction();
 
@@ -1884,4 +1885,183 @@ export const calculateTree = async () => {
     } finally {
         console.log('@finally');
     }
+}
+
+/*
+คำนวณรายได้ของแต่ละ node
+
+Run every 13th (23:59)
+7th (00:00) to 13th (23:59)
+start: new Date(year, month, 7, 0, 0, 0)
+end: new Date(year, month, 13, 23, 59, 59) 
+
+Run every 20th (23:59)
+14th (00:00) to 20th (23:59)
+start: new Date(year, month, 14, 0, 0, 0)
+end: new Date(year, month, 20, 23, 59, 59) 
+
+Run every 27th (23:59)
+21st (00:00) to 27th (23:59)
+start: new Date(year, month, 21, 0, 0, 0)
+end: new Date(year, month, 27, 23, 59, 59)
+
+Run every 6th (23:59) 
+28th (00:00) of current month to 6th (23:59) 
+start: new Date(year, month-1, 28, 0, 0, 0)
+end: new Date(year, month, 6, 23, 59, 59) 
+
+
+const startDate = new Date('2024-09-20T00:00:00.000Z');
+const endDate = new Date('2024-09-21T00:00:00.000Z');
+
+const query = {
+    'current.ownerId': '',
+    'current.status': 2,
+    updatedAt: {
+        $gte: startDate,
+        $lte: endDate
+    }
+};
+
+const documents = await collection.find(query).toArray();
+console.log(documents);
+*/
+
+export const createPeriod = async()=>{
+    // throw new AppError(Constants.ERROR, "Error : createPeriod") 
+    const periods = generatePeriodsFromDates(2023, 1, 2034, 12);
+    console.log("periods : ", periods);
+
+
+    await Model.Period.deleteMany({});
+    // Save each period
+    for (const period of periods) {
+        const newPeriod = new Model.Period(period);
+        await newPeriod.save();
+    }
+
+    return periods;
+}
+
+// Function to build the tree with level limitation
+async function calculateTree(parentId = null, maxLevel = Infinity, startPeriod, endPeriod) {
+    const nodes = await Model.Node.find({ 'current.parentNodeId': parentId });
+    
+    return await Promise.all(nodes.map(async (node) => {
+
+        /*
+        เช็ดว่า node นี้มีการจ่าเงินใน period นี้หรือเปล่า
+        - ถ้าอยู่จะนําเอาไปคำนวณเงิน 
+        */
+        /*
+        find range period for now()
+        */
+        // const currentPeriod = await Model.Period.findOne({
+        //     start: { $lte: timePeriod }, // Start date should be less than or equal to now
+        //     end: { $gte: timePeriod }    // End date should be greater than or equal to now
+        // });
+
+        /** ยอดเสมือนจ่ายจริงแต่ละ period 
+         *  จะเช็ดเฉพาะ node ที่ถูกสร้างใน period นี้
+         * **/
+        // console.log("จะเช็ดเฉพาะ node ที่ถูกสร้างใน period นี้ : ", node.createdAt)
+        // Check if createdAt is within the range
+        if (node.createdAt >= startPeriod && node.createdAt <= endPeriod) {
+            // console.log(`createdAt is within the specified period = ${ node }`);
+            node = {...node._doc, inVisulPeriod: true}
+        }else{
+            node = {...node._doc, inVisulPeriod: false}
+        }
+
+        /** ยอดเสมือนจ่ายจริงแต่ละ period **/
+
+
+        /** ยอดจ่ายจริงแต่ละ period **/
+        /**
+         หา order ที่อยู่ใน period  
+        */
+        const query = {
+            'current.ownerId': node.current.ownerId,
+            'current.status': 2,
+            updatedAt: {
+                $gte: startPeriod,
+                $lte: endPeriod
+            }
+        };
+
+        const order = await Model.Order.findOne(query);
+        if(order !== null){
+            node = {...node, inRealPeriod: true}
+        }else{
+            node = {...node, inRealPeriod: false}
+        }
+        /** ยอดจ่ายจริงแต่ละ period **/
+
+        /*
+        เช็ดว่า node นี้มีการจ่าเงินใน period นี้หรือเปล่า
+        */
+
+        const level = await calculateNodeLevel(node._id);
+        
+        // Check if current level exceeds maxLevel
+        if (level >= maxLevel) {
+            // Do not build children if the max level is reached
+            return {
+                title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${level}, isParent: ${node.current.isParent}`,
+                key: node._id.toString(),
+                node,
+                owner: await Model.Member.findById(node.current.ownerId),
+                children: null, // No children if max level is reached
+            };
+        } else {
+            // Continue building the tree recursively if max level is not reached
+            const children = await calculateTree(node._id, maxLevel, startPeriod, endPeriod);
+            return {
+                title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${level}, isParent: ${node.current.isParent}`,
+                key: node._id.toString(),
+                node,
+                owner: await Model.Member.findById(node.current.ownerId),
+                children: children.length ? children : null,
+            };
+        }
+    }));
+}
+
+/*
+const now = new Date(); // Get the current date and time
+const currentPeriod = await Model.Period.findOne({
+    start: { $lte: now }, // Start date should be less than or equal to now
+    end: { $gte: now }    // End date should be greater than or equal to now
+}); 
+*/
+export const calculateAmount = async(nodeId, timePeriod= new Date()) => {
+    /*
+    find range period for now()
+    */
+    const currentPeriod = await Model.Period.findOne({
+        start: { $lte: timePeriod }, // Start date should be less than or equal to now
+        end: { $gte: timePeriod }    // End date should be greater than or equal to now
+    });
+
+    if(!currentPeriod) throw new AppError(Constants.ERROR, "Period is empty!")
+
+    const maxTreeLevel = 5;
+
+    let startPeriod = currentPeriod.start;
+    let endPeriod = currentPeriod.end;
+
+    const node = await Model.Node.findById(nodeId);
+    if(node){
+        const trees = await calculateTree(nodeId, maxTreeLevel, startPeriod, endPeriod)
+        const owner = await Model.Member.findById(node.current.ownerId)
+        return [{
+                    title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId} ,ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: 1, isParent: ${node.current.isParent}`,
+                    key: node._id.toString(),
+                    node,
+                    owner,
+                    children: trees
+                }]
+    }
+
+    return []
 }

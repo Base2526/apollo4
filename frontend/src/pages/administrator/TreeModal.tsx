@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Tree, Spin, Button, message } from 'antd';
-import { ExpandAltOutlined, FullscreenExitOutlined } from '@ant-design/icons';
-import { useQuery } from "@apollo/client";
+import { Modal, Tree, Spin, Button, message, TreeProps } from 'antd';
+import { ExpandAltOutlined, FullscreenExitOutlined, UsergroupAddOutlined, UserOutlined } from '@ant-design/icons';
+import { useQuery, useMutation } from "@apollo/client";
 import { DataNode as RcTreeDataNode } from 'rc-tree/lib/interface';
 import _ from "lodash"
+import moment from "moment";
 
-import { query_test_fetch_tree_by_node_id } from "@/apollo/gqlQuery";
+import { query_test_fetch_tree_by_node_id, mutation_tree_by_node_id } from "@/apollo/gqlQuery";
 import { getHeaders } from "@/utils";
 import handlerError from "@/utils/handlerError";
 
@@ -21,6 +22,7 @@ interface DataNode extends RcTreeDataNode {
       status?: number;
     };
     _id?: string;
+    inRealPeriod?: boolean;
     updatedAt?: string;
   };
   children: DataNode[]
@@ -31,6 +33,21 @@ interface TreeModalProps {
   show: boolean;
   onClose: () => void;
 }
+
+// Recursive function to count nodes with inRealPeriod = true
+const countInRealPeriodNodes = (nodes: DataNode[]): number => {
+  let count = 0;
+  nodes && nodes.forEach((node) => {
+            // If the current node's inRealPeriod is true, increment the count
+            if (node.node && node.node.inRealPeriod) {
+              count++;
+            }
+            // Recursively count the children nodes
+            count += countInRealPeriodNodes(node.children);
+          });
+
+  return count;
+};
 
 const countNodes = (nodes: DataNode[]): number => {
   return _.sumBy(nodes, (node) => {
@@ -46,6 +63,7 @@ const TreeModal: React.FC<TreeModalProps> = (props) => {
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
 
   const [isAllExpanded, setAllExpanded] = useState(false);
+  const [isLoadingCalculate, setLoadingCalculate] = useState(false);
 
   const { 
     loading: loadingTrees, 
@@ -108,8 +126,32 @@ const TreeModal: React.FC<TreeModalProps> = (props) => {
     setExpandedKeys([]);
   };
 
+  const titleRender: TreeProps['titleRender'] = (nodeData: RcTreeDataNode) => {
+    const customNodeData = nodeData as DataNode; // Type assertion
+      
+    // console.log("customNodeData :", customNodeData);
+    const title  = customNodeData.title;
+    const ownerDisplayName = customNodeData.owner?.current?.displayName || 'Unnamed';
+    const nodeStatus = customNodeData.node?.inRealPeriod ? 'green' : 'red';
+    const nodeId = customNodeData.node?._id;
+    const formattedDate = customNodeData.node?.updatedAt
+      ? moment(new Date(customNodeData.node.updatedAt)).format('MMMM Do YYYY, h:mm:ss a')
+      : '';
+  
+    return (
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        {customNodeData?.children?.length ? <UsergroupAddOutlined /> : <UserOutlined />}
+        <span style={{ marginLeft: 8 }}>
+          <span style={{ color: nodeStatus }}>
+          {ownerDisplayName} | {nodeId} | {formattedDate} | {title}
+          </span>
+        </span>
+      </div>
+    );
+  };
+
   return (
-    <Modal title={`Tree Structure (${ countNodes(data) })`} visible={visible} onOk={handleOk} onCancel={handleCancel}>
+    <Modal title={`Tree Structure (${ countNodes(data) })/(${countInRealPeriodNodes(data)})`} visible={visible} onOk={handleOk} onCancel={handleCancel}>
       {
         countNodes(data) > 5 
         && <div style={{ marginBottom: 16 }}>
@@ -128,6 +170,7 @@ const TreeModal: React.FC<TreeModalProps> = (props) => {
           treeData={data}
           expandedKeys={expandedKeys} // Use the state to control expanded nodes
           onExpand={setExpandedKeys} // Update state when nodes are expanded/collapsed
+          titleRender={titleRender}
         />
       </Spin>
     </Modal>

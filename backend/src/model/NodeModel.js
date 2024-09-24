@@ -7,6 +7,19 @@ const historySchema = new Schema({
     updatedAt: Date
 });
 
+const amountSchema = new Schema({
+    value:  { 
+                type: Number, 
+                required: [true, "Amount value is a required field"],
+                min: [0, "Amount value must be at least 0"] 
+            },
+    lastUpdate: { type: Date },
+    period: {
+        startDate: { type: Date, required: [true, "Start date is a required field"] },
+        endDate: { type: Date, required: [true, "End date is a required field"] }
+    }
+})
+
 const nodeSchema = new Schema({
     current: {
         ownerId: { type: Schema.Types.ObjectId, required: [true, "Owner ID is a required field"] },
@@ -22,8 +35,12 @@ const nodeSchema = new Schema({
             enum : [0/*unpaid*/, 1/*paid*/],
             default: 0
         },
+
         // 6/Sep/24 คนแนะนำ
         suggester: { type: Schema.Types.ObjectId, default: null },  
+
+        // 23/sep/24 เก็บ amount ของแต่บะ node
+        amount: {type: amountSchema },
     },
     history: [historySchema]
 },

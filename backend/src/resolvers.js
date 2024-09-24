@@ -24,6 +24,17 @@ const mongoose = require('mongoose');
 
 export default {
   Query: {
+    // period
+    // async period(parent, args, context, info){
+    //   let start = Date.now()
+    //   let { req } = context
+    //   let data = await Utils.createPeriod();
+
+    //   return {
+    //     status: true,
+    //     executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+    //   }
+    // },
     async test(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -32,8 +43,22 @@ export default {
       // console.log("test :", process.env, JSON.parse(process.env.INIT_USER_ADMIN))
       // let newInput ={ current:JSON.parse(process.env.USER_ADMIN_CURRENT) }  
       // let newUser = await Model.Member.create(newInput);
+
+      // let data = await Utils.createPeriod();
+
+    
+      // const now = new Date(); // Get the current date and time
+
+      // const currentPeriod = await Model.Period.findOne({
+      //     start: { $lte: now }, // Start date should be less than or equal to now
+      //     end: { $gte: now }    // End date should be greater than or equal to now
+      // });
+    
+
       return {
         status: true,
+        // currentPeriod,
+        // data,
         // args,
         // newUser,
         // newInput,
@@ -41,7 +66,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     /*
     ดึงข้อมูล Tree ข้อมูลของ user แต่ละคน
     */
@@ -72,7 +96,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async test_fetch_tree_by_node_id(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -83,7 +106,10 @@ export default {
         throw new AppError(Constants.ERROR, "current user empty")
       }
 
-      let trees = await Utils.fetchTreeData(node_id)
+      // let trees = await Utils.fetchTreeData(node_id)
+
+      let timePeriod= new Date();
+      let trees = await Utils.calculateAmount(node_id, timePeriod)
 
       return {
         status: true,
@@ -91,7 +117,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async test_add_node(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -413,14 +438,12 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async checkUser(parent, args, context, info){
       let { req } = context
       let checkAuth =  await Utils.checkAuth(req);
       console.log("checkUser :", checkAuth, req?.headers?.authorization)
       return { status:true }
     },
-
     async users(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -517,7 +540,6 @@ export default {
               executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` 
             }
     },
-
     async userById(parent, args, context, info){
       let start = Date.now()
       let { _id } = args
@@ -532,7 +554,6 @@ export default {
                 data: user,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async roleByIds(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -548,7 +569,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async suppliers(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -648,7 +668,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` 
       }
     },
-
     async supplierById(parent, args, context, info){
       let start = Date.now()
       let { _id } = args
@@ -659,7 +678,6 @@ export default {
                 data: await Utils.getSupplier({_id}),
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async banks(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -671,7 +689,6 @@ export default {
                 data: banks,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async bankById(parent, args, context, info){
       let start = Date.now()
       let { _id } = args
@@ -685,7 +702,6 @@ export default {
                 data: bank,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async bankByIds(parent, args, context, info){
       let start = Date.now()
       let { _ids } = args
@@ -699,7 +715,6 @@ export default {
                 data: banks,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async bookBuyTransitions(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -732,7 +747,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async historyTransitions(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -779,7 +793,6 @@ export default {
                 data,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async friendProfile(parent, args, context, info){
       let start = Date.now()
       let { _id } = args
@@ -797,7 +810,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async buyById(parent, args, context, info){
       let start = Date.now()
       let { _id } = args
@@ -850,7 +862,6 @@ export default {
                 data: _.isEmpty(transitions) ? null : transitions[0],
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async buys(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -943,7 +954,6 @@ export default {
 
       return {  status:false, executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async notifications(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -975,7 +985,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async commentById(parent, args, context, info){
       let start = Date.now()
       let { _id } = args
@@ -988,7 +997,6 @@ export default {
                 data: _.isNull(comm) ? [] : comm,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async bookmarks(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1020,7 +1028,6 @@ export default {
                 total: suppliers.length,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async subscribes(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1032,7 +1039,6 @@ export default {
                 total: users.length,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async dblog(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1047,7 +1053,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async dateLotterys(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1062,7 +1067,6 @@ export default {
                 data: dateLotterys,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async dateLotteryById(parent, args, context, info){
       let start = Date.now()
       let { _id } = args
@@ -1080,7 +1084,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async producers(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1092,7 +1095,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async manageLotterys(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1104,7 +1106,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async manageLotteryById(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1118,7 +1119,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async deposits(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1149,7 +1149,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async withdraws(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1180,7 +1179,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async adminHome(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1245,7 +1243,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async adminBanks(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1257,7 +1254,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async adminDeposits(parent, args, context, info){
       let start = Date.now()
         
@@ -1287,7 +1283,6 @@ export default {
                 data,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async adminWithdraws(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1316,7 +1311,6 @@ export default {
                 data,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async manageSuppliers(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1414,7 +1408,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` 
       }
     },
-
     async conversations(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1432,7 +1425,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async message(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1469,7 +1461,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async members(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1503,7 +1494,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async files(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1534,7 +1524,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async mlmById(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1551,7 +1540,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async bills(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1564,9 +1552,13 @@ export default {
       let bills = await Model.Node.find({'current.ownerId': current_user._id})
 
       // Use Promise.all to resolve all promises in the map
+
+      let timePeriod= new Date();
+      
       bills = await Promise.all(
         _.map(bills, async (bill) => {
-          let trees = await Utils.fetchTreeData(bill._id);
+          // let trees = await Utils.fetchTreeData(bill._id);
+          let trees = await Utils.calculateAmount(bill._id, timePeriod)
           return { ...bill._doc, node_child: trees };
         })
       );
@@ -1578,7 +1570,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async bill(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1596,7 +1587,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async cals(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1629,7 +1619,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async products(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1638,7 +1627,36 @@ export default {
       let role = Utils.checkRole(current_user)
       if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
+      if( role === Constants.ADMINISTRATOR ){
+        let products = await Model.Product.aggregate([
+                                                      {
+                                                        $lookup: {
+                                                          localField: "ownerId",
+                                                          from: "member",
+                                                          foreignField: "_id",
+                                                          as: "creator"
+                                                        }
+                                                      },
+                                                      {
+                                                        $unwind: {
+                                                          path: "$creator",
+                                                          preserveNullAndEmptyArrays: true
+                                                        }
+                                                      }
+                                                      ]);
+        return {
+          status:true,
+          data: products,
+          executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+        }
+      }
+
       let products = await Model.Product.aggregate([{
+                                                      $match: {
+                                                        'current.packages': { $in: [ current_user.current.packages ] }
+                                                      }
+                                                    },
+                                                    {
                                                       $lookup: {
                                                         localField: "ownerId",
                                                         from: "member",
@@ -1659,7 +1677,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async product(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1694,7 +1711,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async orders(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1755,7 +1771,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async order(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1828,7 +1843,6 @@ export default {
         throw new AppError(Constants.ERROR, error)
       }
     },
-
     async purchases(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -2469,7 +2483,6 @@ export default {
         console.log("finally @@@@@@@1 :")
       }  
     },
-
     async me(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -2594,7 +2607,6 @@ export default {
         }
       }
     },
-
     async book(parent, args, context, info) {
       let start = Date.now()
       let { input } = args        
@@ -2674,7 +2686,6 @@ export default {
         console.log("book #finally")
       }
     },
-
     async buy(parent, args, context, info) {
       let start = Date.now()
       let { _id } = args
@@ -2733,7 +2744,6 @@ export default {
         console.log("buy #finally")
       }
     },
-
     async cancelTransition(parent, args, context, info) {
       let start = Date.now()
       let { _id } = args
@@ -2785,7 +2795,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     // Add/Edit supplier
     async lottery(parent, args, context, info) {
       let start = Date.now()
@@ -2929,7 +2938,6 @@ export default {
         }
       }
     },
-
     async deposit(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -2995,7 +3003,6 @@ export default {
         console.log("deposit #finally")
       }
     },
-
     async withdraw(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -3037,7 +3044,6 @@ export default {
         console.log("deposit #finally")
       }
     },
-
     async bank(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -3078,7 +3084,6 @@ export default {
         }
       }
     },
-
     async follow(parent, args, context, info) {
       let start = Date.now()
       let { _id } = args
@@ -3112,7 +3117,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async datesLottery(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -3138,7 +3142,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async notification(parent, args, context, info) {
       let start = Date.now()
       let { _id } = args
@@ -3173,7 +3176,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async comment(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -3215,7 +3217,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async contactUs(parent, args, context, info){
       let start = Date.now()
       let { input } = args
@@ -3260,7 +3261,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async subscribe(parent, args, context, info) {
       let start = Date.now()
       let { _id } = args
@@ -3282,7 +3282,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }      
     },
-
     async adminDeposit(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -3369,7 +3368,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }      
     },
-
     async adminWithdraw(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -3407,7 +3405,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }      
     },
-
     async manageLottery(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -3466,7 +3463,6 @@ export default {
         }
       }
     },
-
     async forceLogout(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -3512,7 +3508,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }   
     },
-
     async expireLottery(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -3546,7 +3541,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }   
     },
-
     async calculateLottery(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -3752,7 +3746,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }   
     },
-
     async testNodeCacheSave(parent, args, context, info) {
       
       // let __set = cache.ca_set("a", {a: "a", b: "b"}) 
@@ -3780,7 +3773,6 @@ export default {
         executionTime: `seconds`
       }   
     },
-
     async testNodeCacheGet(parent, args, context, info) {
       // let __set = cache.ca_set("a", {a: "a", b: "b"}) 
       // let __get = cache.ca_get("a");
@@ -3805,7 +3797,6 @@ export default {
         executionTime: `seconds`
       }   
     },
-
     async testNodeCacheDelete(parent, args, context, info) {
       // let __set = cache.ca_set("a", {a: "a", b: "b"}) 
       // let __get = cache.ca_get("a");
@@ -3834,7 +3825,6 @@ export default {
         executionTime: `seconds`
       }   
     },
-
     // search(input: SearchInput): JSON
     async search(parent, args, context, info) {
       let start = Date.now()
@@ -3882,7 +3872,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }   
     },
-
     async crypto(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -4067,7 +4056,6 @@ export default {
         throw new AppError(Constants.ERROR, err.toString())
       }
     },
-
     async message(parent, args, context, info) {
       let start = Date.now()
       let { mode, input } = args
@@ -4342,7 +4330,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }   
     },
-
     async content(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -4391,7 +4378,6 @@ export default {
         }
       }
     },
-
     async pay(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -4472,7 +4458,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async lotteryClone(parent, args, context, info) {
       let start = Date.now()
       let { _id } = args
@@ -4554,7 +4539,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async test_addmember(parent, args, context, info) {
       let start     = Date.now()
       let { input } = args
@@ -4590,7 +4574,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async test_addmlm(parent, args, context, info) {
       let start     = Date.now()
       let { req } = context
@@ -4631,7 +4614,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async profile(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -4654,7 +4636,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       } 
     },
-
     async test_upload(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -4731,7 +4712,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       } 
     },
-
     async faker_agent(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -4749,7 +4729,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async faker_insurance(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -4767,7 +4746,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async paid_bill(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -4808,7 +4786,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async calculate_tree(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -4817,7 +4794,7 @@ export default {
       let role = Utils.checkRole(current_user)
       if( role !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
     
-      await Utils.calculateTree()
+      // await Utils.calculateTree()
 
       // // await Model.Insurance.create({ current: input });
       // const session = await mongoose.startSession();
@@ -4850,7 +4827,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async product(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -5069,7 +5045,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async order(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -5221,7 +5196,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async tree_by_node_id(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -5234,7 +5208,10 @@ export default {
           
       console.log("order : ", input)
 
-      let trees = await Utils.fetchTreeData(input.node_id)
+      let timePeriod= new Date();
+      let trees = await Utils.calculateAmount(input.node_id, timePeriod)
+
+      // let trees = await Utils.fetchTreeData(input.node_id)
 
       return {
         status: true,
@@ -5242,7 +5219,7 @@ export default {
         data: trees,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
-    }
+    },
   },
   Subscription:{
     me: {

@@ -396,7 +396,9 @@ const modelExists =()=>{
   Model.Node.find({}, async(err, result)=> {
     if (result.length > 0) {
     } else {
-      let newNode = new Model.Node({ current: JSON.parse(process.env.INIT_NODE) });
+      // let newNode = new Model.Node({ current: JSON.parse(process.env.INIT_NODE) });
+
+      let newNode = new Model.Node({ current: { "ownerId": mongoose.Types.ObjectId(process.env.ID_USER_ADMIN), "level": 0, "number": 1, "status": 0, "isParent": true } });
       await newNode.save();
       // await Model.Node.deleteMany({})
     }
@@ -450,6 +452,16 @@ const modelExists =()=>{
                                       });
       await newOrder.save();
       await Model.Order.deleteMany({})
+    }
+  }); 
+
+  // Period
+  Model.Period.find({}, async(err, result)=> {
+    if (result.length > 0) {
+    } else {
+      let newPeriod = new Model.Period({ start:  new Date(), end: new Date() });
+      await newPeriod.save();
+      await Model.Period.deleteMany({})
     }
   }); 
 }

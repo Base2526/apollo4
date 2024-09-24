@@ -6,14 +6,13 @@ const TerserPlugin = require('terser-webpack-plugin');
 const webpack = require('webpack');
 
 module.exports = {
-  mode: 'production',
+  mode: 'production', // Switch to production
   entry: './src/index.tsx',
   output: {
     filename: '[name].[contenthash].js',  // Use content hash for caching
     path: path.resolve(__dirname, 'dist'),
     publicPath: '/',
   },
-  // devtool: 'eval-source-map',  // Enable eval-source-map for better debugging in production
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.png', '.jpg', '.svg', '.css', '.less', '.json'],
     alias: {
@@ -29,7 +28,7 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+        use: [MiniCssExtractPlugin.loader, 'css-loader'], // Extract CSS to separate files
       },
       {
         test: /\.less$/,
@@ -56,13 +55,12 @@ module.exports = {
     ],
   },
   optimization: {
-    minimize: true,
+    minimize: true, // Enable minification
     minimizer: [
       new TerserPlugin({
         terserOptions: {
           compress: {
-            // Keep console.log statements
-            drop_console: true, // Do NOT remove console logs in production
+            drop_console: true, // Remove console logs in production
           },
         },
       }),
@@ -76,17 +74,17 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './public/index.html',
       minify: {
-        collapseWhitespace: true,
+        collapseWhitespace: true, // Minify HTML
         removeComments: true,
         removeRedundantAttributes: true,
         useShortDoctype: true,
       },
     }),
     new MiniCssExtractPlugin({
-      filename: '[name].[contenthash].css',
+      filename: '[name].[contenthash].css', // Extracted CSS with content hash
     }),
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('production'),
+      'process.env.NODE_ENV': JSON.stringify('production'), // Define production environment
       'process.env': JSON.stringify(process.env),
     }),
   ],

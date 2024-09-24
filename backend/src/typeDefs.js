@@ -474,7 +474,7 @@ export default gql`
     test(input: JSON): JSON
     test_fetch_node(_id: ID!): JSON
     test_fetch_tree_by_node_id(node_id: ID!): JSON
-    
+        
     test_add_node(_id: String!, packages: Int!): JSON
     init: JSON
     healthCheck: JSON

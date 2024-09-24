@@ -36,10 +36,6 @@ const ProductList: React.FC = (props) => {
       handlerError(props, errorProducts);
   }
 
-  // useEffect(()=>{
-  //   console.log("filteredProducts :", filteredProducts)
-  // }, [filteredProducts])
-
   useEffect(() => {
     if (!loadingProducts && dataProducts?.products) {
       setProducts([]);
@@ -112,15 +108,7 @@ const ProductList: React.FC = (props) => {
           renderItem={item => (
             <List.Item  className={`list-item-product-card`}>
               <HomeCard
-                _id= {item._id}
-                title= {item.current.name}
-                imageUrl= "https://via.placeholder.com/300"
-                details= {item.current.detail}
-                price= {item.current.price}
-                quantity= {item.current.quantity}
-
-                item= {item}
-
+                product= {item}
                 onClick={()=>{
                   navigate(`/view?v=${item._id}`, { state: { _id: item._id } });
                 }}
@@ -141,13 +129,17 @@ const ProductList: React.FC = (props) => {
         />
       </Skeleton>
 
-      <Pagination
-        current={currentPage}
-        pageSize={pageSize}
-        total={filteredProducts.length}
-        onChange={handlePaginationChange}
-        style={{ marginTop: 20, marginBottom: 20}}
-      />
+      { 
+        filteredProducts.length > 20 &&
+        <Pagination
+          current={currentPage}
+          pageSize={pageSize}
+          total={filteredProducts.length}
+          onChange={handlePaginationChange}
+          style={{ marginTop: 20, marginBottom: 20}}
+        />
+      }
+      
     </div>
   );
 };

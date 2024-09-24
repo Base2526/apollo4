@@ -10,6 +10,7 @@ import { DataNode as RcTreeDataNode } from 'rc-tree/lib/interface'; // This is t
 
 import { query_test_fetch_node } from "@/apollo/gqlQuery";
 import { getHeaders } from "@/utils";
+import handlerError from "@/utils/handlerError";
 
 interface DataNode extends RcTreeDataNode {
   title: string;
@@ -27,7 +28,7 @@ interface DataNode extends RcTreeDataNode {
   };
 }
 
-const TreePage: React.FC = () => {
+const TreePage: React.FC = (props) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -35,7 +36,7 @@ const TreePage: React.FC = () => {
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]); // State to manage expanded nodes
   const { profile } = useSelector((state: any) => state.user);
 
-  const { loading: loadingNode, data: dataNode, refetch } = useQuery(
+  const { loading: loadingNode, data: dataNode, error: errorNode, refetch } = useQuery(
     query_test_fetch_node, {
       variables: { id: profile._id },
       context: { headers: getHeaders(location) },
@@ -44,6 +45,10 @@ const TreePage: React.FC = () => {
       notifyOnNetworkStatusChange: false,
     }
   );
+
+  if(errorNode){
+    handlerError(props, errorNode)
+  }
 
   useEffect(() => {
     if (!loadingNode && dataNode?.test_fetch_node) {
@@ -93,7 +98,7 @@ const TreePage: React.FC = () => {
   const titleRender: TreeProps['titleRender'] = (nodeData: RcTreeDataNode) => {
     const customNodeData = nodeData as DataNode; // Type assertion
       
-    console.log("customNodeData :", customNodeData);
+    // console.log("customNodeData :", customNodeData);
     const title  = customNodeData.title;
     const ownerDisplayName = customNodeData.owner?.current?.displayName || 'Unnamed';
     const nodeStatus = customNodeData.node?.current?.status === 1 ? 'green' : 'red';
