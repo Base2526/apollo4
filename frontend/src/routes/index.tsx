@@ -31,10 +31,19 @@ import UserListPage from "@/pages/administrator/UserList"
 import UserPage from "@/pages/administrator/User"
 import FakerPage from "@/pages/administrator/Faker"
 import FileListPage from "@/pages/administrator/FileList"
-import DblogPage  from "@/pages/administrator/Dblog"
-import ImportPage from "@/pages/administrator/Import"
-import TreePage from "@/pages/administrator/Tree"
-import OtherPage from "@/pages/administrator/Other"
+import DblogPage  from "@/pages/administrator/Dblog";
+import ImportPage from "@/pages/administrator/Import";
+import TreePage from "@/pages/administrator/Tree";
+import OtherPage from "@/pages/administrator/Other";
+
+import HomePage from "@/pages/home";
+import CartPage from "@/pages/cart";
+import OrderPage from "@/pages/administrator/order"
+import OrderFormPage from "@/pages/administrator/order/OrderForm"
+
+import ProductListPage from "@/pages/administrator/product";
+import ProductPage from "@/pages/administrator/product/ProductForm";
+import ViewProductPage from "@/pages/administrator/product/ViewProduct";
 
 import OrgChartPage from "@/pages/administrator/orgchart"
 
@@ -42,7 +51,10 @@ import BillListPage from "@/pages/administrator/BillList"
 import BillPage from "@/pages/administrator/Bill"
 
 import WalletPage from "@/pages/administrator/Wallet"
+import WalletCalculatePage  from "@/pages/administrator/WalletCalculate"
 import WalletHistoryPage from "@/pages/administrator/WalletHistoryList"
+
+import PurchasePage from "@/pages/cart/Purchase"
 
 import CalTreePage from "@/pages/administrator/CalTree"
 import CalTreeHistoryListPage from "@/pages/administrator/CalTreeHistoryList"
@@ -86,12 +98,36 @@ const routeList: RouteObject[] = [
     // element: <WrapperRouteComponent element={<LayoutPage />} titleId="" />,
     element: <LayoutPage />,
     children: [
+      // {
+      //   path: '/',
+      //   element: <WrapperRouteComponent requireAuth={true} element={<Dashboard />} titleId="title.dashboard" />,
+      // },
       {
         path: '/',
-        element: <WrapperRouteComponent requireAuth={true} element={<Dashboard />} titleId="title.dashboard" />,
+        element: <WrapperRouteComponent requireAuth={true} element={<HomePage />} titleId="title.dashboard" />,
       },
-      // 
-
+      {
+        path: 'view',
+        element: <WrapperRouteComponent requireAuth={true} element={<ViewProductPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'cart',
+        element: <WrapperRouteComponent requireAuth={true} element={<CartPage />} titleId="title.dashboard" />,
+      },
+      {
+        path: 'purchases',
+        element: <WrapperRouteComponent requireAuth={true} element={<PurchasePage />} titleId="title.dashboard" />,
+        
+      },
+      {
+        path: 'purchases/:key',
+        element: <WrapperRouteComponent requireAuth={true} element={<PurchasePage />} titleId="title.dashboard" />,
+        
+      },
+      {
+        path: 'purchases/:key/view',
+        element: <WrapperRouteComponent requireAuth={true} element={<OrderFormPage />} titleId="title.insurance" />,
+      },
       {
         path: 'insurance',
         element: <WrapperRouteComponent requireAuth={true} element={<InsurancePage />} titleId="title.insurance" />,
@@ -169,6 +205,32 @@ const routeList: RouteObject[] = [
         path: 'administrator/userlist/user',
         element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<UserPage />} titleId="title.insurance" />,
       },
+
+      {
+        path: 'administrator/orders',
+        element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<OrderPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'administrator/orders/edit',
+        element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<OrderFormPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'administrator/products',
+        element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<ProductListPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'administrator/products/new',
+        element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<ProductPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'administrator/products/edit',
+        element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<ProductPage />} titleId="title.insurance" />,
+      },
+      {
+        path: 'administrator/products/view',
+        element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<ViewProductPage />} titleId="title.insurance" />,
+      },
+
       {
         path: 'administrator/billlist',
         element: <WrapperRouteComponent requireAuth={true}  element={<BillListPage />} titleId="title.billlist" />,
@@ -180,6 +242,10 @@ const routeList: RouteObject[] = [
       {
         path: 'administrator/wallet',
         element: <WrapperRouteComponent requireAuth={true} element={<WalletPage />} titleId="title.bill" />,
+      },
+      {
+        path: 'administrator/wallet/calculate',
+        element: <WrapperRouteComponent requireAuth={true}  element={<WalletCalculatePage />} titleId="title.billlist" />,
       },
       {
         path: 'administrator/wallet/history',

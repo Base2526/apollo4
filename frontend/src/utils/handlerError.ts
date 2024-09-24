@@ -16,7 +16,7 @@ interface HandlerErrorProps {
     logout?: () => void;
 }
 
-const handlerError = (props: HandlerErrorProps, error: ApolloError) => {
+const handlerError = (props: any, error: ApolloError) => {
     if (error.networkError) {
         // Handle network errors
         message.error('Network error occurred'); // Replace with your own error message

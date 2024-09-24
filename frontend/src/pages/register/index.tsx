@@ -1,15 +1,13 @@
+import "./index.less";
+
 import React, { FC, useEffect, useState } from 'react';
 import { Card, Layout, Form, Input, Button, message, Select } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useMutation } from "@apollo/client";
 import { useLocation, useNavigate, useParams} from 'react-router-dom';
-
-import { setGlobalState } from '@/stores/global.store';
-import { mutationRegister } from "../../apollo/gqlQuery";
-import { updateProfile } from '../../stores/user.store';
-import { getHeaders } from "../../utils";
-import handlerError from "../../utils/handlerError"
-import "./index.less";
+import { mutationRegister } from "@/apollo/gqlQuery";
+import { getHeaders } from "@/utils";
+import handlerError from "@/utils/handlerError"
 
 const userNameRegex = /^[a-zA-Z0-9]+$/;
 const idCardRegex = /^\d{13}$/;
@@ -18,10 +16,10 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$
 
 const initialValues = {
   parentId: '', // Hidden field value
-  username: 'test',
-  idCard: '1234567890123',
-  email: 'test@test.local',
-  tel: '0988268000',
+  username: '',
+  idCard: '',
+  email: '',
+  tel: '',
   password: '',
   confirmPassword: '',
   packages: 1
@@ -172,11 +170,11 @@ const RegisterPage: FC = (props) => {
         >
           <Select defaultValue={1} style={{ width: 120 }}>
             <Select.Option value={1}>1</Select.Option>
-            <Select.Option value={2}>7</Select.Option>
-            <Select.Option value={3}>49</Select.Option>
-            <Select.Option value={4}>343</Select.Option>
+            <Select.Option value={2}>8</Select.Option>
+            <Select.Option value={3}>57</Select.Option>
+            {/* <Select.Option value={4}>343</Select.Option>
             <Select.Option value={5}>2,401</Select.Option>
-            <Select.Option value={6}>16,807</Select.Option>
+            <Select.Option value={6}>16,807</Select.Option> */}
           </Select>
         </Form.Item>
         <Form.Item>

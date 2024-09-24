@@ -1,6 +1,6 @@
-import React, { FC, useState, useRef } from 'react';
-import { Card, Descriptions, Upload, Button, Input, message, UploadProps } from 'antd';
-import { UploadOutlined, LoadingOutlined, PlusOutlined, CopyOutlined, DownloadOutlined } from '@ant-design/icons';
+import React, { FC, useState, useRef, useEffect } from 'react';
+import { Card, Descriptions, Typography, Button, Input, message, UploadProps, Image as ImagesAntd, Space, Avatar, Spin } from 'antd';
+import { UploadOutlined, LoadingOutlined, PlusOutlined, CopyOutlined, DownloadOutlined, EditOutlined, UserOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { useMutation } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
@@ -11,38 +11,30 @@ import { getHeaders } from "@/utils";
 import { updateProfile } from '@/stores/user.store';
 import "@/pages/profile/index.less";
 import handlerError from "@/utils/handlerError"
+import { DefaultRootState } from "@/interface/DefaultRootState"
 
-// type FileType = Parameters<typeof Upload.beforeUpload>[0];
-type FileType = Parameters<NonNullable<UploadProps['beforeUpload']>>[0];
+const { Paragraph, Text } = Typography;
 
-const getBase64 = (img: FileType, callback: (url: string) => void) => {
-  const reader = new FileReader();
-  reader.addEventListener('load', () => callback(reader.result as string));
-  reader.readAsDataURL(img);
-};
+const { REACT_APP_HOST_GRAPHAL }  = process.env
 
 const ProfilePage: FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const canvasRef = useRef(null);
-  const [imageUrl, setImageUrl] = useState<string>();
-  const [loading, setLoading] = useState(false);
-  const { profile } = useSelector((state: any) => state.user);
+  const { profile } = useSelector((state: DefaultRootState) => state.user);
+  const [loadingUpdateProfile, setLoadingUpdateProfile] = useState(false);
 
-  const user = {
-    name: profile?.current?.displayName,
-    email: profile?.current?.email,
-    phone: '123-456-7890',
-    address: '123 Main St, Anytown, USA',
-    avatar: 'https://www.example.com/avatar.jpg'
-  };
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const [onMutationProfile] = useMutation(mutationProfile, {
+  const [onUpdateProfile] = useMutation(mutationProfile, {
     context: { headers: getHeaders(location) },
     update: (cache, { data: { profile } }) => {
       if (profile.status) {
         dispatch(updateProfile({ profile: profile.data }));
+
+        setLoadingUpdateProfile(false)
+        message.success('Update profile success!');
       }
     },
     onError(error) {
@@ -51,32 +43,6 @@ const ProfilePage: FC = () => {
       handlerError({}, error)
     }
   });
-
-  // const handleFileChange: UploadProps['onChange'] = (info: UploadChangeParam) => {
-  //   if (info.file.status === 'uploading') return;
-  //   if (info.file.status === 'done') {
-  //     getBase64(info.file.originFileObj as FileType, (url) => {
-  //       setImageUrl(url);
-  //     });
-  //   }
-  // };
-
-  const handleFileChange: UploadProps['onChange'] = (info) => {
-    if (info.file.status === 'uploading') return;
-    if (info.file.status === 'done') {
-      getBase64(info.file.originFileObj as FileType, (url) => {
-        setImageUrl(url);
-      });
-    }
-  };
-
-  const beforeUpload = (file: FileType) => {
-    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-    if (!isJpgOrPng) message.error('You can only upload JPG/PNG file!');
-    const isLt2M = file.size / 1024 / 1024 < 2;
-    if (!isLt2M) message.error('Image must smaller than 2MB!');
-    return isJpgOrPng && isLt2M;
-  };
 
   const copyToClipboard = (text: string) => {
     if (navigator.clipboard) {
@@ -157,40 +123,87 @@ const ProfilePage: FC = () => {
 
   };
 
-  const uploadButton = (
-    <button style={{ border: 0, background: 'none' }} type="button">
-      {loading ? <LoadingOutlined /> : <PlusOutlined />}
-      <div style={{ marginTop: 8 }}>Upload</div>
-    </button>
-  );
+  const handleClick = () => {
+    if (inputRef.current) {
+      inputRef.current.click();
+    }
+  };
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return; 
+
+    const file = e.target.files?.[0]; // Access the first file (if any)
+    if (file) {
+      // setSelectedFile(file); // Set the selected file
+      setLoadingUpdateProfile(true)
+      onUpdateProfile({ variables: { input: { file } } })
+    }
+  };
 
   return (
     <div style={{ padding: '3px' }}>
       <Card>
         <div style={{ display: 'flex', alignItems: 'center', padding: "10px" }}>
-          <Upload
-            name="avatar"
-            listType="picture-card"
-            className="avatar-uploader"
-            showUploadList={false}
-            customRequest={(options) => onMutationProfile({ variables: { input: { file: options.file } } })}
-            beforeUpload={beforeUpload}
-            onChange={handleFileChange}
-          >
-            {profile?.current?.avatar?.url ? (
-              <img src={"http://localhost:4000/" + profile?.current?.avatar?.url} alt="avatar" style={{ width: "100px", height: "100px" }} />
-            ) : (
-              uploadButton
-            )}
-          </Upload>
+          <Space style={{ position: "relative", width: 100, height: 100 }}>
+            {/* Loading spinner */}
+            {loadingUpdateProfile && (
+              <Spin
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  zIndex: 1,
+                }}
+              />
+            )
+            }
+            {/* Image */}
+            {
+              profile?.current?.avatar?.url 
+              ? <ImagesAntd 
+                  src={`http://${REACT_APP_HOST_GRAPHAL}/` + profile?.current?.avatar?.url}
+                  alt="avatar"
+                  width={100}
+                  style={{ borderRadius: 10, opacity: loadingUpdateProfile ? 0.5 : 1, border: "1px solid #333" }}
+                />
+              : <Avatar 
+                  className="user-avator" 
+                  shape="square"
+                  size={100} 
+                  icon={<UserOutlined />} />
+            }
+            {/* Edit button */}
+            <div
+              className="edit"
+              style={{
+                position: "absolute",
+                top: 0,
+                right: 3,
+                padding: "2px",
+              }}
+            >
+              <input
+                type="file"
+                id="contained-button-file"
+                ref={inputRef}
+                style={{ display: "none" }}
+                multiple={false}
+                accept="image/*"
+                onChange={onFileChange}
+              />
+              <Button icon={<EditOutlined />} type="link" onClick={handleClick} />
+            </div>
+          </Space>
+
           <div style={{ marginLeft: '20px' }}>
-            <h2>{user.name}</h2>
-            <p>{user.email}</p>
+            <h2>{profile?.current?.displayName}</h2>
+            <p>{profile?.current?.email}</p>
           </div>
         </div>
         <Descriptions title="User Information" bordered column={1} style={{ marginTop: '20px' }}>
-          <Descriptions.Item label="Phone">{user.phone}</Descriptions.Item>
-          <Descriptions.Item label="Address">{user.address}</Descriptions.Item>
+          <Descriptions.Item label="Phone"><Paragraph className='ant-typography-tel' copyable>{profile?.current?.tel}</Paragraph></Descriptions.Item>
+          <Descriptions.Item label="Address">{ profile?.current?.address !== undefined ? <Paragraph className='ant-typography-tel' copyable>{profile?.current?.address}</Paragraph> : <></>  }</Descriptions.Item>
           <Descriptions.Item label="QR URL">
             <Input.Group compact>
               <Input style={{ width: 'calc(100% - 32px)' }} value={"http://167.99.75.91/register/" + profile._id} readOnly />
@@ -199,16 +212,19 @@ const ProfilePage: FC = () => {
           </Descriptions.Item>
           <Descriptions.Item label="Photo QR">
             <div className="qr-container">
-                <QRCode 
-                  ref={canvasRef}
-                  value={`http://167.99.75.91/register/${encodeURIComponent(profile._id)}`} 
-                  size={100} 
-                  viewBox={`0 0 256 256`}/>
+              {
+                profile?._id !== undefined
+                ? <QRCode 
+                    ref={canvasRef}
+                    value={`http://167.99.75.91/register/${encodeURIComponent(profile?._id)}`} 
+                    size={100} 
+                    viewBox={`0 0 256 256`}/>
+                : <></>
+              } 
               <Button
                 icon={<DownloadOutlined />}
                 onClick={downloadQRCode}
-                className="download-button"
-              />
+                className="download-button"/>
             </div>
           </Descriptions.Item>
           <Descriptions.Item label="Wallet">
@@ -219,14 +235,14 @@ const ProfilePage: FC = () => {
                 navigate('/administrator/wallet')
               }}>Show Wallet</Button>
           </Descriptions.Item>
-          <Descriptions.Item label="Bills">
+          {/* <Descriptions.Item label="Bills">
             <Button 
               type="primary" 
               style={{ marginRight: '10px' }}
               onClick={()=>{
                 navigate('/administrator/billlist')
               }}>Show Bills</Button>
-          </Descriptions.Item>
+          </Descriptions.Item> */}
           <Descriptions.Item label="Tree">
             <Button 
               type="primary" 
@@ -234,6 +250,14 @@ const ProfilePage: FC = () => {
               onClick={()=>{
                 navigate('/administrator/userlist/tree')
               }}>Show Tree</Button>
+          </Descriptions.Item>
+          <Descriptions.Item label="Purchases">
+            <Button 
+              type="primary" 
+              style={{ marginRight: '10px' }}
+              onClick={()=>{
+                navigate('/purchases/1')
+              }}>Purchases</Button>
           </Descriptions.Item>
         </Descriptions>
       </Card>

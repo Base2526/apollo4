@@ -109,7 +109,8 @@ export const mutationProfile = gql`mutation profile($input: JSON) { profile(inpu
 export const faker_agent        = gql`mutation faker_agent($input: JSON) { faker_agent(input: $input) }`;
 export const faker_insurance    = gql`mutation faker_insurance($input: JSON) { faker_insurance(input: $input) }`;
 
-export const querytest_fetch_node = gql`query test_fetch_node($id: ID!) { test_fetch_node(_id: $id) }`;
+export const query_test_fetch_node = gql`query test_fetch_node($id: ID!) { test_fetch_node(_id: $id) }`;
+export const query_test_fetch_tree_by_node_id = gql`query test_fetch_tree_by_node_id($node_id: ID!) { test_fetch_tree_by_node_id(node_id: $node_id) }`;
 
 export const query_bills = gql`query bills { bills }`;
 export const query_bill  = gql`query bill($id: ID!)  { bill(_id: $id) }`;
@@ -118,3 +119,16 @@ export const mutation_paid_bill = gql`mutation paid_bill($input: JSON) { paid_bi
 export const query_cals  = gql`query cals { cals }`;
 
 export const mutation_calculate_tree = gql`mutation calculate_tree { calculate_tree }`;
+
+export const guery_products     = gql`query products { products }`;
+export const guery_product      = gql`query product($id: ID!) { product(_id: $id) }`;
+export const mutation_product   = gql`mutation product($input: JSON) { product(input: $input) }`;
+
+export const guery_orders     = gql`query orders { orders }`;
+export const guery_order      = gql`query order($id: ID!) { order(_id: $id) }`;
+export const mutation_order   = gql`mutation order($input: JSON) { order(input: $input) }`;
+
+export const mutation_tree_by_node_id   = gql`mutation tree_by_node_id($input: JSON) { tree_by_node_id(input: $input) }`;
+
+
+export const guery_purchases  = gql`query purchases { purchases }`;

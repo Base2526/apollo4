@@ -23,4 +23,5 @@ export const zhCN_globalTips = {
   'gloabal.tips.theme.darkTooltip': '切换至深色主题',
   'gloabal.tips.theme.lightTooltip': '切换至浅色主题',
   'gloabal.tips.theme.noticeTooltip': '通知',
+  'gloabal.tips.theme.cartTooltip': 'Cart',
 };

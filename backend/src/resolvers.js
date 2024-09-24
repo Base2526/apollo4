@@ -24,6 +24,17 @@ const mongoose = require('mongoose');
 
 export default {
   Query: {
+    // period
+    // async period(parent, args, context, info){
+    //   let start = Date.now()
+    //   let { req } = context
+    //   let data = await Utils.createPeriod();
+
+    //   return {
+    //     status: true,
+    //     executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+    //   }
+    // },
     async test(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -32,8 +43,22 @@ export default {
       // console.log("test :", process.env, JSON.parse(process.env.INIT_USER_ADMIN))
       // let newInput ={ current:JSON.parse(process.env.USER_ADMIN_CURRENT) }  
       // let newUser = await Model.Member.create(newInput);
+
+      // let data = await Utils.createPeriod();
+
+    
+      // const now = new Date(); // Get the current date and time
+
+      // const currentPeriod = await Model.Period.findOne({
+      //     start: { $lte: now }, // Start date should be less than or equal to now
+      //     end: { $gte: now }    // End date should be greater than or equal to now
+      // });
+    
+
       return {
         status: true,
+        // currentPeriod,
+        // data,
         // args,
         // newUser,
         // newInput,
@@ -41,6 +66,9 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
+    /*
+    ดึงข้อมูล Tree ข้อมูลของ user แต่ละคน
+    */
     async test_fetch_node(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -51,6 +79,9 @@ export default {
         throw new AppError(Constants.ERROR, "current user empty")
       }
 
+      /*
+      เราต้องเอา _id user เพือหา _id node ก่อน แล้วใช้ _id node วิ่งหาข้อมูล
+      */
       let rootNode = await Model.Node.findOne({'current.ownerId': current_user._id, 'current.isParent': true });
       if(_.isEmpty(rootNode)){
         throw new AppError(Constants.ERROR, "current user empty")
@@ -62,6 +93,27 @@ export default {
       return {
         status: true,
         data: treeData,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+    async test_fetch_tree_by_node_id(parent, args, context, info){
+      let start = Date.now()
+      let { req } = context
+      let { node_id } = args
+
+      let { status, current_user } =  await Utils.checkAuth(req);
+      if(!status){
+        throw new AppError(Constants.ERROR, "current user empty")
+      }
+
+      // let trees = await Utils.fetchTreeData(node_id)
+
+      let timePeriod= new Date();
+      let trees = await Utils.calculateAmount(node_id, timePeriod)
+
+      return {
+        status: true,
+        data: trees,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
@@ -386,14 +438,12 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async checkUser(parent, args, context, info){
       let { req } = context
       let checkAuth =  await Utils.checkAuth(req);
       console.log("checkUser :", checkAuth, req?.headers?.authorization)
       return { status:true }
     },
-
     async users(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -490,7 +540,6 @@ export default {
               executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` 
             }
     },
-
     async userById(parent, args, context, info){
       let start = Date.now()
       let { _id } = args
@@ -505,7 +554,6 @@ export default {
                 data: user,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async roleByIds(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -521,7 +569,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async suppliers(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -621,7 +668,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` 
       }
     },
-
     async supplierById(parent, args, context, info){
       let start = Date.now()
       let { _id } = args
@@ -632,7 +678,6 @@ export default {
                 data: await Utils.getSupplier({_id}),
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async banks(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -644,7 +689,6 @@ export default {
                 data: banks,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async bankById(parent, args, context, info){
       let start = Date.now()
       let { _id } = args
@@ -658,7 +702,6 @@ export default {
                 data: bank,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async bankByIds(parent, args, context, info){
       let start = Date.now()
       let { _ids } = args
@@ -672,7 +715,6 @@ export default {
                 data: banks,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async bookBuyTransitions(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -705,7 +747,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async historyTransitions(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -752,7 +793,6 @@ export default {
                 data,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async friendProfile(parent, args, context, info){
       let start = Date.now()
       let { _id } = args
@@ -770,7 +810,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async buyById(parent, args, context, info){
       let start = Date.now()
       let { _id } = args
@@ -823,7 +862,6 @@ export default {
                 data: _.isEmpty(transitions) ? null : transitions[0],
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async buys(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -916,7 +954,6 @@ export default {
 
       return {  status:false, executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async notifications(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -948,7 +985,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async commentById(parent, args, context, info){
       let start = Date.now()
       let { _id } = args
@@ -961,7 +997,6 @@ export default {
                 data: _.isNull(comm) ? [] : comm,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async bookmarks(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -993,7 +1028,6 @@ export default {
                 total: suppliers.length,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async subscribes(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1005,7 +1039,6 @@ export default {
                 total: users.length,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async dblog(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1020,7 +1053,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async dateLotterys(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1035,7 +1067,6 @@ export default {
                 data: dateLotterys,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async dateLotteryById(parent, args, context, info){
       let start = Date.now()
       let { _id } = args
@@ -1053,7 +1084,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async producers(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1065,7 +1095,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async manageLotterys(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1077,7 +1106,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async manageLotteryById(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1091,7 +1119,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async deposits(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1122,7 +1149,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async withdraws(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1153,7 +1179,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async adminHome(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1218,7 +1243,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async adminBanks(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1230,7 +1254,6 @@ export default {
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
 
     },
-
     async adminDeposits(parent, args, context, info){
       let start = Date.now()
         
@@ -1260,7 +1283,6 @@ export default {
                 data,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async adminWithdraws(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1289,7 +1311,6 @@ export default {
                 data,
                 executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` }
     },
-
     async manageSuppliers(parent, args, context, info){
       let start = Date.now()
       let { req } = context
@@ -1387,7 +1408,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds` 
       }
     },
-
     async conversations(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1405,7 +1425,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async message(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1442,7 +1461,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async members(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1469,15 +1487,13 @@ export default {
                                                     }
                                                   ])
 
-      console.log("members :", members)
-
+      // console.log("members :", members)
       return {
         status:true,
         data: members,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async files(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1508,7 +1524,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async mlmById(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1525,7 +1540,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async bills(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1537,15 +1551,25 @@ export default {
 
       let bills = await Model.Node.find({'current.ownerId': current_user._id})
 
-      console.log("members :", bills)
+      // Use Promise.all to resolve all promises in the map
 
+      let timePeriod= new Date();
+      
+      bills = await Promise.all(
+        _.map(bills, async (bill) => {
+          // let trees = await Utils.fetchTreeData(bill._id);
+          let trees = await Utils.calculateAmount(bill._id, timePeriod)
+          return { ...bill._doc, node_child: trees };
+        })
+      );
+
+      console.log("bills :", bills)
       return {
         status:true,
         data: bills,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async bill(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1563,7 +1587,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async cals(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -1593,6 +1616,277 @@ export default {
       return {
         status:true,
         data: cals,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+    async products(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+      if( role === Constants.ADMINISTRATOR ){
+        let products = await Model.Product.aggregate([
+                                                      {
+                                                        $lookup: {
+                                                          localField: "ownerId",
+                                                          from: "member",
+                                                          foreignField: "_id",
+                                                          as: "creator"
+                                                        }
+                                                      },
+                                                      {
+                                                        $unwind: {
+                                                          path: "$creator",
+                                                          preserveNullAndEmptyArrays: true
+                                                        }
+                                                      }
+                                                      ]);
+        return {
+          status:true,
+          data: products,
+          executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+        }
+      }
+
+      let products = await Model.Product.aggregate([{
+                                                      $match: {
+                                                        'current.packages': { $in: [ current_user.current.packages ] }
+                                                      }
+                                                    },
+                                                    {
+                                                      $lookup: {
+                                                        localField: "ownerId",
+                                                        from: "member",
+                                                        foreignField: "_id",
+                                                        as: "creator"
+                                                      }
+                                                    },
+                                                    {
+                                                      $unwind: {
+                                                        path: "$creator",
+                                                        preserveNullAndEmptyArrays: true
+                                                      }
+                                                    }
+                                                    ]);
+      return {
+        status:true,
+        data: products,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+    async product(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+
+      let { _id } = args
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+
+      let product = await Model.Product.aggregate([{ $match: { _id: mongoose.Types.ObjectId(_id) } },
+                                                    {
+                                                      $lookup: {
+                                                        localField: "ownerId",
+                                                        from: "member",
+                                                        foreignField: "_id",
+                                                        as: "creator"
+                                                      }
+                                                    },
+                                                    {
+                                                      $unwind: {
+                                                        path: "$creator",
+                                                        preserveNullAndEmptyArrays: true
+                                                      }
+                                                    }
+                                                    ]);
+      return {
+        status:true,
+        data: product.length > 0 ? product[0] : undefined,
+        args,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+    async orders(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+      
+        let orders = await Model.Order.aggregate([
+                                                  {
+                                                    $addFields: {
+                                                      ownerId: "$current.ownerId",  // Bring the nested field to the top level
+                                                      editerId: "$current.editer",   // Bring editerId to the top level
+                                                      productId: "$current.productIds.productId"
+                                                    }
+                                                  },{
+                                                    $lookup: {
+                                                      localField: "ownerId",
+                                                      from: "member",
+                                                      foreignField: "_id",
+                                                      as: "owner"
+                                                    }
+                                                  },
+                                                  {
+                                                    $unwind: {
+                                                      path: "$owner",
+                                                      preserveNullAndEmptyArrays: true
+                                                    }
+                                                  },
+                                                  // Lookup to fetch the editer details from the "member" collection
+                                                  {
+                                                    $lookup: {
+                                                      from: "member",  // Referencing the member collection
+                                                      localField: "editerId",  // Field from the current pipeline
+                                                      foreignField: "_id",  // Field from the member collection
+                                                      as: "editer"  // Output the result as "editer"
+                                                    }
+                                                  },
+                                                  {
+                                                    $unwind: {
+                                                      path: "$editer",
+                                                      preserveNullAndEmptyArrays: true  // Handle cases where there might be no editer
+                                                    }
+                                                  },
+                                                  // Lookup to fetch the product details from the "Product" collection based on productIds array
+                                                  {
+                                                    $lookup: {
+                                                      from: "product", // the collection you're referencing (Product collection)
+                                                      localField: "productId", // field in the Orders collection (array of ObjectId)
+                                                      foreignField: "_id", // field in the Product collection
+                                                      as: "productDetails" // field to store the resulting product details
+                                                    }
+                                                  },
+                                                ]);                                      
+      return {
+        status: true,
+        data: orders,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+    async order(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+
+      let { _id } = args
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+      console.log("order :", _id)
+
+      try{
+        let order = await Model.Order.aggregate([ { $match: { _id: mongoose.Types.ObjectId(_id) } },
+                                                  {
+                                                    $addFields: {
+                                                      ownerId: "$current.ownerId",  // Bring the nested field to the top level
+                                                      editerId: "$current.editer",   // Bring editerId to the top level
+                                                      productId: "$current.productIds.productId"
+                                                    }
+                                                  },{
+                                                    $lookup: {
+                                                      localField: "ownerId",
+                                                      from: "member",
+                                                      foreignField: "_id",
+                                                      as: "owner"
+                                                    }
+                                                  },
+                                                  {
+                                                    $unwind: {
+                                                      path: "$owner",
+                                                      preserveNullAndEmptyArrays: true
+                                                    }
+                                                  },
+                                                  // Lookup to fetch the editer details from the "member" collection
+                                                  {
+                                                    $lookup: {
+                                                      from: "member",  // Referencing the member collection
+                                                      localField: "editerId",  // Field from the current pipeline
+                                                      foreignField: "_id",  // Field from the member collection
+                                                      as: "editer"  // Output the result as "editer"
+                                                    }
+                                                  },
+                                                  {
+                                                    $unwind: {
+                                                      path: "$editer",
+                                                      preserveNullAndEmptyArrays: true  // Handle cases where there might be no editer
+                                                    }
+                                                  },
+                                                  // Lookup to fetch the product details from the "Product" collection based on productIds array
+                                                  {
+                                                    $lookup: {
+                                                      from: "product", // the collection you're referencing (Product collection)
+                                                      localField: "productId", // field in the Orders collection (array of ObjectId)
+                                                      foreignField: "_id", // field in the Product collection
+                                                      as: "productDetails" // field to store the resulting product details
+                                                    }
+                                                  },
+                                                  ]);
+
+        return {
+          status:true,
+          data: order.length > 0 ? order[0] : undefined,
+          args,
+          executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+        }
+      }catch(error){
+        console.log("order error :", error)
+        
+        throw new AppError(Constants.ERROR, error)
+      }
+    },
+    async purchases(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+        let purchases = await Model.Order.aggregate([{
+                                                    $match: {
+                                                      "current.ownerId": current_user._id  // Replace xxxxx with the actual OwnerId value you're looking for
+                                                    }
+                                                  },
+                                                  {
+                                                    $addFields: {
+                                                      ownerId: "$current.ownerId",  // Bring the nested field to the top level
+                                                      productId: "$current.productIds.productId"
+                                                    }
+                                                  },{
+                                                    $lookup: {
+                                                      localField: "ownerId",
+                                                      from: "member",
+                                                      foreignField: "_id",
+                                                      as: "owner"
+                                                    }
+                                                  },
+                                                  {
+                                                    $unwind: {
+                                                      path: "$owner",
+                                                      preserveNullAndEmptyArrays: true
+                                                    }
+                                                  },
+                                                  // Lookup to fetch the product details from the "Product" collection based on productIds array
+                                                  {
+                                                    $lookup: {
+                                                      from: "product", // the collection you're referencing (Product collection)
+                                                      localField: "productId", // field in the Orders collection (array of ObjectId)
+                                                      foreignField: "_id", // field in the Product collection
+                                                      as: "productDetails" // field to store the resulting product details
+                                                    }
+                                                  },
+                                                ]);                                      
+      return {
+        status: true,
+        data: purchases,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
@@ -2155,31 +2449,20 @@ export default {
                                   isOnline: true}
                       }
 
-
       const session = await mongoose.startSession();
       session.startTransaction();
       try {
-        // let memberNew = await Model.Member.create([newInput], { session });
-        // let check2    = await Utils.addMLM(memberNew._id, input)
-        // console.log("check2 :", check2);
+        let newMember = await Model.Member.create([newInput], { session });
 
-        let memberNew = await Model.Member.create([newInput], { session });
-
-        if (!memberNew || memberNew.length === 0) {
+        if (!newMember || newMember.length === 0) {
           throw new AppError("Member creation failed, returned undefined.");
         }
 
-        await Utils.createChildNodes(mongoose.Types.ObjectId(input.parentId), memberNew[0], input.packages);
+        let parentId     = mongoose.Types.ObjectId(input.parentId);
+        let current_user = newMember[0];
+        let packages     = input.packages;
 
-        // let parantNode = await Model.Node.find({ ownerId: input.parentId, level: 0, number: 1 }).session(session);
-        // if(!parantNode || parantNode.length === 0){
-        //   throw new AppError(Constants.ERROR, "Node find failed, returned undefined.");
-        // }
-
-        // console.log("@1 :", memberNew[0]._id, parantNode[0]._id)
-  
-        // const initialLevel = 0;
-        // await Utils.createChildNodes(memberNew[0]._id, parantNode[0]._id, initialLevel, input.packages, session);
+        await Utils.createChildNodes(parentId, current_user, packages, session);
 
         // Commit the transaction
         await session.commitTransaction();
@@ -2190,8 +2473,7 @@ export default {
         }
       }catch(error){
         console.log("error @@@@@@@1 :", error)
-        
-
+  
         await session.abortTransaction();
 
         throw new AppError(Constants.ERROR, error)
@@ -2201,7 +2483,6 @@ export default {
         console.log("finally @@@@@@@1 :")
       }  
     },
-
     async me(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -2326,7 +2607,6 @@ export default {
         }
       }
     },
-
     async book(parent, args, context, info) {
       let start = Date.now()
       let { input } = args        
@@ -2406,7 +2686,6 @@ export default {
         console.log("book #finally")
       }
     },
-
     async buy(parent, args, context, info) {
       let start = Date.now()
       let { _id } = args
@@ -2465,7 +2744,6 @@ export default {
         console.log("buy #finally")
       }
     },
-
     async cancelTransition(parent, args, context, info) {
       let start = Date.now()
       let { _id } = args
@@ -2517,7 +2795,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     // Add/Edit supplier
     async lottery(parent, args, context, info) {
       let start = Date.now()
@@ -2661,7 +2938,6 @@ export default {
         }
       }
     },
-
     async deposit(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -2727,7 +3003,6 @@ export default {
         console.log("deposit #finally")
       }
     },
-
     async withdraw(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -2769,7 +3044,6 @@ export default {
         console.log("deposit #finally")
       }
     },
-
     async bank(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -2810,7 +3084,6 @@ export default {
         }
       }
     },
-
     async follow(parent, args, context, info) {
       let start = Date.now()
       let { _id } = args
@@ -2844,7 +3117,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async datesLottery(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -2870,7 +3142,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async notification(parent, args, context, info) {
       let start = Date.now()
       let { _id } = args
@@ -2905,7 +3176,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async comment(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -2947,7 +3217,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async contactUs(parent, args, context, info){
       let start = Date.now()
       let { input } = args
@@ -2992,7 +3261,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async subscribe(parent, args, context, info) {
       let start = Date.now()
       let { _id } = args
@@ -3014,7 +3282,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }      
     },
-
     async adminDeposit(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -3101,7 +3368,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }      
     },
-
     async adminWithdraw(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -3139,7 +3405,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }      
     },
-
     async manageLottery(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -3198,7 +3463,6 @@ export default {
         }
       }
     },
-
     async forceLogout(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -3244,7 +3508,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }   
     },
-
     async expireLottery(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -3278,7 +3541,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }   
     },
-
     async calculateLottery(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -3484,7 +3746,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }   
     },
-
     async testNodeCacheSave(parent, args, context, info) {
       
       // let __set = cache.ca_set("a", {a: "a", b: "b"}) 
@@ -3512,7 +3773,6 @@ export default {
         executionTime: `seconds`
       }   
     },
-
     async testNodeCacheGet(parent, args, context, info) {
       // let __set = cache.ca_set("a", {a: "a", b: "b"}) 
       // let __get = cache.ca_get("a");
@@ -3537,7 +3797,6 @@ export default {
         executionTime: `seconds`
       }   
     },
-
     async testNodeCacheDelete(parent, args, context, info) {
       // let __set = cache.ca_set("a", {a: "a", b: "b"}) 
       // let __get = cache.ca_get("a");
@@ -3566,7 +3825,6 @@ export default {
         executionTime: `seconds`
       }   
     },
-
     // search(input: SearchInput): JSON
     async search(parent, args, context, info) {
       let start = Date.now()
@@ -3614,7 +3872,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }   
     },
-
     async crypto(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -3799,7 +4056,6 @@ export default {
         throw new AppError(Constants.ERROR, err.toString())
       }
     },
-
     async message(parent, args, context, info) {
       let start = Date.now()
       let { mode, input } = args
@@ -4074,7 +4330,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }   
     },
-
     async content(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -4123,7 +4378,6 @@ export default {
         }
       }
     },
-
     async pay(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -4204,7 +4458,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async lotteryClone(parent, args, context, info) {
       let start = Date.now()
       let { _id } = args
@@ -4286,7 +4539,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async test_addmember(parent, args, context, info) {
       let start     = Date.now()
       let { input } = args
@@ -4322,7 +4574,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async test_addmlm(parent, args, context, info) {
       let start     = Date.now()
       let { req } = context
@@ -4340,7 +4591,7 @@ export default {
         if(_.isEmpty(child)){
 
           childs = [...childs, {childId: current_user?._id}]
-          await Model.MLM.updateOne({ _id: mlm?._id }, { "current.childs": childs, history: Utils.revision(mlm) });
+          await Model.MLM.updateOne({ _id: mlm?._id }, { "current.childs": childs, history: Utils.createRevision(mlm) });
           return {
             status: true,
             message: "UPDATE CHILD",
@@ -4363,7 +4614,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async profile(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -4376,7 +4626,7 @@ export default {
 
       let member = await Model.Member.findOne({ _id: mongoose.Types.ObjectId(current_user?._id) })
       await Model.Member.updateOne({ _id: mongoose.Types.ObjectId(current_user?._id) }, 
-                                   { "current.avatar": { url: prof.url, filename: prof.filename, encoding: prof.encoding, mimetype: prof.mimetype }, history: Utils.revision(member) }
+                                   { "current.avatar": { url: prof.url, filename: prof.filename, encoding: prof.encoding, mimetype: prof.mimetype }, history: Utils.createRevision(member) }
                                   );
 
       let user = await Utils.getMember({ _id: mongoose.Types.ObjectId(current_user?._id) }, false)
@@ -4386,7 +4636,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       } 
     },
-
     async test_upload(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -4463,7 +4712,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       } 
     },
-
     async faker_agent(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -4481,7 +4729,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async faker_insurance(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -4499,7 +4746,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async paid_bill(parent, args, context, info) {
       let start = Date.now()
       let { input } = args
@@ -4522,7 +4768,7 @@ export default {
         // Update the node within the session
         await Model.Node.updateOne(
           { _id: input?.id },
-          { "current.status": 1, history: Utils.revision(node) },
+          { "current.status": 1, history: Utils.createRevision(node) },
           { session } // Include the session in the update
         );
 
@@ -4540,7 +4786,6 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
-
     async calculate_tree(parent, args, context, info) {
       let start = Date.now()
       let { req } = context
@@ -4549,7 +4794,7 @@ export default {
       let role = Utils.checkRole(current_user)
       if( role !==Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
     
-      await Utils.calculateTree()
+      // await Utils.calculateTree()
 
       // // await Model.Insurance.create({ current: input });
       // const session = await mongoose.startSession();
@@ -4564,7 +4809,7 @@ export default {
       //   // Update the node within the session
       //   await Model.Node.updateOne(
       //     { _id: input?.id },
-      //     { "current.status": 1, history: Utils.revision(node) },
+      //     { "current.status": 1, history: Utils.createRevision(node) },
       //     { session } // Include the session in the update
       //   );
 
@@ -4581,7 +4826,400 @@ export default {
         status: true,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
-    }
+    },
+    async product(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+      let { input } = args
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !==Constants.ADMINISTRATOR &&
+          role !==Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+          
+      console.log("product : ", input)
+
+      switch(input.mode){
+        case 'added':{
+          const session = await mongoose.startSession();
+          session.startTransaction();
+          try {
+            if(input?._isDEV === true){
+              console.log(input?._isDEV, input);
+              // let newInput = _.omit(input?.current, ['mode']);
+
+              let current  = {...input?.current, ownerId: current_user._id }
+
+              console.log("@@@1 product current : ", current)
+
+              await Model.Product.insertMany([{ _isDEV: true, current }], { session });
+            }else{
+              let promises = []; 
+              if(!_.isEmpty(input.images)){
+                for (let i = 0; i < input.images.length; i++) {
+                  const { createReadStream, filename, encoding, mimetype } = (await input.images[i]).file //await input.files[i];
+        
+                  const stream = createReadStream();
+                  const assetUniqName = Utils.fileRenamer(filename);
+                  let pathName = `/app/uploads/${assetUniqName}`;
+        
+                  const output = fs.createWriteStream(pathName)
+                  stream.pipe(output);
+        
+                  const promise = await new Promise(function (resolve, reject) {
+                    // output.on('close', () => {
+                    //   resolve("close");
+                    // });
+
+                    output.on('finish', async () => {
+                      try {
+                          // Save data to MongoDB after the stream has finished writing
+                          // await saveDataToMongoDB(data, dbUrl, dbName, collectionName);
+                          // console.log("finish : ", { url: `images/${assetUniqName}`, filename, encoding, mimetype })
+                          
+                          // let newInput ={current: { parentId: input?.parentId, childs: [{childId: current_user?._id}]}}  
+                          let file = await Model.File.insertMany([{userId:current_user._id, url: `images/${assetUniqName}`, filename, encoding, mimetype }], {session});
+                          // console.log("file ", file)
+                          resolve(file !== null ? file[0] : undefined );
+                      } catch (error) {
+                          reject(`Failed to save data to MongoDB: ${error.message}`);
+                      }
+                    });
+              
+                    output.on('error', async(err) => {
+                      await Utils.loggerError(req, err.toString());
+        
+                      reject(err);
+                    });
+                  });
+                  promises.push(promise);
+                }
+              }
+
+              let images = await Promise.all(promises);
+              // console.log("All files processed: ", images );
+
+              const newInput = _.omit(input, ['mode']);
+              let current  = {...newInput, images, ownerId: current_user._id }
+              
+              console.log("@@@2 product current : ", current)
+              
+              await Model.Product.insertMany([{ current }], { session });
+            }
+            // Commit the transaction
+            await session.commitTransaction();
+          }catch(error){
+              console.log("error @@@@@@@1 :", error)
+              await session.abortTransaction();
+          
+              throw new AppError(Constants.ERROR, error)
+          }finally {
+              session.endSession();
+              console.log("finally @@@@@@@1 :")
+          }  
+
+          break;
+        }
+
+        case 'edited':{
+          const session = await mongoose.startSession();
+          session.startTransaction();
+          try {
+
+            let promises = []; 
+            let newFiles = [];
+            if(!_.isEmpty(input.images)){
+              for (let i = 0; i < input.images.length; i++) {
+                try{
+                  let fileObject = (await input.images[i]).file
+    
+                  if(!_.isEmpty(fileObject)){
+                    const { createReadStream, filename, encoding, mimetype } = fileObject //await input.files[i];
+      
+                    const stream = createReadStream();
+                    const assetUniqName = Utils.fileRenamer(filename);
+                    let pathName = `/app/uploads/${assetUniqName}`;
+          
+                    const output = fs.createWriteStream(pathName)
+                    stream.pipe(output);
+          
+                    const promise = await new Promise(function (resolve, reject) {
+                      // output.on('close', () => {
+                      //   resolve("close");
+                      // });
+
+                      output.on('finish', async () => {
+                        console.log('@finish');
+                        try {
+                            // Save data to MongoDB after the stream has finished writing
+                            // await saveDataToMongoDB(data, dbUrl, dbName, collectionName);
+                            // console.log("finish : ", { url: `images/${assetUniqName}`, filename, encoding, mimetype })
+                            
+                            // let newInput ={current: { parentId: input?.parentId, childs: [{childId: current_user?._id}]}}  
+                            let file = await Model.File.insertMany([{userId:current_user._id, url: `images/${assetUniqName}`, filename, encoding, mimetype }], {session});
+                            // console.log("file ", file)
+                            resolve(file !== null ? file[0] : undefined );
+                        } catch (error) {
+                            reject(`Failed to save data to MongoDB: ${error.message}`);
+                        }
+                      });
+                
+                      output.on('error', async(err) => {
+                        console.log('@error');
+                        await Utils.loggerError(req, err.toString());
+          
+                        reject(err);
+                      });
+                    });
+                    promises.push(promise);
+
+                  }else{
+                    if(input.images[i].delete){
+                      let pathUnlink = '/app/uploads/' + input.images[i].url.split('/').pop()
+                      fs.unlink(pathUnlink, async(err)=>{
+                          if (err) {
+                            await Utils.loggerError(req, err);
+                          }else{
+                            // if no error, file has been deleted successfully
+                            console.log('File has been deleted successfully ', pathUnlink);
+                          }
+                      });
+                    }else{
+                      newFiles = [...newFiles, input.images[i]]
+                    }
+                  }
+                } catch(err) {
+                  await Utils.loggerError(req, err.toString());
+
+                  console.log("@error :", err)
+                }
+              }
+            }
+
+            let images = await Promise.all(promises);
+            
+            let newInput = _.omit(input, ['_id', 'mode']);
+            
+            let history = await Model.Product.findOne({ _id: mongoose.Types.ObjectId(input._id) })
+            let result = await Model.Product.updateOne({ _id: input._id }, { $set: { current: {...newInput, images: [...images, ...newFiles]}, history: Utils.createRevision(history) } }, { session });
+
+            console.log("All files processed @@@ : ", result, input._id, newInput );
+            // Commit the transaction
+            await session.commitTransaction();
+          }catch(error){
+            console.log("error @@@@@@@1 :", error)
+            await session.abortTransaction();
+        
+            throw new AppError(Constants.ERROR, error)
+          }finally {
+            session.endSession();
+            console.log("finally @@@@@@@1 :")
+          }  
+
+          break;
+        }
+
+        case 'deleted':{
+          const session = await mongoose.startSession();
+          session.startTransaction();
+          try {
+            await Model.Product.deleteOne({ _id: input._id }, { session });
+            // Commit the transaction
+            await session.commitTransaction();
+          }catch(error){
+            console.log("error @@@@@@@1 :", error)
+            await session.abortTransaction();
+        
+            throw new AppError(Constants.ERROR, error)
+          }finally {
+            session.endSession();
+            console.log("finally @@@@@@@1 :")
+          } 
+          break;
+        }
+      }
+      
+      return {
+        status: true,
+        input,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+    async order(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+      let { input } = args
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !==Constants.ADMINISTRATOR &&
+          role !==Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+          
+      console.log("order : ", input)
+
+      switch(input.mode){
+        case 'added':{
+          const session = await mongoose.startSession();
+          session.startTransaction();
+          try {
+            const promises =  _.map(input.productIds, async (vi) => {
+                                let { productId, quantities } = vi;
+                                const document = await Model.Product.findOne({ _id: mongoose.Types.ObjectId(productId) });
+                          
+                                if (document) {
+                                  if (quantities > document.current.quantity) {
+                                    throw new AppError(Constants.ERROR, "Quantity not enough");
+                                  }
+                                  await Model.Product.updateOne(
+                                    { _id: mongoose.Types.ObjectId(productId) },
+                                    { $inc: { 'current.quantity': -quantities } },
+                                    { session }
+                                  );
+                                }
+                              });
+        
+            // Wait for all promises to resolve
+            await Promise.all(promises);
+
+            let current  = { productIds: input.productIds, 
+                             ownerId: current_user._id,
+                             status: 1 }
+            await Model.Order.insertMany([{ current }], { session });
+
+            // Commit the transaction
+            await session.commitTransaction();
+          }catch(error){
+            console.log("error @@@@@@@1 :", error)
+            await session.abortTransaction();
+        
+            throw new AppError(Constants.ERROR, error)
+          }finally {
+            session.endSession();
+            console.log("finally @@@@@@@1 :")
+          } 
+
+          break;
+        }
+
+        case 'edited':{
+          const session = await mongoose.startSession();
+          session.startTransaction();
+          try {
+
+            switch( input.type ){
+              case 2:
+              case 3:{
+                let promises = []; 
+                if(!_.isEmpty(input.attachFile)){
+                  for (let i = 0; i < input.attachFile.length; i++) {
+                    const { createReadStream, filename, encoding, mimetype } = (await input.attachFile[i]).file //await input.files[i];
+          
+                    const stream = createReadStream();
+                    const assetUniqName = Utils.fileRenamer(filename);
+                    let pathName = `/app/uploads/${assetUniqName}`;
+          
+                    const output = fs.createWriteStream(pathName)
+                    stream.pipe(output);
+          
+                    const promise = await new Promise(function (resolve, reject) {
+                      output.on('finish', async () => {
+                        try {
+                          let file = await Model.File.insertMany([{userId:current_user._id, url: `images/${assetUniqName}`, filename, encoding, mimetype }], {session});
+                          resolve(file !== null ? file[0] : undefined );
+                        } catch (error) {
+                          reject(`Failed to save data to MongoDB: ${error.message}`);
+                        }
+                      });
+                
+                      output.on('error', async(err) => {
+                        await Utils.loggerError(req, err.toString());
+                        reject(err);
+                      });
+                    });
+                    promises.push(promise);
+                  }
+                }
+                let attachFile = await Promise.all(promises);
+                console.log("save images :", attachFile)
+                
+                let history = await Model.Order.findOne({ _id: mongoose.Types.ObjectId(input._id) })
+    
+                const filter = { _id: input._id }
+                const update = {
+                  $set: {
+                      'current.editer': current_user._id,
+                      'current.status': input.type,
+                      'current.message': input.message,
+                      'current.attachFile': attachFile, // Add your file data here
+                      'history': Utils.createRevision(history) // Update history as needed
+                  }
+                };
+                await Model.Order.updateOne( filter , update, { session });
+
+                break;
+              }
+              case 4:{
+                let history = await Model.Order.findOne({ _id: mongoose.Types.ObjectId(input._id) })
+                const filter = { _id: input._id }
+                const update = {
+                  $set: {
+                      'current.editer': current_user._id,
+                      'current.status': input.type,
+                      'history': Utils.createRevision(history) // Update history as needed
+                  }
+                };
+                await Model.Order.updateOne( filter , update, { session });
+                break;
+              }
+            }
+
+
+            // Commit the transaction
+            await session.commitTransaction();
+          }catch(error){
+            console.log("error @@@@@@@1 :", error)
+            await session.abortTransaction();
+        
+            throw new AppError(Constants.ERROR, error)
+          }finally {
+            session.endSession();
+            console.log("finally @@@@@@@1 :")
+          } 
+
+          break;
+        }
+      }
+
+      return {
+        status: true,
+        input,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+    async tree_by_node_id(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+      let { input } = args
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !==Constants.ADMINISTRATOR &&
+          role !==Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+          
+      console.log("order : ", input)
+
+      let timePeriod= new Date();
+      let trees = await Utils.calculateAmount(input.node_id, timePeriod)
+
+      // let trees = await Utils.fetchTreeData(input.node_id)
+
+      return {
+        status: true,
+        input,
+        data: trees,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
   },
   Subscription:{
     me: {

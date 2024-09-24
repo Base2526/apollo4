@@ -1,22 +1,11 @@
-import React, { FC } from "react";
-
-import styled from 'styled-components';
-import { Space, Input, Avatar, Button, Typography } from 'antd';
-
-import { PlusSquareOutlined as AddBoxIcon, DeleteOutlined as RemoveCircleIcon } from '@ant-design/icons';
+import React, { FC, useRef} from "react";
+import { Space, Avatar, Button, Typography } from 'antd';
+import { DeleteOutlined as RemoveCircleIcon, PlusOutlined } from '@ant-design/icons';
 import _ from "lodash";
 
 const { Text } = Typography;
 
-// const Input = styled("input")({ display: "none" });
-
-const HiddenInput = styled(Input)`
-display: none;
-`;
-
-const Box = styled.div`
-  /* Custom styles */
-`;
+const { REACT_APP_HOST_GRAPHAL } = process.env;
 
 interface AttackFileFieldProps {
   label: string;
@@ -35,10 +24,9 @@ const AttackFileField: FC<AttackFileFieldProps> = ({
   onChange,
   onSnackbar
 }) => {
-  
+  const inputRef = useRef<HTMLInputElement>(null);
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return; // Check if files exist
-
+    if (!e.target.files) return; 
     let newInputList = [...values];
     for (let i = 0; i < e.target.files.length; i++) {
       const file = e.target.files[i];
@@ -49,95 +37,75 @@ const AttackFileField: FC<AttackFileFieldProps> = ({
     onChange(newInputList);
   };
 
+  const handleClick = () => {
+    if (inputRef.current) {
+      inputRef.current.click();
+    }
+  };
+
   return (
     <Space>
       <Text>{label}</Text>
       <label htmlFor="contained-button-file">
-        <HiddenInput
-          accept="image/*"
-          id="contained-button-file"
-          name="file"
-          multiple={multiple}
+        <input
           type="file"
+          id="contained-button-file"
+          ref={inputRef} 
+          style={{ display: 'none' }}
+          multiple={multiple}
+          accept="image/*"
           onChange={onFileChange}
         />
-        {/* <IconButton
-          color="primary"
-          aria-label="upload picture"
-          component="span"
-        >
-          <AddBoxIcon />
-        </IconButton> */}
-        <Button icon={<AddBoxIcon />} shape="circle"/>
+        <Button
+          icon={<PlusOutlined />}
+          shape="circle"
+          onClick={handleClick}
+        />
       </label>
       <Space direction="horizontal" size={2}>
-        {_.map(
-          _.filter(values, (v) => !v?.delete),
-          (file, index) => {
+        {_.map( _.filter(values, (v) => !v?.delete), (file, index) => {
             const isOldFile = file?.url;
-
             return (
               <Space style={{ position: "relative" }} key={index}>
-                
-                <Avatar style={{ 
-                   height: 80,
-                   width: 80,
-                   border: "1px solid #cccccc",
-                   padding: "5px",
-                   marginBottom: "5px"
-                  }} src={isOldFile ? file?.url : URL.createObjectURL(file)}></Avatar>
-                {/* <IconButton
+                <Avatar 
+                  style={{ 
+                    height: 150,
+                    width: 150,
+                    border: "1px solid #cccccc",
+                    padding: "5px",
+                    marginBottom: "5px"
+                  }} 
+                  shape={"square"} 
+                  src={isOldFile ? `http://${REACT_APP_HOST_GRAPHAL}/${file?.url}` : URL.createObjectURL(file)} 
+                />
+                <Button
+                  icon={<RemoveCircleIcon />} 
+                  type="link"
                   style={{
                     position: "absolute",
-                    right: 0,
-                    top: 0
+                    top: 10,
+                    right: 20,
+                    zIndex: 1,  // Ensure the button stays on top of the avatar
+                    height: "15px", // Set the button height
+                    width: "15px",  // Set the button width
                   }}
-                  color="primary"
-                  aria-label="delete picture"
-                  component="span"
                   onClick={() => {
                     const newInputList = [...values];
                     const i = _.findIndex(newInputList, (v) => v._id === file._id);
-
                     if (isOldFile) {
                       if (i !== -1) {
                         newInputList[i] = {
                           ...newInputList[i],
-                          delete: true
+                          delete: true,
                         };
                       }
                     } else {
                       newInputList.splice(index, 1);
                     }
-
                     onChange(newInputList);
                     onSnackbar({ open: true, message: "Delete image" });
                   }}
-                >
-                  <RemoveCircleIcon />
-                </IconButton> */}
-
-                <Button 
-                  icon={<RemoveCircleIcon /> } 
-                  shape="circle"
-                  onClick={() => {
-                    const newInputList = [...values];
-                    const i = _.findIndex(newInputList, (v) => v._id === file._id);
-
-                    if (isOldFile) {
-                      if (i !== -1) {
-                        newInputList[i] = {
-                          ...newInputList[i],
-                          delete: true
-                        };
-                      }
-                    } else {
-                      newInputList.splice(index, 1);
-                    }
-
-                    onChange(newInputList);
-                    onSnackbar({ open: true, message: "Delete image" });
-                  }}/>
+                />
               </Space>
             );
           }

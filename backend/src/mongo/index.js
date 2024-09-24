@@ -396,7 +396,9 @@ const modelExists =()=>{
   Model.Node.find({}, async(err, result)=> {
     if (result.length > 0) {
     } else {
-      let newNode = new Model.Node({ current: JSON.parse(process.env.INIT_NODE) });
+      // let newNode = new Model.Node({ current: JSON.parse(process.env.INIT_NODE) });
+
+      let newNode = new Model.Node({ current: { "ownerId": mongoose.Types.ObjectId(process.env.ID_USER_ADMIN), "level": 0, "number": 1, "status": 0, "isParent": true } });
       await newNode.save();
       // await Model.Node.deleteMany({})
     }
@@ -414,6 +416,54 @@ const modelExists =()=>{
       await Model.CalTree.deleteMany({})
     }
   });  
+
+  // Product
+  Model.Product.find({}, async(err, result)=> {
+    if (result.length > 0) {
+    } else {
+      let newProduct = new Model.Product({     
+                                            current : { 
+                                              ownerId: new mongoose.Types.ObjectId(), 
+                                              name: new mongoose.Types.ObjectId(), 
+                                              plan: [1], 
+                                              packages: [1]
+                                            }
+                                          });
+      await newProduct.save();
+      await Model.Product.deleteMany({})
+    }
+  });  
+
+  // Order
+  Model.Order.find({}, async(err, result)=> {
+    if (result.length > 0) {
+    } else {
+      let newOrder = new Model.Order({     
+                                        current : { 
+                                          productIds: [
+                                            {
+                                              productId: new mongoose.Types.ObjectId(),
+                                              quantities: 1
+                                            }
+                                          ], 
+                                          ownerId: new mongoose.Types.ObjectId(), 
+                                          status: 1
+                                        }
+                                      });
+      await newOrder.save();
+      await Model.Order.deleteMany({})
+    }
+  }); 
+
+  // Period
+  Model.Period.find({}, async(err, result)=> {
+    if (result.length > 0) {
+    } else {
+      let newPeriod = new Model.Period({ start:  new Date(), end: new Date() });
+      await newPeriod.save();
+      await Model.Period.deleteMany({})
+    }
+  }); 
 }
 
 // TODO: initial and connect to MongoDB

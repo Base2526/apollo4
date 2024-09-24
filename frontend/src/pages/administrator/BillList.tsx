@@ -5,8 +5,8 @@ import { useQuery, useMutation } from "@apollo/client";
 import { useLocation, useNavigate } from "react-router-dom";
 import _ from "lodash";
 import { useSelector } from 'react-redux';
-import { query_bills } from "../../apollo/gqlQuery";
-import { getHeaders } from "../../utils";
+import { query_bills } from "@/apollo/gqlQuery";
+import { getHeaders } from "@/utils";
 
 interface DataType {
     _id: string;

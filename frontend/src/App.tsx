@@ -29,7 +29,6 @@ const App: FC = () => {
 
   const { data: useData, loading: useLoading, error: useError } = useSubscription(userConnected);
 
-  // const env = import.meta.env.VITE_HOST_GRAPHAL
   // Handle error here
   if (useError) {
     _.map(useError?.graphQLErrors, (e)=>{
@@ -51,7 +50,7 @@ const App: FC = () => {
 
   /** initial theme */
   useEffect(() => {
-    // console.log("import.meta.env:", env);
+    console.log("process.env :", process.env);
 
     setTheme(theme === 'dark');
 

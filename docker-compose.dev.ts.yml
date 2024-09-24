@@ -1,0 +1,21 @@
+version: "3"
+services:
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: insurance_frontend
+    env_file:
+      - ./env/.env.ui.ts
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./uploads:/var/storage
+    networks:
+      - insurance-network
+networks:
+  insurance-network:
+    external: true 

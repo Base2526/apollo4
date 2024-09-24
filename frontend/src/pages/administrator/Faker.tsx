@@ -5,11 +5,14 @@ import { useQuery, useMutation } from "@apollo/client";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import _ from "lodash"
 import { faker } from '@faker-js/faker';
+import { useSelector } from 'react-redux';
 
-import { getHeaders, getCookie } from "../../utils"
-import { queryMembers, faker_agent, faker_insurance, mutationTest_addmember, mutationMlm } from "../../apollo/gqlQuery"
+import { getHeaders, getCookie } from "@/utils"
+import { queryMembers, faker_agent, 
+        faker_insurance, mutationTest_addmember, 
+        mutationMlm, mutation_product } from "@/apollo/gqlQuery"
 
-
+import  { DefaultRootState } from '@/interface/DefaultRootState';
 // import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
 import SaleOrderPDF from './PDF';
 
@@ -25,9 +28,16 @@ interface UserType {
     _id: string;
 }
 
+const { mode, REACT_APP_HOST_GRAPHAL }  = process.env
+
 const Faker: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
+
+    const { profile } = useSelector((state : DefaultRootState) => state.user);
+
+    console.log("profile ", profile)
+
     const [users, setUsers] = useState<UserType[]>();
 
     const [onTest_addmember, resultTest_addmember] = useMutation(mutationTest_addmember, {
@@ -66,6 +76,18 @@ const Faker: React.FC = () => {
         },
         onError(error){
           console.log("faker_insurance onError :", error)
+        }
+    });
+
+    
+    const [onProduct] = useMutation(mutation_product, {
+        context: { headers: getHeaders(location) },
+        update: (cache, { data: { product } }) => {
+          console.log("product:", product);
+        },
+        onCompleted: (data) => {
+        },
+        onError: (error) => {
         }
     });
 
@@ -267,6 +289,52 @@ const Faker: React.FC = () => {
         }
     };
 
+    const onFinishProduct=  (values: any) => {
+
+        /*
+        name: string;
+        detail: string;
+        plan: number[];
+        price: number;
+        packages: number[];
+        images: RcFile[];
+        */
+
+        const plans = [1, 2];
+        const pakg = [1, 2 ,3];
+
+        const generate_img=(leth: number) =>{
+            let imgs:any[] = []
+            for ( var i = 0; i < leth; i++ ) {
+                if(profile._id !== undefined){
+                    imgs = [...imgs, {
+                        userId: profile._id,
+                        url: faker.image.avatar(),
+                        filename: faker.name.firstName(),
+                        encoding: '7bit',
+                        mimetype: 'image/png'
+                    }]
+                }
+                
+            }
+            return imgs
+        }
+
+        for ( var i = 0; i < 200; i++ ) {
+            let newInput = {
+                name: faker.name.jobTitle(),
+                detail: faker.name.jobTitle(),
+                plan:  [plans[Math.floor(Math.random() * plans.length)]],
+                price: faker.commerce.price(),
+                packages: [pakg[Math.floor(Math.random() * pakg.length)]],
+                images: generate_img( Math.floor(Math.random() * (10 - 1 + 1)) + 1 ),
+                quantity: Math.floor(Math.random() * 1000) + 100
+            }
+
+            console.log("newInput :", newInput)
+            onProduct({ variables: { input: { mode:'added', _isDEV: true, current: newInput }  } });
+        }
+    }
 
     const sampleData = [
         { code: 'A001', description: 'Item 1', quantity: 2, unit: 'pcs', unitPrice: 10.0 },
@@ -304,6 +372,16 @@ const Faker: React.FC = () => {
             </Card>
             <Card title="Create Insurance" style={{ marginBottom: '10px' }}>
                 <Form layout="vertical" onFinish={onFinishInsurance}>
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit">
+                            Create
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Card>
+
+            <Card title="Create Product" style={{ marginBottom: '10px' }}>
+                <Form layout="vertical" onFinish={onFinishProduct}>
                     <Form.Item>
                         <Button type="primary" htmlType="submit">
                             Create

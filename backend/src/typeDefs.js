@@ -472,7 +472,9 @@ export default gql`
 
   type Query {
     test(input: JSON): JSON
-    test_fetch_node(_id: ID): JSON
+    test_fetch_node(_id: ID!): JSON
+    test_fetch_tree_by_node_id(node_id: ID!): JSON
+        
     test_add_node(_id: String!, packages: Int!): JSON
     init: JSON
     healthCheck: JSON
@@ -527,6 +529,13 @@ export default gql`
     bill(_id: ID!): JSON
 
     cals: JSON
+    products: JSON
+    product(_id: ID!): JSON
+
+    orders: JSON
+    order(_id: ID!): JSON
+
+    purchases:JSON
   }  
   
   input RoomInput {
@@ -870,6 +879,11 @@ export default gql`
 
     paid_bill(input: JSON): JSON
     calculate_tree: JSON
+
+    product(input: JSON): JSON
+    order(input: JSON): JSON
+
+    tree_by_node_id(input: JSON): JSON
   }
 
   type Subscription {

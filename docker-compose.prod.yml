@@ -8,6 +8,10 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_HOST_GRAPHAL=167.99.75.91:1984
+      - REACT_APP_USER_ROLES=1,2,3
     volumes:
       - ./frontend/src:/app/src
       - ./uploads:/var/storage

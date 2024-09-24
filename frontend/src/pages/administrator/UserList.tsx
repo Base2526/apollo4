@@ -7,8 +7,8 @@ import _ from "lodash"
 import { DownOutlined } from '@ant-design/icons';
 import { useSelector } from 'react-redux';
 
-import { queryMembers } from "../../apollo/gqlQuery"
-import { getHeaders, isValidUrl } from "../../utils"
+import { queryMembers } from "@/apollo/gqlQuery"
+import { getHeaders, isValidUrl } from "@/utils"
 
 // import AttackFileField from "../../components/basic/attack-file";
 
