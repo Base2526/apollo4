@@ -44,7 +44,7 @@ services:
   # Setup Mongo express container
   ################################
   mongo-express:
-    image: mongo-express
+    image: mongo-express:1.0.0
     environment:
       ME_CONFIG_MONGODB_URL: mongodb://mongo1,mongo2,mongo3:27017/?replicaSet=rs0
       ME_CONFIG_MONGODB_SERVER: mongo1
@@ -93,6 +93,7 @@ networks:
     
 # Step #1 docker exec -it xxxx bash
 # Step #2 mongosh
+#  rs.status()
 # Step #3 rs.initiate({_id: "rs0", members: [{ _id: 0, host: "mongo1:27017" }, { _id: 1, host: "mongo2:27017" }, { _id: 2, host: "mongo3:27017" }]})
 
 # Step #4

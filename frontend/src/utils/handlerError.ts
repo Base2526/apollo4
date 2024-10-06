@@ -31,7 +31,7 @@ const handlerError = (props: any, error: ApolloError) => {
             case constants.FORCE_LOGOUT: {
                 const { logout } = props;
                 message.error('Force logout required'); // Replace with your own error message
-                logout && logout();
+                // logout && logout();
                 break;
             }
 
