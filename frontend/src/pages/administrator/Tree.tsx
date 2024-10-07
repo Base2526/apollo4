@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { UsergroupAddOutlined, UserOutlined } from '@ant-design/icons';
-import { Tree, TreeProps, Spin, Button } from 'antd';
+import {  UsergroupAddOutlined, 
+          UserOutlined, 
+          ReloadOutlined, 
+          NodeExpandOutlined, 
+          NodeCollapseOutlined } from '@ant-design/icons';
+import { Tree, TreeProps, Spin, Button, Tag } from 'antd';
 import { useQuery } from "@apollo/client";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from 'react-redux';
@@ -14,6 +18,7 @@ import handlerError from "@/utils/handlerError";
 
 interface DataNode extends RcTreeDataNode {
   title: string;
+  level: number
   owner?: {
     current?: {
       displayName?: string;
@@ -25,8 +30,16 @@ interface DataNode extends RcTreeDataNode {
     };
     _id?: string;
     updatedAt?: string;
+    
   };
+  children: [];
 }
+
+const countNodes = (nodes: DataNode[]): number => {
+  return _.sumBy(nodes, (node) => {
+    return 1 + countNodes(node.children);
+  });
+};
 
 const TreePage: React.FC = (props) => {
   const navigate = useNavigate();
@@ -34,13 +47,15 @@ const TreePage: React.FC = (props) => {
 
   const [data, setData] = useState<DataNode[]>([]);
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]); // State to manage expanded nodes
-  const { profile } = useSelector((state: any) => state.user);
+  const {profile } = useSelector((state: any) => state.user);
 
-  const { loading: loadingNode, data: dataNode, error: errorNode, refetch } = useQuery(
+  const [loading, setLoading] = useState(false);
+
+  const { loading: loadingNode, data: dataNode, error: errorNode, refetch: refetchNode } = useQuery(
     query_test_fetch_node, {
       variables: { id: profile._id },
       context: { headers: getHeaders(location) },
-      fetchPolicy: 'cache-first', 
+      fetchPolicy: 'no-cache', 
       nextFetchPolicy: 'network-only', 
       notifyOnNetworkStatusChange: false,
     }
@@ -50,22 +65,29 @@ const TreePage: React.FC = (props) => {
     handlerError(props, errorNode)
   }
 
+  const refetch = () =>{
+    setLoading(true)
+    profile && refetchNode({ id: profile._id });
+  }
+
   useEffect(() => {
     if (!loadingNode && dataNode?.test_fetch_node) {
       const fetchedData: DataNode[] = dataNode.test_fetch_node.data;
       setData(fetchedData);
 
-      // Automatically expand the root nodes initially
-      const rootKeys = fetchedData.map(node => node.key);
-      setExpandedKeys(rootKeys);
-
       console.log("fetchedData :", fetchedData);
+
+      setLoading(false)
     }
   }, [dataNode, loadingNode]);
 
+  useEffect(()=>{
+    console.log("loadingNode :", loadingNode)
+  }, [loadingNode])
+
   useEffect(() => {
-    refetch({ id: profile._id });
-  }, [profile, refetch]);
+    refetch()
+  }, [profile, refetchNode]);
 
   const onSelect = (selectedKeys: React.Key[], info: any) => {
     console.log('selected', selectedKeys, info);
@@ -112,7 +134,7 @@ const TreePage: React.FC = (props) => {
         {customNodeData?.children?.length ? <UsergroupAddOutlined /> : <UserOutlined />}
         <span style={{ marginLeft: 8 }}>
           <span style={{ color: nodeStatus }}>
-          {ownerDisplayName} | {nodeId} | {formattedDate} | {title}
+          {ownerDisplayName} | {nodeId} { /* | {formattedDate} | {title} */ } | { customNodeData.level }
           </span>
         </span>
       </div>
@@ -121,22 +143,30 @@ const TreePage: React.FC = (props) => {
 
   return (
     <div>
-      <Button type="primary" onClick={() => navigate("/administrator/userlist/tree/orgchart")}>Visual Tree</Button>
-      <Button onClick={expandAll} style={{ margin: '0 8px' }}>Expand All</Button>
-      <Button onClick={collapseAll}>Collapse All</Button>
+      <div style={{marginBottom: '10px'}}>
+        <Button onClick={expandAll} icon={<NodeExpandOutlined />} disabled={_.isEmpty(expandedKeys) ? false : true} />
+        <Button onClick={collapseAll} icon={<NodeCollapseOutlined />} disabled={_.isEmpty(expandedKeys) ? true : false} />
+        <Button onClick={refetch} loading={loading} icon={<ReloadOutlined />}  />
+        <Button type="primary" onClick={() => navigate("/administrator/userlist/tree/orgchart")}>Visual Tree</Button>
+      </div>
 
-      {loadingNode ? (
+      {loadingNode && !loading ? (
         <Spin tip="Loading..." />
       ) : (
-        <Tree
-          showIcon={true}
-          showLine={true}
-          expandedKeys={expandedKeys}
-          onExpand={onExpand}
-          onSelect={onSelect}
-          treeData={data}
-          titleRender={titleRender}
-        />
+        <div>
+          <div style={{marginTop: '10px', marginBottom: '10px'}}>
+            <div>All Node: <Tag>{ countNodes(data) }</Tag></div>
+          </div>
+          <Tree
+            showIcon={true}
+            showLine={true}
+            expandedKeys={expandedKeys}
+            onExpand={onExpand}
+            onSelect={onSelect}
+            treeData={data}
+            titleRender={titleRender}
+          />
+          </div>
       )}
     </div>
   );

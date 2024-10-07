@@ -536,6 +536,8 @@ export default gql`
     order(_id: ID!): JSON
 
     purchases:JSON
+
+    periods: JSON
   }  
   
   input RoomInput {

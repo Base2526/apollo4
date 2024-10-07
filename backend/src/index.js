@@ -100,7 +100,9 @@ server.start().then(() => {
     'http://167.99.75.91',
     'http://167.99.75.91:1984',
     'http://167.99.75.91:5173',
-    'http://localhost:1984'
+    'http://localhost:1984',
+    'http://bestmallu.com',
+    'https://bestmallu.com'
     // Add more origins as needed
   ];
 

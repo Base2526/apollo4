@@ -10,6 +10,8 @@ import { useSelector } from 'react-redux';
 import { queryMembers } from "@/apollo/gqlQuery"
 import { getHeaders, isValidUrl } from "@/utils"
 
+const { mode, REACT_APP_HOST_GRAPHAL }  = process.env
+
 // import AttackFileField from "../../components/basic/attack-file";
 
 interface DataType {
@@ -35,15 +37,15 @@ const columns = (navigate: ReturnType<typeof useNavigate>) => [
         render:(avatar: any)=>{
             return isValidUrl(avatar) 
                     ? <Image  width={100} src={avatar} /> 
-                    : <Image  width={100} src={"http://localhost:4000/" + avatar} /> 
+                    : <Image  width={100} src={`http://${REACT_APP_HOST_GRAPHAL}/` + avatar} /> 
         }
     },
     {
         title: 'User',
         dataIndex: 'displayName',
         sorter: (a: DataType, b: DataType) => a.displayName.localeCompare(b.displayName),
-        render: (name: string) =>{
-            return <Tag color="#2db7f5">{name}</Tag>
+        render: (displayName: string) =>{
+            return <>{displayName}</>
         }
     },
     {
@@ -169,8 +171,8 @@ const UserList: React.FC = () => {
     const handleSearch = (value: string) => {
         setSearchText(value);
         const filtered = data?.filter((item) => 
-            item.user.toLowerCase().includes(value.toLowerCase()) ||
-            item.filename?.toLowerCase().includes(value.toLowerCase()) || false
+            item.displayName.toLowerCase().includes(value.toLowerCase()) // ||
+            // item.filename?.toLowerCase().includes(value.toLowerCase()) || false
         ) || [];
         setFilteredData(filtered);
     };

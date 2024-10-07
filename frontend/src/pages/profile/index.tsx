@@ -206,8 +206,8 @@ const ProfilePage: FC = () => {
           <Descriptions.Item label="Address">{ profile?.current?.address !== undefined ? <Paragraph className='ant-typography-tel' copyable>{profile?.current?.address}</Paragraph> : <></>  }</Descriptions.Item>
           <Descriptions.Item label="QR URL">
             <Input.Group compact>
-              <Input style={{ width: 'calc(100% - 32px)' }} value={"http://167.99.75.91/register/" + profile._id} readOnly />
-              <Button icon={<CopyOutlined />} onClick={() => copyToClipboard("http://167.99.75.91/register/" + profile._id)} />
+              <Input style={{ width: 'calc(100% - 32px)' }} value={"http://bestmallu.com/register/" + profile._id} readOnly />
+              <Button icon={<CopyOutlined />} onClick={() => copyToClipboard("http://bestmallu.com/register/" + profile._id)} />
             </Input.Group>
           </Descriptions.Item>
           <Descriptions.Item label="Photo QR">
@@ -216,7 +216,7 @@ const ProfilePage: FC = () => {
                 profile?._id !== undefined
                 ? <QRCode 
                     ref={canvasRef}
-                    value={`http://167.99.75.91/register/${encodeURIComponent(profile?._id)}`} 
+                    value={`http://bestmallu.com/register/${encodeURIComponent(profile?._id)}`} 
                     size={100} 
                     viewBox={`0 0 256 256`}/>
                 : <></>

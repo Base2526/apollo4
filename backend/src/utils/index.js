@@ -1755,39 +1755,53 @@ export async function createChildNodes(_id, currentUser, packages, session) {
 const calculateNodeLevel = async (nodeId) => {
     let level = 0;
     let currentNode = await Model.Node.findById(nodeId);
+    
+    console.log(`Starting level calculation for nodeId: ${nodeId}`);
 
     while (currentNode && currentNode.current.parentNodeId) {
         level++;
+        console.log(`Level: ${level}, Current Node: ${currentNode._id}, Parent Node ID: ${currentNode.current.parentNodeId}`);
         currentNode = await Model.Node.findById(currentNode.current.parentNodeId);
     }
+    
+    console.log(`Final level for nodeId: ${nodeId} is ${level}`);
     return level;
-}; 
+};
 
 // Function to build the tree with level limitation
-async function buildTree(parentId = null, maxLevel = Infinity) {
+async function buildTree(parentId = null, level = 1) {
+    console.log(`Building tree for parentId: ${parentId}, level: ${level}`);
+    
     const nodes = await Model.Node.find({ 'current.parentNodeId': parentId });
     
+    console.log(`Found ${nodes.length} nodes for parentId: ${parentId}`);
+
     return await Promise.all(nodes.map(async (node) => {
-        const level = await calculateNodeLevel(node._id);
-        
+        // const level = await calculateNodeLevel(node._id);
+        const nextLevel = level + 1;
+        console.log(`Processing node: ${node._id} at level: ${nextLevel}`);
+
         // Check if current level exceeds maxLevel
-        if (level >= maxLevel) {
-            // Do not build children if the max level is reached
+        if (nextLevel >= 5) {
+            console.log(`Max level reached for node: ${node._id}. Not building children.`);
             return {
-                title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${level}, isParent: ${node.current.isParent}`,
+                title: `parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${level}, isParent: ${node.current.isParent}`,
                 key: node._id.toString(),
                 node,
                 owner: await Model.Member.findById(node.current.ownerId),
+                level: nextLevel,
                 children: null, // No children if max level is reached
             };
         } else {
             // Continue building the tree recursively if max level is not reached
-            const children = await buildTree(node._id, maxLevel);
+            console.log(`Building children for node: ${node._id}`);
+            const children = await buildTree(node._id, nextLevel);
             return {
-                title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${level}, isParent: ${node.current.isParent}`,
+                title: `parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
                 key: node._id.toString(),
                 node,
                 owner: await Model.Member.findById(node.current.ownerId),
+                level: nextLevel,
                 children: children.length ? children : null,
             };
         }
@@ -1799,23 +1813,49 @@ async function buildTree(parentId = null, maxLevel = Infinity) {
   @param
    - nodeId 
 */
-export const  fetchTreeData = async(nodeId) => {
-    const maxTreeLevel = 5;
-    const node = await Model.Node.findById(nodeId);
+export const fetchTreeData = async (nodeId) => {
+    const level = 1;
+    console.log(`Fetching data for nodeId: ${nodeId}`);
 
-    if(node){
-        const trees = await buildTree(nodeId, maxTreeLevel)
-        const owner = await Model.Member.findById(node.current.ownerId)
-        return [{
-                    title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId} ,ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: 1, isParent: ${node.current.isParent}`,
-                    key: node._id.toString(),
-                    node,
-                    owner,
-                    children: trees
-                }]
+    const node = await Model.Node.findById(nodeId);
+    console.log(`Node fetched:`, node);
+
+    if (node) {
+        const trees = await buildTree(nodeId , level );
+        const owner = await Model.Member.findById(node.current.ownerId);
+        console.log(`Owner fetched:`, owner);
+
+        const result = [{
+            title: `parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${ level }, isParent: ${node.current.isParent}`,
+            key: node._id.toString(),
+            node,
+            owner,
+            level,
+            children: trees
+        }];
+
+        // console.log(`Resulting tree structure:`, JSON.stringify(result, null, 2));
+
+
+        // Function to recursively extract key structure 
+        // Get only field key to display
+        const getKeyStructure = (nodes) => {
+            return nodes.map(node => {
+            const result = { key: node.key };
+            if (node.children) {
+                result.children = getKeyStructure(node.children);
+            }
+            return result;
+            });
+        };
+
+        console.log(`Resulting tree structure:`, JSON.stringify(getKeyStructure(result), null, 2));
+
+        return result;
     }
 
-    return []
+    console.log(`No node found for nodeId: ${nodeId}`);
+    return [];
 }
 
 export const ___calculateTree = async () => {
@@ -1932,7 +1972,6 @@ export const createPeriod = async()=>{
     const periods = generatePeriodsFromDates(2023, 1, 2034, 12);
     console.log("periods : ", periods);
 
-
     await Model.Period.deleteMany({});
     // Save each period
     for (const period of periods) {
@@ -1944,7 +1983,7 @@ export const createPeriod = async()=>{
 }
 
 // Function to build the tree with level limitation
-async function calculateTree(parentId = null, maxLevel = Infinity, startPeriod, endPeriod) {
+async function calculateTree(parentId = null, level = 1, startPeriod, endPeriod) {
     const nodes = await Model.Node.find({ 'current.parentNodeId': parentId });
     
     return await Promise.all(nodes.map(async (node) => {
@@ -2001,26 +2040,30 @@ async function calculateTree(parentId = null, maxLevel = Infinity, startPeriod, 
         เช็ดว่า node นี้มีการจ่าเงินใน period นี้หรือเปล่า
         */
 
-        const level = await calculateNodeLevel(node._id);
+        // const level = await calculateNodeLevel(node._id);
+
+        const nextLevel = level + 1;
         
         // Check if current level exceeds maxLevel
-        if (level >= maxLevel) {
+        if (nextLevel >= 5) {
             // Do not build children if the max level is reached
             return {
-                title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${level}, isParent: ${node.current.isParent}`,
+                title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
                 key: node._id.toString(),
                 node,
                 owner: await Model.Member.findById(node.current.ownerId),
+                level: nextLevel,
                 children: null, // No children if max level is reached
             };
         } else {
             // Continue building the tree recursively if max level is not reached
             const children = await calculateTree(node._id, maxLevel, startPeriod, endPeriod);
             return {
-                title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${level}, isParent: ${node.current.isParent}`,
+                title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
                 key: node._id.toString(),
                 node,
                 owner: await Model.Member.findById(node.current.ownerId),
+                level: nextLevel,
                 children: children.length ? children : null,
             };
         }
@@ -2045,20 +2088,21 @@ export const calculateAmount = async(nodeId, timePeriod= new Date()) => {
 
     if(!currentPeriod) throw new AppError(Constants.ERROR, "Period is empty!")
 
-    const maxTreeLevel = 5;
+    const level = 5;
 
     let startPeriod = currentPeriod.start;
     let endPeriod = currentPeriod.end;
 
     const node = await Model.Node.findById(nodeId);
     if(node){
-        const trees = await calculateTree(nodeId, maxTreeLevel, startPeriod, endPeriod)
+        const trees = await calculateTree(nodeId, level, startPeriod, endPeriod)
         const owner = await Model.Member.findById(node.current.ownerId)
         return [{
                     title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId} ,ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: 1, isParent: ${node.current.isParent}`,
                     key: node._id.toString(),
                     node,
                     owner,
+                    level,
                     children: trees
                 }]
     }

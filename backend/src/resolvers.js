@@ -5,8 +5,6 @@ import cryptojs from "crypto-js";
 import deepdash from "deepdash";
 deepdash(_);
 import * as fs from "fs";
-// import mongoose from 'mongoose';
-// import fetch from "node-fetch";
 import { GraphQLUpload } from 'graphql-upload';
 import moment from "moment";
 import jwt from 'jsonwebtoken';
@@ -1887,6 +1885,34 @@ export default {
       return {
         status: true,
         data: purchases,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+
+    async periods(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+        
+      // Set the start boundary (1st September 2024)
+      const startDate = new Date('2024-09-01T00:00:00Z');
+      const now = new Date();
+
+      let periods = await Model.Period.aggregate([
+                                                    {
+                                                      $match: {
+                                                        start: { $gte: startDate }, // Start date is greater than or equal to 1st September 2024
+                                                        end: { $lte: now }          // End date is less than or equal to the current date
+                                                      }
+                                                    }
+                                                  ]);
+
+      return {
+        status: true,
+        data: periods,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },

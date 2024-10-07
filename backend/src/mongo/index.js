@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import * as Model from "../model"
 let logger = require("../utils/logger");
 
+import * as Utils from "../utils"
+
 const modelExists =()=>{
   Model.Bank.find({}, async(err, result) => {
     if (result.length > 0) {
@@ -459,9 +461,11 @@ const modelExists =()=>{
   Model.Period.find({}, async(err, result)=> {
     if (result.length > 0) {
     } else {
-      let newPeriod = new Model.Period({ start:  new Date(), end: new Date() });
-      await newPeriod.save();
-      await Model.Period.deleteMany({})
+      // let newPeriod = new Model.Period({ start:  new Date(), end: new Date() });
+      // await newPeriod.save();
+      // await Model.Period.deleteMany({})
+
+      await Utils.createPeriod();
     }
   }); 
 }
