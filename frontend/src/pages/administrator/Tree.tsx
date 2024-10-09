@@ -62,6 +62,7 @@ const TreePage: React.FC = (props) => {
   );
 
   if(errorNode){
+    console.log("errorNode :", errorNode)
     handlerError(props, errorNode)
   }
 
@@ -75,7 +76,7 @@ const TreePage: React.FC = (props) => {
       const fetchedData: DataNode[] = dataNode.test_fetch_node.data;
       setData(fetchedData);
 
-      console.log("fetchedData :", fetchedData);
+      console.log("fetchedData :", dataNode.test_fetch_node );
 
       setLoading(false)
     }

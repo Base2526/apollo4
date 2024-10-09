@@ -61,6 +61,7 @@ const loggingPlugin = {
 const server = new ApolloServer({ 
   schema, 
   plugins: [ApolloServerPluginLandingPageLocalDefault(), loggingPlugin],
+  introspection: process.env.NODE_ENV !== 'production', 
   context: ({ req }) => {
     return { req: req.headers };
   },

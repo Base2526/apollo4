@@ -133,3 +133,6 @@ export const mutation_tree_by_node_id   = gql`mutation tree_by_node_id($input: J
 
 export const guery_purchases  = gql`query purchases { purchases }`;
 export const query_periods    = gql`query periods { periods }`;
+
+export const mutation_bills   = gql`mutation bills($input: JSON) { bills(input: $input) }`;
+export const mutation_bills_xml2js = gql`mutation bills_xml2js($input: JSON) { bills_xml2js(input: $input) }`;

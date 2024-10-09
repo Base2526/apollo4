@@ -143,7 +143,8 @@ const TreeModal: React.FC<TreeModalProps> = (props) => {
         {customNodeData?.children?.length ? <UsergroupAddOutlined /> : <UserOutlined />}
         <span style={{ marginLeft: 8 }}>
           <span style={{ color: nodeStatus }}>
-          {ownerDisplayName} | {nodeId} | {formattedDate} | {title}
+          {ownerDisplayName} | {nodeId} 
+           {/* | {formattedDate} | {title} */}
           </span>
         </span>
       </div>

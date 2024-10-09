@@ -12,6 +12,8 @@ import { updateProfile } from '@/stores/user.store';
 import "@/pages/profile/index.less";
 import handlerError from "@/utils/handlerError"
 import { DefaultRootState } from "@/interface/DefaultRootState"
+import * as utils from "@/utils"
+import * as Constants from "@/constants"
 
 const { Paragraph, Text } = Typography;
 
@@ -243,14 +245,24 @@ const ProfilePage: FC = () => {
                 navigate('/administrator/billlist')
               }}>Show Bills</Button>
           </Descriptions.Item> */}
-          <Descriptions.Item label="Tree">
-            <Button 
-              type="primary" 
-              style={{ marginRight: '10px' }}
-              onClick={()=>{
-                navigate('/administrator/userlist/tree')
-              }}>Show Tree</Button>
-          </Descriptions.Item>
+
+{/* 
+          {
+            utils.checkRole(profile) === Constants.ADMINISTRATOR 
+            ?  */}
+            <Descriptions.Item label="Tree">
+                <Button 
+                  type="primary" 
+                  style={{ marginRight: '10px' }}
+                  onClick={()=>{
+                    navigate('/administrator/userlist/tree')
+                  }}>Show Tree</Button>
+              </Descriptions.Item>
+            {/* : <></>
+          } */}
+         
+
+
           <Descriptions.Item label="Purchases">
             <Button 
               type="primary" 
