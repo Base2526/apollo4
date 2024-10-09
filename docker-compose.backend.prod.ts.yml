@@ -68,10 +68,14 @@ services:
   backend:
     build: 
       context: ./backend
-      dockerfile: Dockerfile.dev   
+      dockerfile: Dockerfile.prod   
     container_name: a4_backend          
+    # ports:
+    #   - "1984:4000"
     ports:
-      - "1984:4000"
+      - "1984:4000"  # Expose your app on port 4000
+    environment:
+      NODE_ENV: production
     env_file:
       - ./env/.env.ui.ts
     volumes:
@@ -83,6 +87,7 @@ services:
       - mongo1
       - mongo2
       - mongo3
+    restart: unless-stopped
     networks:
       - insurance-network
 

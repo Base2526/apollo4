@@ -34,7 +34,7 @@ const HomeCard: React.FC<ProductCardProps> = ({
   return (
     <Card
       hoverable
-      cover={ /*<img alt={title} src={imageUrl} />*/ 
+      cover={ 
         <Image.PreviewGroup items={items}>
           <Image
             alt={product.current.name}

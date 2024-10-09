@@ -12,6 +12,8 @@ import { updateProfile } from '@/stores/user.store';
 import "@/pages/profile/index.less";
 import handlerError from "@/utils/handlerError"
 import { DefaultRootState } from "@/interface/DefaultRootState"
+import * as utils from "@/utils"
+import * as Constants from "@/constants"
 
 const { Paragraph, Text } = Typography;
 
@@ -206,8 +208,8 @@ const ProfilePage: FC = () => {
           <Descriptions.Item label="Address">{ profile?.current?.address !== undefined ? <Paragraph className='ant-typography-tel' copyable>{profile?.current?.address}</Paragraph> : <></>  }</Descriptions.Item>
           <Descriptions.Item label="QR URL">
             <Input.Group compact>
-              <Input style={{ width: 'calc(100% - 32px)' }} value={"http://167.99.75.91/register/" + profile._id} readOnly />
-              <Button icon={<CopyOutlined />} onClick={() => copyToClipboard("http://167.99.75.91/register/" + profile._id)} />
+              <Input style={{ width: 'calc(100% - 32px)' }} value={"http://bestmallu.com/register/" + profile._id} readOnly />
+              <Button icon={<CopyOutlined />} onClick={() => copyToClipboard("http://bestmallu.com/register/" + profile._id)} />
             </Input.Group>
           </Descriptions.Item>
           <Descriptions.Item label="Photo QR">
@@ -216,7 +218,7 @@ const ProfilePage: FC = () => {
                 profile?._id !== undefined
                 ? <QRCode 
                     ref={canvasRef}
-                    value={`http://167.99.75.91/register/${encodeURIComponent(profile?._id)}`} 
+                    value={`http://bestmallu.com/register/${encodeURIComponent(profile?._id)}`} 
                     size={100} 
                     viewBox={`0 0 256 256`}/>
                 : <></>
@@ -243,14 +245,24 @@ const ProfilePage: FC = () => {
                 navigate('/administrator/billlist')
               }}>Show Bills</Button>
           </Descriptions.Item> */}
-          <Descriptions.Item label="Tree">
-            <Button 
-              type="primary" 
-              style={{ marginRight: '10px' }}
-              onClick={()=>{
-                navigate('/administrator/userlist/tree')
-              }}>Show Tree</Button>
-          </Descriptions.Item>
+
+{/* 
+          {
+            utils.checkRole(profile) === Constants.ADMINISTRATOR 
+            ?  */}
+            <Descriptions.Item label="Tree">
+                <Button 
+                  type="primary" 
+                  style={{ marginRight: '10px' }}
+                  onClick={()=>{
+                    navigate('/administrator/userlist/tree')
+                  }}>Show Tree</Button>
+              </Descriptions.Item>
+            {/* : <></>
+          } */}
+         
+
+
           <Descriptions.Item label="Purchases">
             <Button 
               type="primary" 

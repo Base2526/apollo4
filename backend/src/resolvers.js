@@ -5,8 +5,6 @@ import cryptojs from "crypto-js";
 import deepdash from "deepdash";
 deepdash(_);
 import * as fs from "fs";
-// import mongoose from 'mongoose';
-// import fetch from "node-fetch";
 import { GraphQLUpload } from 'graphql-upload';
 import moment from "moment";
 import jwt from 'jsonwebtoken';
@@ -19,6 +17,8 @@ import * as Constants from "./constants"
 import * as Model from "./model"
 import * as Utils from "./utils"
 import connection from './mongo'
+
+import { createXMLData } from './utils/xmlGenerator'; 
 
 const mongoose = require('mongoose');
 
@@ -79,22 +79,128 @@ export default {
         throw new AppError(Constants.ERROR, "current user empty")
       }
 
+      let role = Utils.checkRole(current_user)
+      // if( role !== Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied')
+
       /*
       เราต้องเอา _id user เพือหา _id node ก่อน แล้วใช้ _id node วิ่งหาข้อมูล
       */
-      let rootNode = await Model.Node.findOne({'current.ownerId': current_user._id, 'current.isParent': true });
-      if(_.isEmpty(rootNode)){
-        throw new AppError(Constants.ERROR, "current user empty")
-      }
+      // let rootNode = await Model.Node.findOne({'current.ownerId': current_user._id, 'current.isParent': true });
+      // if(_.isEmpty(rootNode)){
+      //   throw new AppError(Constants.ERROR, "current user empty")
+      // }
 
-      console.log("test_fetch_node :", args, _id, rootNode)
-      let treeData = await Utils.fetchTreeData(rootNode._id)
+      // if(role === Constants.ADMINISTRATOR){
 
-      return {
-        status: true,
-        data: treeData,
-        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+        let rootNode = await Model.Node.findOne({'current.ownerId': current_user._id, 'current.isParent': true });
+        if(_.isEmpty(rootNode)){
+          throw new AppError(Constants.ERROR, "current user empty")
+        }
+        let nodeId = rootNode._id
+
+        const limit = false;
+        const level = 1;
+        console.log(`Fetching data for nodeId: ${nodeId}`);
+    
+        const node = await Model.Node.findById(nodeId);
+        console.log(`Node fetched:`, node);
+    
+        if (node) {
+            const trees = await Utils.buildTree(nodeId, level, limit);
+            
+            const owner = await Model.Member.findById(node.current.ownerId);
+            // console.log(`Owner fetched:`, owner);
+    
+            const result = [{
+                title: `parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${ level }, isParent: ${node.current.isParent}`,
+                key: node._id.toString(),
+                node,
+                owner,
+                level,
+                children: trees
+            }];
+    
+            // console.log(`Resulting tree structure:`, JSON.stringify(result, null, 2));
+    
+    
+            // Function to recursively extract key structure 
+            // Get only field key to display
+            // const getKeyStructure = (nodes) => {
+            //     return nodes.map(node => {
+            //         const result = { key: node.key };
+            //         if (node.children) {
+            //             result.children = getKeyStructure(node.children);
+            //         }
+            //         return result;
+            //     });
+            // };
+            // console.log(`Resulting tree structure:`, JSON.stringify(getKeyStructure(result), null, 2));
+        
+            return {
+              status: true,
+              data: result,
+              executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+            }
+        }
+    
+        console.log(`No node found for nodeId: ${nodeId}`);
+        return {
+          status: true,
+          data: [],
+          executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+        }
+        /*
+      }else{
+        const session = await mongoose.startSession();
+        session.startTransaction()
+        try {
+  
+          let nodes =  await Model.Node.find({ 'current.ownerId': current_user._id });
+          // Create an array of promises for each node
+          let promises = nodes.map(async (node) => {
+            // console.log("node.current.updatedAt :", node.current.updatedAt)
+            if (node.current.updatedAt === null) {
+              let node_children = await Utils.fetchTreeData(node._id, role !== Constants.ADMINISTRATOR)
+              let history = await Model.Node.findOne({ _id: node._id })
+              await Model.Node.updateOne({ _id: node._id }, { 'current.node_children' : node_children, 'current.updatedAt': Date.now(), history: Utils.createRevision(history) }, { session });
+              // await session.commitTransaction();
+  
+              return true;
+            }else{
+              return false;
+            }
+          })
+  
+         
+          // Use Promise.all to wait for all promises to resolve
+          let result = await Promise.all(promises);
+          // if(promises){
+          // }
+  
+          console.log("result :", result)
+  
+          nodes =  await Model.Node.find({ 'current.ownerId': current_user._id });
+          return {
+            status: true,
+            data: nodes,
+            executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+          }
+          // Log the results if needed
+          console.log("All nodes processed:", results);
+        }catch(error){
+          await session.abortTransaction();
+          console.log(`init #error ${error}`)
+  
+          throw new AppError(Constants.ERROR, error)
+        }finally {
+          session.endSession();
+  
+          console.log("init # : OK")
+        }  
+         
+    
       }
+         */
     },
     async test_fetch_tree_by_node_id(parent, args, context, info){
       let start = Date.now()
@@ -1890,6 +1996,49 @@ export default {
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
+    async periods(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+        
+     
+      const user_period = await Model.Period.find({
+        start: { $lte: current_user.createdAt }, // Start date is less than or equal to 'dateToFind'
+        end: { $gte: current_user.createdAt },   // End date is greater than or equal to 'dateToFind'
+      });
+
+      if(_.isEmpty(user_period)) throw new AppError(Constants.ERROR, 'user_period error', current_user)
+
+      let periods = await Model.Period.aggregate([
+                                                    {
+                                                      $match: {
+                                                        start: { $gte: user_period[0].start }, // Start date is greater than or equal to 1st September 2024
+                                                        end: { $lte: new Date() }          // End date is less than or equal to the current date
+                                                      }
+                                                    }
+                                                  ]);
+
+      const currentPeriod = await Model.Period.findOne({
+          start: { $lte: new Date() }, // Start date should be less than or equal to now
+          end: { $gte: new Date() }    // End date should be greater than or equal to now
+      });
+
+      // 4. Combine results
+      if (currentPeriod) {
+        periods.push(currentPeriod); // Include the current period in the result
+      }
+
+      console.log("periods :", periods)
+
+      return {
+        status: true,
+        data: periods,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
   },
   Upload: GraphQLUpload,
   Mutation: {
@@ -2428,23 +2577,26 @@ export default {
 
       console.log("register :", args)
       
-      if(!_.isNull( await Utils.getMember({
-                                            "$and": [{
-                                                "current.username": input.username
-                                            }, {
-                                                "current.email": input.email
-                                            }]
-                                          } ) )) throw new AppError(Constants.ERROR, "EXITING USERNAME AND EMAIL", input)
+      // if(!_.isNull( await Utils.getMember({
+      //                                       "$and": [{
+      //                                           "current.username": input.username
+      //                                       }, {
+      //                                           "current.email": input.email
+      //                                       }]
+      //                                     } ) )) throw new AppError(Constants.ERROR, "EXITING USERNAME AND EMAIL", input)
       
-      if(!_.isNull( await Utils.getMember({ "current.username": input.username?.toLowerCase() }))) throw new AppError(Constants.ERROR, "EXITING USERNAME", input)
+      // if(!_.isNull( await Utils.getMember({ "current.username": input.username?.toLowerCase() }))) throw new AppError(Constants.ERROR, "EXITING USERNAME", input)
       if(!_.isNull( await Utils.getMember({ "current.email": input.email }) )) throw new AppError(Constants.ERROR, "EXITING EMAIL", input)
       if(!_.isNull( await Utils.getMember({ "current.idCard": input.idCard }) )) throw new AppError(Constants.ERROR, "EXITING ID CARD", input)
       if(!_.isNull( await Utils.getMember({ "current.tel": input.tel }) )) throw new AppError(Constants.ERROR, "EXITING TEL", input)
       
       let newInput =  {current: { ...input,  
-                                  username: input.username?.toLowerCase(),
-                                  password: cryptojs.AES.encrypt( input.password, process.env.JWT_SECRET).toString(),
+                                  username: input.idCard,
+                                  password: cryptojs.AES.encrypt( input.tel, process.env.JWT_SECRET).toString(),
                                   displayName: _.isEmpty(input.displayName) ? input.username : input.displayName ,
+                                  car_brand: _.isEmpty(input.car_brand) ? "" : input.car_brand,
+                                  car_model: _.isEmpty(input.car_model) ? "" : input.car_model,
+                                  car_date_register: _.isEmpty(input.car_date_register) ? "" : input.car_date_register,
                                   lastAccess: Date.now(), 
                                   isOnline: true}
                       }
@@ -2453,7 +2605,6 @@ export default {
       session.startTransaction();
       try {
         let newMember = await Model.Member.create([newInput], { session });
-
         if (!newMember || newMember.length === 0) {
           throw new AppError("Member creation failed, returned undefined.");
         }
@@ -2469,6 +2620,7 @@ export default {
 
         return {
           status: true,
+          data: newMember,
           executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
         }
       }catch(error){
@@ -5218,6 +5370,120 @@ export default {
         input,
         data: trees,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+    async bills(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+      let { input } = args
+
+      console.log("bills : ", input)
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+      try {
+        /*
+        let bills = await Model.Node.find({'current.ownerId': current_user._id})
+
+        // Use Promise.all to handle the asynchronous `map` calls.
+        const results = await Promise.all(
+          input.periods.map(async (period) => {
+
+            const currentPeriod = await Model.Period.findById(period)
+            if(!currentPeriod) throw new AppError(Constants.ERROR, `Period ${ period } is empty!`)
+
+            // For each period, map over the bills and await `calculateAmount`.
+            const billResults = await Promise.all(
+              bills.map(async (bill) => {
+                const trees = await Utils.calculateAmount(bill._id, currentPeriod);
+                console.log("currentPeriod: ", currentPeriod, ", trees: ", trees);
+                return { ...bill._doc, node_child: trees };
+              })
+            );
+            return { period: currentPeriod, bills: billResults };
+          })
+        );
+        */
+
+        let nodeParent = await Model.Node.findOne({'current.ownerId': current_user._id, 'current.isParent': true });
+        if (_.isEmpty(nodeParent)) {
+            throw new Error("Parent node is empty.");
+        }
+  
+        let nodes = [nodeParent._id];
+        let billNodes = [nodeParent];
+  
+        while (true) {
+            const children = await Model.Node.find({ 'current.ownerId': current_user._id,
+                                                     'current.parentNodeId': { $in: nodes } });
+            if (children.length === 0) break; // Exit loop if no more children are found
+  
+            billNodes = [...billNodes, ...children];
+            nodes = children.map(node => node._id);
+        }
+
+        // 66fc0bffabef1f0072a05dbe
+        const results = await Promise.all(
+          input.periods.map(async (period) => {
+            const currentPeriod = await Model.Period.findById(period)
+            if(!currentPeriod) throw new AppError(Constants.ERROR, `Period ${ period } is empty!`)
+            
+            const billResults = await Promise.all(
+              billNodes.map(async (bill) => {
+                const trees = await Utils.calculateAmount(bill._id, currentPeriod);
+
+                // const getKeyStructure = (nodes) => {
+                //   return nodes.map(node => {
+                //       const result = { key: node };
+                //       if (node.children) {
+                //           result.children = getKeyStructure(node.children);
+                //       }
+                //       return result;
+                //   });
+                // };
+      
+                // console.log(`Resulting tree structure:`, JSON.stringify(trees, null, 2));
+
+                return { ...bill._doc, node_child: trees };
+              })
+            );
+            return { period: currentPeriod, bills: billResults };
+          })
+        )
+        
+        return {
+          status: true,
+          input,
+          data: results,
+          executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+        }
+      } catch (err) {
+        console.log(err)
+        throw new Error(`Error : ${ err }`);
+      }
+    },
+    async bills_xml2js(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+      let { input } = args
+
+      console.log("bills_xml2js : ", input)
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+      try {
+        const xmlData = createXMLData(); // Function that generates XML
+        return {
+          status: true,
+          data: xmlData,
+          executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+        }
+      } catch (err) {
+        throw new Error('Error generating XML');
       }
     },
   },

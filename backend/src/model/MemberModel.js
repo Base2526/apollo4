@@ -46,6 +46,12 @@ const memberSchema = new Schema({
             date: { type : Date, default: Date.now },
         },
         lastAccess : { type : Date, default: Date.now },
+
+
+        // 09/Oct/24 
+        car_brand: { type: String },
+        car_model: { type: String },
+        car_date_register:  { type : Date, default: Date.now },
     },
     history: [historySchema]
 },
