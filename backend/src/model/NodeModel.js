@@ -20,6 +20,28 @@ const amountSchema = new Schema({
     }
 })
 
+/*
+title: `parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
+key: node._id.toString(),
+node,
+owner: await Model.Member.findById(node.current.ownerId),
+level: nextLevel,
+children: children.length ? children : null,
+*/
+// const childrenSchema = new Schema({
+//     title: { type: String},
+//     key: { type: String}/*  { 
+//                 type: Number, 
+//                 required: [true, "Amount value is a required field"],
+//                 min: [0, "Amount value must be at least 0"] 
+//             }*/ ,
+//     lastUpdate: { type: Date },
+//     period: {
+//         startDate: { type: Date, required: [true, "Start date is a required field"] },
+//         endDate: { type: Date, required: [true, "End date is a required field"] }
+//     }
+// })
+
 const nodeSchema = new Schema({
     current: {
         ownerId: { type: Schema.Types.ObjectId, required: [true, "Owner ID is a required field"] },
@@ -41,6 +63,14 @@ const nodeSchema = new Schema({
 
         // 23/sep/24 เก็บ amount ของแต่บะ node
         amount: {type: amountSchema },
+
+        // 8/oct/24
+        node_children: { 
+            type: [Object], // Define an object field
+            required: true,
+            default: [] // Optional default value
+        },
+        updatedAt:  { type: Date, default: null },
     },
     history: [historySchema]
 },

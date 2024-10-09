@@ -538,6 +538,7 @@ export default gql`
     purchases:JSON
 
     periods: JSON
+
   }  
   
   input RoomInput {
@@ -886,6 +887,9 @@ export default gql`
     order(input: JSON): JSON
 
     tree_by_node_id(input: JSON): JSON
+
+    bills(input:JSON): JSON
+    bills_xml2js(input:JSON): JSON
   }
 
   type Subscription {
