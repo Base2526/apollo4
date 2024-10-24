@@ -6,7 +6,7 @@ import { DataNode as RcTreeDataNode } from 'rc-tree/lib/interface';
 import _ from "lodash"
 import moment from "moment";
 
-import { query_test_fetch_tree_by_node_id, mutation_tree_by_node_id } from "@/apollo/gqlQuery";
+import { query_test_fetch_tree_by_node_id } from "@/apollo/gqlQuery";
 import { getHeaders } from "@/utils";
 import handlerError from "@/utils/handlerError";
 

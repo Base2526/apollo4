@@ -4,17 +4,51 @@ import { createClient } from 'graphql-ws';
 import { getMainDefinition } from "@apollo/client/utilities";
 import { createUploadLink } from "apollo-upload-client";
 
-const { mode, REACT_APP_HOST_GRAPHAL }  = process.env
+const { mode, REACT_APP_HOST_GRAPHAL } = process.env;
 
+// HTTP link for queries and mutations
 const httpLink = createUploadLink({
   uri: 'http://' + REACT_APP_HOST_GRAPHAL + "/graphql", // Replace with your Apollo Server URL
 });
 
-const wsLink = new GraphQLWsLink(
-  createClient({
+// Function to create a WebSocket client with reconnection logic
+const createWsLink = () => {
+  const wsClient = createClient({
     url: 'ws://' + REACT_APP_HOST_GRAPHAL + "/graphql", // Your Apollo Server WebSocket endpoint
-  })
-);
+    connectionParams: {
+      // Include any additional parameters needed for authentication
+    },
+    on: {
+      connected: () => console.log('WebSocket connected'),
+      closed: () => {
+        console.log('WebSocket closed, attempting to reconnect...');
+        connectWithRetry();
+      },
+      error: (error) => console.error('WebSocket error', error),
+    },
+  });
+
+  let retries = 0;
+  const maxRetries = 10; // Maximum number of reconnection attempts
+  const retryDelay = 1000; // Delay between reconnection attempts in milliseconds
+
+  const connectWithRetry = () => {
+    if (retries < maxRetries) {
+      setTimeout(() => {
+        console.log(`Attempting to reconnect... (Attempt ${retries + 1}/${maxRetries})`);
+        retries++;
+        createWsLink(); // Create a new client instance to reconnect
+      }, retryDelay);
+    } else {
+      console.error('Max reconnection attempts reached. Please check your connection.');
+    }
+  };
+
+  return new GraphQLWsLink(wsClient);
+};
+
+// Create the WebSocket link
+let wsLink = createWsLink();
 
 // Combine the HTTP link and WebSocket link
 const splitLink = split(
@@ -29,10 +63,11 @@ const splitLink = split(
   httpLink
 );
 
+// Create Apollo Client
 const client = new ApolloClient({
   link: splitLink,
   cache: new InMemoryCache(),
-  connectToDevTools: mode === 'development'
+  connectToDevTools: mode === 'development',
 });
 
 export default client;

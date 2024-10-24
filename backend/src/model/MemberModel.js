@@ -47,11 +47,42 @@ const memberSchema = new Schema({
         },
         lastAccess : { type : Date, default: Date.now },
 
-
         // 09/Oct/24 
+        // ระบุยี่ห้อรถ
         car_brand: { type: String },
+        // เลือกรุ่นรถ
         car_model: { type: String },
-        car_date_register:  { type : Date, default: Date.now },
+        // เลือกปีรุ่น
+        car_year_model: { type: String },
+        // เดือนที่หมดอายุ
+        car_month_expired: { type: String },
+        // เลือกรุ่นย่อย
+        // car_sub_model: { type: String },
+        // เดือนที่ประกันภัยของท่านหมดอายุ
+        // car_date_register:  { type : Date, default: Date.now },
+
+
+        /*
+        car_brand :  "SUZUKI"
+        car_model :  "Swift"
+        car_month_expired : 8
+        car_year_model : 2567
+        email : "test001@test.local"
+        idCard :  "3452353245454"
+        packages : 1
+        parentId : "66c4b084cd538705b46a616b"
+        tel : "4325454345"
+        username : "somkid"
+        */
+    
+        // 23/Oct/24
+        // ตำแหน่ง
+        position: {
+            type: String,
+            enum: ["BM", "BS", "BG", "BD", "BP", "MA", "MB", "MC", "MD", "ME", "MF", "MG", "MH", "MI", "MJ", "MK", "ML", "MM", "MN", "MO", "MP", "MQ", "MR", "MS"],  // Enum values
+            default: 'BM',  // Default value
+            required: true,
+        } 
     },
     history: [historySchema]
 },

@@ -8,11 +8,11 @@ import { useLocale } from '@/locales';
 import { useDispatch } from 'react-redux';
 import { useMutation } from "@apollo/client";
 import { useTranslation } from 'react-i18next';
-import { updateProfile } from '../../stores/user.store';
-import { mutationLogin } from "../../apollo/gqlQuery";
-import { setCookie, getHeaders } from "../../utils";
+import { updateProfile } from '@/stores/user.store';
+import { mutationLogin } from "@/apollo/gqlQuery";
+import { setCookie, getHeaders } from "@/utils";
 
-import handlerError from "../../utils/handlerError"
+import handlerError from "@/utils/handlerError"
 
 const initialValues: LoginParams = {
   username: '',

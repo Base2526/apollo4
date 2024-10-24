@@ -2045,7 +2045,7 @@ async function calculateTree(parentId = null, level = 1, startPeriod, endPeriod)
         const nextLevel = level + 1;
         
         // Check if current level exceeds maxLevel
-        if (nextLevel >= 5) {
+        if (nextLevel >= 6) {
             // Do not build children if the max level is reached
             return {
                 title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
