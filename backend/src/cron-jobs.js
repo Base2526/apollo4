@@ -1,10 +1,6 @@
 const cron = require('node-cron');
-// import { Supplier, Transition} from './model'
+import product from './model/ProductModel';
 import pubsub from './pubsub'
-// import { checkBalance, checkBalanceBook } from './utils'
-
-// import * as Constants from "./constants"
-
 import * as Utils from "./utils"
 
 const _ = require('lodash');
@@ -51,138 +47,71 @@ const deleteOldBackups = () => {
 };
 
 // Function to perform the backup
-const backupMongoDB = () => {
-  const backupDir = path.join(__dirname, 'backups');
+// const backupMongoDB = () => {
+//   const backupDir = path.join(__dirname, 'backups');
   
-  const date = new Date().toISOString().replace(/T/, '_').replace(/:/g, '-').replace(/\..+/, '');
-  const backupPath = path.join(backupDir, `backup_${date}`);
+//   const date = new Date().toISOString().replace(/T/, '_').replace(/:/g, '-').replace(/\..+/, '');
+//   const backupPath = path.join(backupDir, `backup_${date}`);
 
-  console.log("@2 backupMongoDB :", backupPath)
+//   console.log("@2 backupMongoDB :", backupPath)
 
-  const command = `docker exec a4_mongo mongodump --uri="${process.env.MONGO_URI}" --out="${backupPath}"`;
+//   const command = `docker exec a4_mongo mongodump --uri="${process.env.MONGO_URI}" --out="${backupPath}"`;
 
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error during backup: ${error.message}`);
-      return;
-    }
-    if (stderr) {
-      console.error(`Stderr: ${stderr}`);
-      return;
-    }
-    console.log(`Backup successful: ${backupPath}`);
-  });
+//   exec(command, (error, stdout, stderr) => {
+//     if (error) {
+//       console.error(`Error during backup: ${error.message}`);
+//       return;
+//     }
+//     if (stderr) {
+//       console.error(`Stderr: ${stderr}`);
+//       return;
+//     }
+//     console.log(`Backup successful: ${backupPath}`);
+//   });
   
-  // Delete old backups
-  deleteOldBackups();
-}
+//   // Delete old backups
+//   deleteOldBackups();
+// }
 
-// At minute 0 past every 6th hour.
-cron.schedule('0 */6 * * *', backupMongoDB, {
-// cron.schedule('*/5 * * * *', backupMongoDB, {
-  scheduled: true,
-  timezone: 'Asia/Bangkok' // Adjust timezone as needed
-});
-
-// Schedule the cron job
-cron.schedule('0 1 * * *', async() => {
-  console.log('Running a task every At 01:00 AM');
-  await Utils.calTree(); // Replace `xx` with your specific function
-});
-
-// cron.schedule('*/5 * * * *', async() => {
-//   console.log('[Start] Run task every 5 minute :', new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
-//   try{
-//     // let users = await User.find({})
-//     // //////////////// clear book ////////////////
-//     // let cleans = []
-//     // let suppliers = await Supplier.find({buys: {$elemMatch:{selected: 0}}});
-//     // await Promise.all(_.map(suppliers, async(supplier)=>{
-//     //                     // _.map(supplier.buys, (buy)=>{
-//     //                     //   let now       = moment(new Date());     // todays date
-//     //                     //   let end       = moment(buy.createdAt);  // another date
-//     //                     //   let duration  = moment.duration(now.diff(end));
-//     //                     //   console.log( "duration :", buy, duration.asMinutes() )
-//     //                     //   if( duration.asMinutes() <= 1 || n.selected == 1 ) {
-//     //                     //   }
-//     //                     // })
-
-//     //                     let Ids = []
-//     //                     let buys = supplier.buys
-//     //                     let tranIds = _.groupBy(buys, "transitionId")
-//     //                     _.map(tranIds, async(tranId) => {
-//     //                       let updateTransition   = true
-//     //                       let transitionId       = ""
-//     //                       _.map(tranId, (v, i) => {
-//     //                         transitionId = v.transitionId
-
-//     //                         let now = moment(new Date());
-//     //                         let end = moment(v.createdAt);
-//     //                         let duration = moment.duration(now.diff(end));
-
-//     //                         if(duration.asHours() < 2){
-//     //                           updateTransition = false
-//     //                         }
-//     //                       });
-
-//     //                       if( updateTransition && !_.isEmpty(transitionId) ){
-//     //                         Ids = [...Ids, transitionId]
-//     //                         await Transition.updateOne({ _id: transitionId, status: Constants.WAIT }, { status: Constants.REJECT });
-//     //                       }
-//     //                     });
-
-//     //                     let newBuys = _.filter(buys, (v) => !_.includes(Ids, v.transitionId))
-//     //                     console.log("Run task every minute #3 :", buys, newBuys, Ids)
-//     //                     if(!_.isEqual(newBuys, buys)){
-//     //                       await Supplier.updateOne({ _id: supplier._id }, { buys: newBuys });
-//     //                     }
-
-//     //                     // let { buys } = supplier
-//     //                     // let users = [];
-//     //                     // let newBuys = _.transform(
-//     //                     //   buys,
-//     //                     //   (result, n) => {
-//     //                     //     var now = moment(new Date());  // todays date
-//     //                     //     var end = moment(n.createdAt); // another date
-//     //                     //     var duration = moment.duration(now.diff(end));
-//     //                     //     // console.log("duration :", duration.asMinutes(), duration.asHours())
-//     //                     //     if( duration.asMinutes() <= 1 || n.selected == 1) {
-//     //                     //       result.push(n);
-//     //                     //     }else{
-//     //                     //       users.push(n.userId)
-//     //                     //     }
-//     //                     //   },
-//     //                     //   []
-//     //                     // );
-//     //                     // console.log("cron.schedule :", newBuys, buys)
-//     //                     // if(!_.isEqual(newBuys, buys)){
-//     //                     // let tran = await Transition.updateOne({ refId: supplier?._id, userId: current_user?._id, status: Constants.WAIT });
-//     //                     //   try{
-//     //                     //     await Supplier.updateOne({ _id: supplier?._id }, { ...supplier._doc, buys: newBuys });
-//     //                     //     let newSupplier = await Supplier.findById(supplier?._id)
-//     //                     //     pubsub.publish("SUPPLIER_BY_ID", {
-//     //                     //       supplierById: { mutation: "AUTO_CLEAR_BOOK", data: newSupplier },
-//     //                     //     });
-//     //                     //     pubsub.publish("SUPPLIERS", {
-//     //                     //       suppliers: { mutation: "AUTO_CLEAR_BOOK", data: newSupplier },
-//     //                     //     });
-//     //                     //     console.log("ping :AUTO_CLEAR_BOOK AUTO_CLEAR_BOOK ", newSupplier)
-//     //                     //     // if(!_.isEmpty(users)){
-//     //                     //     //   _.map(_.uniqWith(users, _.isEqual), async(userId)=>{
-//     //                     //     //     pubsub.publish("ME", {
-//     //                     //     //       me: { mutation: "BOOK", data: {userId, data: { /* balance: (await checkBalance(userId)).balance*/ ...await checkBalance(userId) , balanceBook: await checkBalanceBook(userId) } } },
-//     //                     //     //     });
-//     //                     //     //   })
-//     //                     //     // }
-//     //                     //   }catch(error){}
-//     //                     // }
-//     // }))
-//     // //////////////// clear book ////////////////
-
-//     console.log('[End] Run task every 5 minute :', new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" }));
-//   } catch(err) {
-//     console.log("cron error :", err)
-//   }
+// // At minute 0 past every 6th hour.
+// cron.schedule('0 */6 * * *', backupMongoDB, {
+// // cron.schedule('*/5 * * * *', backupMongoDB, {
+//   scheduled: true,
+//   timezone: 'Asia/Bangkok' // Adjust timezone as needed
 // });
 
-// 0 2 * * * /path/to/your/mongo_backup.sh
+// // Schedule the cron job
+// cron.schedule('0 1 * * *', async() => {
+//   console.log('Running a task every At 01:00 AM');
+//   await Utils.calTree(); // Replace `xx` with your specific function
+// });
+
+// Function to back up MongoDB collections
+const backupMongoDB = () => {
+  const dbName = 'insurance'; // Replace with your database name
+  const collections = ['member', 'node', 'product']; // List your collections to back up
+  const mongoUri = process.env.MONGO_URI;//'mongodb://username:password@localhost:27017'; // Replace with your MongoDB URI
+
+  collections.forEach(collection => {
+    const outputFilePath = `./backups/${collection}-${new Date().toISOString()}.json`; // Output file path
+    const command = `mongoexport --uri="${mongoUri}" --db=${dbName} --collection=${collection} --out=${outputFilePath} --jsonArray`;
+
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error exporting collection ${collection}: ${error.message}`);
+        return;
+      }
+      if (stderr) {
+        console.error(`stderr: ${stderr}`);
+        return;
+      }
+      console.log(`Backup of collection ${collection} completed: ${outputFilePath}`);
+    });
+  });
+};
+
+// Schedule the backup every 6 hours
+cron.schedule('5 * * * *', backupMongoDB, {
+  scheduled: true,
+  timezone: 'Asia/Bangkok', // Adjust timezone as needed
+});

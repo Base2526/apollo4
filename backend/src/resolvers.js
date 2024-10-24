@@ -19,7 +19,6 @@ import * as Utils from "./utils"
 import connection from './mongo'
 
 import { createXMLData } from './utils/xmlGenerator'; 
-
 const mongoose = require('mongoose');
 
 export default {
@@ -2596,7 +2595,8 @@ export default {
                                   displayName: _.isEmpty(input.displayName) ? input.username : input.displayName ,
                                   car_brand: _.isEmpty(input.car_brand) ? "" : input.car_brand,
                                   car_model: _.isEmpty(input.car_model) ? "" : input.car_model,
-                                  car_date_register: _.isEmpty(input.car_date_register) ? "" : input.car_date_register,
+                                  car_month_expired: _.isEmpty(input.car_month_expired) ? "" : input.car_month_expired,
+                                  car_year_model: _.isEmpty(input.car_year_model) ? "" : input.car_year_model,
                                   lastAccess: Date.now(), 
                                   isOnline: true}
                       }
@@ -2615,12 +2615,15 @@ export default {
 
         await Utils.createChildNodes(parentId, current_user, packages, session);
 
+        let sessionId = await Utils.getSession(current_user?._id, input);
+
         // Commit the transaction
         await session.commitTransaction();
 
         return {
           status: true,
-          data: newMember,
+          data: current_user,
+          sessionId,
           executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
         }
       }catch(error){

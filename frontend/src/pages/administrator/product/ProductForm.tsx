@@ -58,6 +58,7 @@ const ProductForm: React.FC = (props) => {
         fetchPolicy: 'cache-first',
         nextFetchPolicy: 'network-only',
         notifyOnNetworkStatusChange: false,
+        skip: _.isEmpty(_id)
     });
 
   if (errorProduct) {
