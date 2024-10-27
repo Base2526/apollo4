@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: insurance_frontend
     env_file:
-      - ./env/.env.ui.ts
+      - .env
     environment:
       - NODE_ENV=development
     ports:

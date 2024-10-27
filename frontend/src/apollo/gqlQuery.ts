@@ -130,9 +130,10 @@ export const mutation_order   = gql`mutation order($input: JSON) { order(input: 
 
 export const mutation_tree_by_node_id   = gql`mutation tree_by_node_id($input: JSON) { tree_by_node_id(input: $input) }`;
 
-
 export const guery_purchases  = gql`query purchases { purchases }`;
 export const query_periods    = gql`query periods { periods }`;
 
 export const mutation_bills   = gql`mutation bills($input: JSON) { bills(input: $input) }`;
 export const mutation_bills_xml2js = gql`mutation bills_xml2js($input: JSON) { bills_xml2js(input: $input) }`;
+
+export const mutation_address_delivery = gql`mutation address_delivery($input: JSON) { address_delivery(input: $input) }`;

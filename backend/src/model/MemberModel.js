@@ -9,6 +9,8 @@ const historySchema = new Schema({
     updatedAt: Date
 });
 
+
+
 const memberSchema = new Schema({
     current: {
         // parentId: { type: Schema.Types.ObjectId, required:[true, "Parent ID Request is a required field"]  },
@@ -82,7 +84,12 @@ const memberSchema = new Schema({
             enum: ["BM", "BS", "BG", "BD", "BP", "MA", "MB", "MC", "MD", "ME", "MF", "MG", "MH", "MI", "MJ", "MK", "ML", "MM", "MN", "MO", "MP", "MQ", "MR", "MS"],  // Enum values
             default: 'BM',  // Default value
             required: true,
-        } 
+        },
+        address_delivery:{
+            name: { type: String },
+            phone: { type: String },
+            address: { type: String },
+        }
     },
     history: [historySchema]
 },

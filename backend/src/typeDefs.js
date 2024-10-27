@@ -890,6 +890,8 @@ export default gql`
 
     bills(input:JSON): JSON
     bills_xml2js(input:JSON): JSON
+
+    address_delivery(input:JSON): JSON
   }
 
   type Subscription {

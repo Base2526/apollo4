@@ -68,9 +68,9 @@ export const getSession = async(userId, input) => {
     await Model.Session.deleteOne({userId})
     let session = await Model.Session.create({  ...input, 
                                                 userId, 
-                                                token: jwt.sign(userId.toString(), process.env.JWT_SECRET)});
+                                                token: jwt.sign(userId.toString(), process.env.MONGO_PASSWORD_SECRET)});
   
-    return cryptojs.AES.encrypt(session?._id.toString(), process.env.JWT_SECRET).toString() 
+    return cryptojs.AES.encrypt(session?._id.toString(), process.env.MONGO_PASSWORD_SECRET).toString() 
 }
 
 export const checkAuth = async(req) => {
@@ -80,7 +80,7 @@ export const checkAuth = async(req) => {
         const parts   = auth.split(" ");
         const bearer  = parts[0];
         try{
-            const sessionId   = cryptojs.AES.decrypt(parts[1], process.env.JWT_SECRET).toString(cryptojs.enc.Utf8);
+            const sessionId   = cryptojs.AES.decrypt(parts[1], process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8);
             if (bearer === "Bearer") {
                 let session = await Model.Session.findOne({_id: sessionId});
                 if(!_.isEmpty(session)){
@@ -91,7 +91,7 @@ export const checkAuth = async(req) => {
                     //  0 : anonymums
                     //  1 : OK
                     if(expiredDays >= 0){
-                        let userId  = jwt.verify(session.token, process.env.JWT_SECRET);
+                        let userId  = jwt.verify(session.token, process.env.MONGO_PASSWORD_SECRET);
                         let current_user = await getMember({_id: userId}) 
 
                         if(!_.isNull(current_user)){
@@ -125,9 +125,9 @@ export const userAgent = (req) => {
 }
 
 export const checkAuthorizationWithSessionId = async(sessionId) => {
-    // let decode = jwt.verify(token, process.env.JWT_SECRET);
+    // let decode = jwt.verify(token, process.env.MONGO_PASSWORD_SECRET);
     // console.log("sessionId > ", sessionId)
-    var sId   = cryptojs.AES.decrypt(sessionId, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8);
+    var sId   = cryptojs.AES.decrypt(sessionId, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8);
        
     let session = await Model.Session.findById(sId)   
 
@@ -141,7 +141,7 @@ export const checkAuthorizationWithSessionId = async(sessionId) => {
         //  0 : anonymums
         //  1 : OK
         if(expiredDays >= 0){
-            let userId  = jwt.verify(session.token, process.env.JWT_SECRET);
+            let userId  = jwt.verify(session.token, process.env.MONGO_PASSWORD_SECRET);
 
 
             // console.log("checkAuthorization : ", session.token, userId )
@@ -832,7 +832,7 @@ export const logUserAccess = async (mode, ctx) =>{
         case 0: {
             let request = {...extra.request.headers, ip: connectionParams?.ip, }
             if(connectionParams?.authToken){
-                var sessionId   = cryptojs.AES.decrypt(connectionParams?.authToken, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8);
+                var sessionId   = cryptojs.AES.decrypt(connectionParams?.authToken, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8);
                 let session     = await Model.Session.findOne({_id: sessionId});
                 // console.log("checkAuth #  session @1 : ", session)
                 if(!_.isEmpty(session)){
@@ -843,7 +843,7 @@ export const logUserAccess = async (mode, ctx) =>{
                     //  0 : anonymums
                     //  1 : OK
                     if(expiredDays >= 0){
-                        let userId  = jwt.verify(session.token, process.env.JWT_SECRET);
+                        let userId  = jwt.verify(session.token, process.env.MONGO_PASSWORD_SECRET);
                         let current_user = await getMember({_id: userId}) 
 
                         let userAccess = await Model.LogUserAccess.findOne({"current.userId": current_user?._id })
@@ -862,7 +862,7 @@ export const logUserAccess = async (mode, ctx) =>{
 
         case 1: {
             if(connectionParams?.authToken){
-                var sessionId   = cryptojs.AES.decrypt(connectionParams?.authToken, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8);
+                var sessionId   = cryptojs.AES.decrypt(connectionParams?.authToken, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8);
                 let session     = await Model.Session.findOne({_id: sessionId});
                 // console.log("checkAuth #  session @1 : ", session)
                 if(!_.isEmpty(session)){
@@ -873,7 +873,7 @@ export const logUserAccess = async (mode, ctx) =>{
                     //  0 : anonymums
                     //  1 : OK
                     if(expiredDays >= 0){
-                        let userId  = jwt.verify(session.token, process.env.JWT_SECRET);
+                        let userId  = jwt.verify(session.token, process.env.MONGO_PASSWORD_SECRET);
                         // let current_user = await Utils.getMember({_id: userId}) //await Model.User.findOne({_id: userId});
         
                         let userAccess = await Model.LogUserAccess.findOne({"current.websocketKey": extra?.request?.headers['sec-websocket-key'] })
@@ -1900,7 +1900,7 @@ export const ___calculateTree = async () => {
                 status = 1;
             }
             let newTree = {
-                userId: mongoose.Types.ObjectId(process.env.ID_USER_ADMIN),
+                userId: mongoose.Types.ObjectId(process.env.USER_ADMIN_ID),
                 path: outputFile,
                 fileName: path.basename(outputFile),
                 status

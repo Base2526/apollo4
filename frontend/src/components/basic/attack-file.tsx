@@ -44,7 +44,7 @@ const AttackFileField: FC<AttackFileFieldProps> = ({
   };
 
   return (
-    <Space>
+    <Space style={{}}>
       <Text>{label}</Text>
       <label htmlFor="contained-button-file">
         <input
@@ -58,7 +58,9 @@ const AttackFileField: FC<AttackFileFieldProps> = ({
         />
         <Button
           icon={<PlusOutlined />}
-          shape="circle"
+          shape="default"
+          size="large"
+          style={{ }}
           onClick={handleClick}
         />
       </label>

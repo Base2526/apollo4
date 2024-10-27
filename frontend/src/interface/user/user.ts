@@ -39,6 +39,7 @@ interface Current {
   roles: number[];  // AUTHENTICATED, ADMINISTRATOR enum values would be numbers
   isActive: 0 | 1;
   avatar?: Avatar;
+  position: string;
   lockAccount: LockAccount;
   lastAccess: Date;
 }
@@ -63,12 +64,28 @@ export interface ProductItem {
   current: {
     ownerId: string;
     name: string;
-    detail: string;
-    plan: number[];
     price: string;
-    packages: number[];
-    images: ProductImageType[];
+    price_sell: string;
+    detail: string;
     quantity: number;
+    price_front: number;
+    product_type: number[];
+    package_front: number[];
+    package_back: number[];
+
+    plan: number[];
+    packages: number[];
+
+
+    price_discount_bm: number;
+    price_discount_bs: number;
+    price_discount_from_children: number;
+    price_discount_from_office: number;
+    all_sale: number;
+    price_delivery: number;
+
+    images: ProductImageType[];
+    
     quantities?: number;
   }
   history: [];

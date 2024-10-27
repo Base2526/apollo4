@@ -13,12 +13,16 @@ import { mutation_order } from '@/apollo/gqlQuery';
 import { getHeaders } from '@/utils';
 import handlerError from '@/utils/handlerError';
 
+import AddressModalForm from "@/pages/cart/AddressModalForm"
+
 const { REACT_APP_HOST_GRAPHAL } = process.env;
 const Cart: React.FC = (props) => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
   const { carts } = useSelector((state: DefaultRootState) => state.user);
+
+  const [isModalVisible, setIsModalVisible]  = useState(false)
 
   console.log("Cart :", carts)
   const [loading, setLoading] = useState(false);
@@ -72,26 +76,34 @@ const Cart: React.FC = (props) => {
         dataSource={carts}
         header={
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px' }}>
-            <div style={{ fontSize: 20 }}>{`List product (${carts.length})`}</div>
+            <div style={{ fontSize: 20 }}>{`รายการสินค้า (${carts.length})`}</div>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <div style={{ marginRight: 8, fontSize:20 }}>
-                Total: ${_.sumBy(carts, (item) => item.current.quantities !== undefined ? parseFloat(item.current.price) * item.current.quantities  : parseFloat(item.current.price) )}
+                {`ยอดทั้งหมด: ${_.sumBy(carts, (item) => item.current.quantities !== undefined ? parseFloat(item.current.price) * item.current.quantities  : parseFloat(item.current.price) )} บาท`}
               </div>
+              <Button type="default" onClick={()=>{
+                setIsModalVisible(true)
+              }} >
+                {`ที่อยู่จัดส่ง`}
+              </Button>
               <Button type="primary" onClick={onCheckout} loading={loading}>
-                {`Checkout (${carts.length})`}
+                {`ยืนยันการสั่งซื้อ (${carts.length})`}
               </Button>
             </div>
           </div>
         }
-        renderItem={(item: ProductItem) => {
+        renderItem={(item: ProductItem, index: number) => {
           // let items = item.current.images
+
+          // console.log("index :", index)
 
           const items = _.map(item.current.images, v=> `http://${REACT_APP_HOST_GRAPHAL}/${v.url}`);
           return  <List.Item
+                    key={index}
                     style={{ padding: '10px' }}
                     actions={[
                       <Button type="link" icon={<EyeOutlined />} onClick={() => onView(item._id)}>
-                        View
+                        ดู
                       </Button>,
                       <Popconfirm
                         title="Are you sure to delete this product?"
@@ -99,7 +111,7 @@ const Cart: React.FC = (props) => {
                         okText="Yes"
                         cancelText="No">
                         <Button type="link" danger icon={<DeleteOutlined />}>
-                          Delete
+                          ลบ
                         </Button>
                       </Popconfirm>,
                     ]}>
@@ -116,10 +128,12 @@ const Cart: React.FC = (props) => {
                       title={item.current.name}
                       description={
                         <div>
-                          <div>{`Price: $${ item.current.quantities !== undefined ? parseInt(item.current.price) * item.current.quantities : parseInt(item.current.price)  } - ${item.current.detail}`}</div>
-                          <div>Max quantity: { item.current.quantity }</div>
+                          <div>{`รายละเอียด: ${item.current.detail}`}</div>
+                          <div>{`ราคาต่อหน่อย: ${ item.current.quantities !== undefined ? parseInt(item.current.price) * item.current.quantities : parseInt(item.current.price)  } บาท`}</div>
+                          <div>{`จำนวนสินค้าทั้งหมด: ${ item.current.quantity } ชิ้น`}</div>
+                          <div>{`ค่าจัดส่ง: ${ item.current.price_delivery } บาท`}</div>
                           <div style={{ marginTop: 8 }}>
-                            <span>Quantity: </span>
+                            <span>จำนวนสินค้าทีสั่งซื้อ: </span>
                             <InputNumber
                               min={1}
                               max={item.current.quantity}
@@ -133,6 +147,10 @@ const Cart: React.FC = (props) => {
                   </List.Item>
         }}
       />
+
+      { isModalVisible && <AddressModalForm 
+                            isModalVisible={isModalVisible}
+                            setIsModalVisible={()=>{ setIsModalVisible(false) }}/> }
     </div>
   );
 };

@@ -35,14 +35,33 @@ const HomeCard: React.FC<ProductCardProps> = ({
     <Card
       hoverable
       cover={ 
-        <Image.PreviewGroup items={items}>
-          <Image
-            alt={product.current.name}
-            src={items[0]}
-            width="100%"
-            style={{ objectFit: 'cover', height: '200px', borderTopRightRadius: 5, borderTopLeftRadius: 5 }} // Add some styling for image display
-          />
-        </Image.PreviewGroup>
+        <div style={{ position: 'relative', width: '100%', height: '200px' }}>
+          <Image.PreviewGroup items={items}>
+            <Image
+              alt={product.current.name}
+              src={items[0]}
+              width="100%"
+              style={{
+                objectFit: 'cover',
+                height: '200px',
+                borderTopRightRadius: 5,
+                borderTopLeftRadius: 5,
+              }}
+            />
+          </Image.PreviewGroup>
+          
+          {/* Add the text count positioned at the bottom-right */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '10px', // Adjust the positioning as needed
+              right: '10px',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+              color: '#fff',
+              padding: '5px 10px',
+              borderRadius: '5px',
+            }}>{ items.length }</div>
+        </div>
       }>
       <div onClick={onClick} style={{ cursor: 'pointer' }}>
         <Card.Meta 
@@ -53,14 +72,16 @@ const HomeCard: React.FC<ProductCardProps> = ({
               overflow: 'hidden',
               textOverflow: 'ellipsis'
             }}>
-              {product.current.detail}
+              รายละเอียด: {product.current.detail}
             </div>
           }   
         />
       </div>
       <div style={{ marginTop: '16px' }}>
-        <p onClick={onClick} style={{ fontSize: '12px', color:"rgba(0, 0, 0, 0.45)" }}>Max quantity: {product.current.quantity}</p>
-        <p style={{ fontSize: '18px', fontWeight: 'bold' }}>${product.current.price}</p>
+        <p onClick={onClick} style={{ fontSize: '12px', color:"rgba(0, 0, 0, 0.45)" }}>จำนวนสินค้าทั้งหมด: {product.current.quantity}</p>
+        <p onClick={onClick} style={{ fontSize: '12px', color:"rgba(0, 0, 0, 0.45)" }}>ราคา (บาท): {product.current.price}</p>
+        <p onClick={onClick} style={{ fontSize: '12px', color:"rgba(0, 0, 0, 0.45)" }}>ราคาขาย (บาท): {product.current.price_sell}</p>
+        <p onClick={onClick} style={{ fontSize: '12px', color:"rgba(0, 0, 0, 0.45)" }}>ค่าจัดส่ง (บาท): {product.current.price_delivery}</p>
         <div style={{ 
           display: 'flex', 
           justifyContent: 'flex-end', // Align buttons to the end of the flex container

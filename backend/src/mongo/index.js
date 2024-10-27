@@ -4,7 +4,10 @@ let logger = require("../utils/logger");
 
 import * as Utils from "../utils"
 
+import { init_admin,  init_node} from "./init_data"
+
 const modelExists =()=>{
+
   Model.Bank.find({}, async(err, result) => {
     if (result.length > 0) {
       // console.log('Found Model.Bank');
@@ -56,14 +59,14 @@ const modelExists =()=>{
   Model.User.find({}, async(err, result)=> {
     if (result.length > 0) {
     } else {
-      let newUser = new Model.User({
-                              username: "username",
-                              password: "password",
-                              email: "email@banlist.info",
-                              displayName: "displayName",
-                            });
-      await newUser.save();
-      await Model.User.deleteMany({})
+      // let newUser = new Model.User({
+      //                         username: "username",
+      //                         password: "password",
+      //                         email: "email@banlist.info",
+      //                         displayName: "displayName",
+      //                       });
+      // await newUser.save();
+      // await Model.User.deleteMany({})
     }
   });
 
@@ -303,7 +306,7 @@ const modelExists =()=>{
   Model.Member.find({}, async(err, result)=> {
     if (result.length > 0) {
     } else {  
-      let newMember = new Model.Member(JSON.parse(process.env.INIT_USER_ADMIN));
+      let newMember = new Model.Member(init_admin);
       await newMember.save();
     }
   });
@@ -398,11 +401,8 @@ const modelExists =()=>{
   Model.Node.find({}, async(err, result)=> {
     if (result.length > 0) {
     } else {
-      // let newNode = new Model.Node({ current: JSON.parse(process.env.INIT_NODE) });
-
-      let newNode = new Model.Node({ current: { "ownerId": mongoose.Types.ObjectId(process.env.ID_USER_ADMIN), "level": 0, "number": 1, "status": 0, "isParent": true } });
+      let newNode = new Model.Node(init_node);
       await newNode.save();
-      // await Model.Node.deleteMany({})
     }
   });  
 
@@ -426,9 +426,21 @@ const modelExists =()=>{
       let newProduct = new Model.Product({     
                                             current : { 
                                               ownerId: new mongoose.Types.ObjectId(), 
-                                              name: new mongoose.Types.ObjectId(), 
-                                              plan: [1], 
-                                              packages: [1]
+                                              name: "Sample Product",
+                                              price: 100,
+                                              price_sell: 120,
+                                              detail: "This is a test product",
+                                              images: [],
+                                              quantity: 50,
+                                              price_front: 90,
+                                              package_front: [1, 2],
+                                              package_back: [3],
+                                              product_type: [1],
+                                              price_discount_bm: 5,
+                                              price_discount_bs: 10,
+                                              price_discount_from_children: 3,
+                                              price_discount_from_office: 7,
+                                              all_sale: 1000
                                             }
                                           });
       await newProduct.save();

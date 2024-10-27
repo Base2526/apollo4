@@ -1,5 +1,5 @@
 import React, { FC, useState, useRef, useEffect } from 'react';
-import { Card, Descriptions, Typography, Button, Input, message, UploadProps, Image as ImagesAntd, Space, Avatar, Spin } from 'antd';
+import { Card, Descriptions, Typography, Button, Input, message, Tag, Image as ImagesAntd, Space, Avatar, Spin } from 'antd';
 import { UploadOutlined, LoadingOutlined, PlusOutlined, CopyOutlined, DownloadOutlined, EditOutlined, UserOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { useMutation } from "@apollo/client";
@@ -28,6 +28,8 @@ const ProfilePage: FC = () => {
   const [loadingUpdateProfile, setLoadingUpdateProfile] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
+
+  console.log("ProfilePage :", profile)
 
   const [onUpdateProfile] = useMutation(mutationProfile, {
     context: { headers: getHeaders(location) },
@@ -205,6 +207,7 @@ const ProfilePage: FC = () => {
         </div>
         <Descriptions title="User Information" bordered column={1} style={{ marginTop: '20px' }}>
           <Descriptions.Item label="Phone"><Paragraph className='ant-typography-tel' copyable>{profile?.current?.tel}</Paragraph></Descriptions.Item>
+          <Descriptions.Item label="Position"><Tag color="#2db7f5">{profile?.current?.position}</Tag></Descriptions.Item>
           <Descriptions.Item label="Address">{ profile?.current?.address !== undefined ? <Paragraph className='ant-typography-tel' copyable>{profile?.current?.address}</Paragraph> : <></>  }</Descriptions.Item>
           <Descriptions.Item label="QR URL">
             <Input.Group compact>

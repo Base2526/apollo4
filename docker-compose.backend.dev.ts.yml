@@ -11,6 +11,7 @@ services:
       - "49824:27017"
     volumes:
       - ./mongo/mongo1-data:/data/db
+      - ./mongo/backups:/app/backups
     networks:
       - insurance-network
 
@@ -44,7 +45,8 @@ services:
   # Setup Mongo express container
   ################################
   mongo-express:
-    image: mongo-express:1.0.0
+    image: mongo-express:1.0.2-20-alpine3.19
+    container_name: ${PREFIX}_express 
     environment:
       ME_CONFIG_MONGODB_URL: mongodb://mongo1,mongo2,mongo3:27017/?replicaSet=rs0
       ME_CONFIG_MONGODB_SERVER: mongo1
@@ -69,11 +71,11 @@ services:
     build: 
       context: ./backend
       dockerfile: Dockerfile.dev   
-    container_name: a4_backend          
+    container_name: ${PREFIX}_backend          
     ports:
       - "1984:4000"
     env_file:
-      - ./env/.env.ui.ts
+      - .env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock  # set can run docker inside ex. run docker backup db(a4_mongo)
       - ./backend/src:/app/src        

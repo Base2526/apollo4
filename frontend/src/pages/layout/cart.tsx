@@ -4,6 +4,7 @@ import { Avatar, Badge, List, Popover, Spin, Tabs, Tag, Tooltip, Button, message
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
+import _ from "lodash"
 
 import { getNoticeList } from '@/api/layout.api';
 import { ReactComponent as NoticeSvg } from '@/assets/header/notice.svg';
@@ -71,73 +72,32 @@ const CartComponent: FC = () => {
                 </List.Item>
               )}
             />
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px' }}>
-              <Button type="primary" danger ghost onClick={() => {
-                dispatch(clearAllCart());
-                message.success('Clear all success!');
-                setVisible(false)
-              }}>
-                Clear all
-              </Button>
-              <Button type="primary" onClick={() => { 
-                navigate("/cart"); 
-                setVisible(false); 
-              }}>
-                See in cart
-              </Button>
-            </div>
+            {
+              carts.length === 0 
+              ? <></>
+              : <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px' }}>
+                  <Button 
+                    type="primary" 
+                    danger 
+                    ghost 
+                    disabled={_.isEmpty(carts) ? true : false}
+                    onClick={() => {
+                      dispatch(clearAllCart());
+                      message.success('Clear all success!');
+                      setVisible(false)
+                    }}>
+                    Clear all
+                  </Button>
+                  <Button type="primary" onClick={() => { 
+                    navigate("/cart"); 
+                    setVisible(false); 
+                  }}>
+                    See in cart
+                  </Button>
+                </div>
+            }
+            
           </TabPane>
-
-          {/* 
-          <TabPane
-            tab={`${formatMessage({
-              id: 'app.notice.news',
-            })}(${noticeListFilter('message').length})`}
-            key="2"
-          >
-            <List
-              dataSource={noticeListFilter('message')}
-              renderItem={item => (
-                <List.Item>
-                  <List.Item.Meta
-                    avatar={<Avatar src={item.avatar} />}
-                    title={<a href={item.title}>{item.title}</a>}
-                    description={
-                      <div className="notice-description">
-                        <div className="notice-description-content">{item.description}</div>
-                        <div className="notice-description-datetime">{item.datetime}</div>
-                      </div>
-                    }
-                  />
-                </List.Item>
-              )}
-            />
-          </TabPane>
-          <TabPane
-            tab={`${formatMessage({
-              id: 'app.notice.tasks',
-            })}(${noticeListFilter('event').length})`}
-            key="3"
-          >
-            <List
-              dataSource={noticeListFilter('event')}
-              renderItem={item => (
-                <List.Item>
-                  <List.Item.Meta
-                    title={
-                      <div className="notice-title">
-                        <div className="notice-title-content">{item.title}</div>
-                        <Tag color={EventStatus[item.status]}>{item.extra}</Tag>
-                      </div>
-                    }
-                    description={item.description}
-                  />
-                </List.Item>
-              )}
-            />
-          </TabPane>
-           */}
-
         </Tabs>
       </Spin>
     </div>
@@ -151,18 +111,17 @@ const CartComponent: FC = () => {
       trigger={['click']}
       open={visible}
       onOpenChange={v => setVisible(v)}
-      overlayStyle={{
-        width: 336,
-      }}
-    >
+      overlayStyle={{ width: 336 }} >
       <Tooltip
         title={formatMessage({
           id: 'gloabal.tips.theme.cartTooltip',
         })}
       >
         <Badge count={carts?.length} overflowCount={999}>
-          <span className="notice" id="notice-center">
-          <ShoppingCartOutlined />
+          <span 
+            className="notice" 
+            id="notice-center">
+            <ShoppingCartOutlined disabled={carts.length === 0} style={{ opacity: carts.length === 0 ? 0.5 : 1 }} />
           </span>
         </Badge>
       </Tooltip>

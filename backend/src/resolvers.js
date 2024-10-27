@@ -251,7 +251,7 @@ export default {
       try {
         let newInput =  {current: { 
                                     username: 'admin',
-                                    password: cryptojs.AES.encrypt( 'Somkid058848391@', process.env.JWT_SECRET).toString(),
+                                    password: cryptojs.AES.encrypt( 'Somkid058848391@', process.env.MONGO_PASSWORD_SECRET).toString(),
                                     displayName: "ADMIN",
                                     email : "admin@local.local",
                                     tel : "0000000000", 
@@ -1735,16 +1735,23 @@ export default {
       if( role === Constants.ADMINISTRATOR ){
         let products = await Model.Product.aggregate([
                                                       {
+                                                        $addFields: {
+                                                          ownerId: "$current.ownerId",  // Bring the nested field to the top level
+                                                          // editerId: "$current.editer",   // Bring editerId to the top level
+                                                          // productId: "$current.productIds.productId"
+                                                        }
+                                                      },
+                                                      {
                                                         $lookup: {
                                                           localField: "ownerId",
                                                           from: "member",
                                                           foreignField: "_id",
-                                                          as: "creator"
+                                                          as: "owner"
                                                         }
                                                       },
                                                       {
                                                         $unwind: {
-                                                          path: "$creator",
+                                                          path: "$owner",
                                                           preserveNullAndEmptyArrays: true
                                                         }
                                                       }
@@ -1758,7 +1765,10 @@ export default {
 
       let products = await Model.Product.aggregate([{
                                                       $match: {
-                                                        'current.packages': { $in: [ current_user.current.packages ] }
+                                                        $or: [
+                                                          { 'current.package_front': { $in: [current_user.current.packages] } },
+                                                          { 'current.package_back': { $in: [current_user.current.packages] } }
+                                                        ]
                                                       }
                                                     },
                                                     {
@@ -1766,12 +1776,12 @@ export default {
                                                         localField: "ownerId",
                                                         from: "member",
                                                         foreignField: "_id",
-                                                        as: "creator"
+                                                        as: "owner"
                                                       }
                                                     },
                                                     {
                                                       $unwind: {
-                                                        path: "$creator",
+                                                        path: "$owner",
                                                         preserveNullAndEmptyArrays: true
                                                       }
                                                     }
@@ -2114,9 +2124,9 @@ export default {
       // });
 
       let text = "7P569uV6nR2zr3y26mtTn"
-      let encrypt = cryptojs.AES.encrypt(text, process.env.JWT_SECRET).toString()
+      let encrypt = cryptojs.AES.encrypt(text, process.env.MONGO_PASSWORD_SECRET).toString()
       // encrypt = "U2FsdGVkX18wIs5DOBhZOddShspHwri5Z8KFIXtyHzU="
-      let decrypt = cryptojs.AES.decrypt(encrypt, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8);
+      let decrypt = cryptojs.AES.decrypt(encrypt, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8);
       console.log("encrypt ++ :", text, encrypt, decrypt)
   
       return {  status:true, 
@@ -2128,7 +2138,7 @@ export default {
       let start = Date.now()
       let {input} = args
 
-      console.log("login :", input, process.env.JWT_SECRET, cryptojs.AES.encrypt( input.password, process.env.JWT_SECRET).toString())
+      console.log("login :", input, process.env.MONGO_PASSWORD_SECRET, cryptojs.AES.encrypt( input.password, process.env.MONGO_PASSWORD_SECRET).toString())
 
       /*
       let username = input.username.toLowerCase()
@@ -2139,9 +2149,9 @@ export default {
         if( _.isNull(user) ){
           throw new AppError(Constants.USER_NOT_FOUND, 'USER NOT FOUND')
         }
-        if(!_.isEqual(cryptojs.AES.decrypt(user?.password, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8), input.password)){
+        if(!_.isEqual(cryptojs.AES.decrypt(user?.password, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8), input.password)){
           
-          console.log("e :", user?.password, input?.password, cryptojs.AES.decrypt(user?.password, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8))
+          console.log("e :", user?.password, input?.password, cryptojs.AES.decrypt(user?.password, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8))
           throw new AppError(Constants.PASSWORD_WRONG, 'PASSWORD WRONG')
         }
         user = await Utils.getUserFull({email: username})
@@ -2150,8 +2160,8 @@ export default {
         if( _.isNull(user) ){
           throw new AppError(Constants.USER_NOT_FOUND, 'USER NOT FOUND')
         }
-        if(!_.isEqual(cryptojs.AES.decrypt(user?.password, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8), input.password)){
-          console.log("e :", user?.password, input?.password, cryptojs.AES.decrypt(user?.password, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8))
+        if(!_.isEqual(cryptojs.AES.decrypt(user?.password, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8), input.password)){
+          console.log("e :", user?.password, input?.password, cryptojs.AES.decrypt(user?.password, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8))
           throw new AppError(Constants.PASSWORD_WRONG, 'PASSWORD WRONG')
         }
         user = await Utils.getUserFull({username})
@@ -2177,9 +2187,9 @@ export default {
         if( _.isNull(user) ){
           throw new AppError(Constants.USER_NOT_FOUND, 'USER NOT FOUND')
         }
-        if(!_.isEqual(cryptojs.AES.decrypt(user?.current?.password, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8), input.password)){
+        if(!_.isEqual(cryptojs.AES.decrypt(user?.current?.password, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8), input.password)){
           
-          console.log("e :", user?.current?.password, input?.password, cryptojs.AES.decrypt(user?.current?.password, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8))
+          console.log("e :", user?.current?.password, input?.password, cryptojs.AES.decrypt(user?.current?.password, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8))
           throw new AppError(Constants.PASSWORD_WRONG, 'PASSWORD WRONG')
         }
         // user = await Utils.getUserFull({email: username})
@@ -2189,8 +2199,8 @@ export default {
         if( _.isNull(user) ){
           throw new AppError(Constants.USER_NOT_FOUND, 'USER NOT FOUND')
         }
-        if(!_.isEqual(cryptojs.AES.decrypt(user?.current?.password, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8), input.password)){
-          console.log("e :", user?.current?.password, input?.password, cryptojs.AES.decrypt(user?.current?.password, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8))
+        if(!_.isEqual(cryptojs.AES.decrypt(user?.current?.password, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8), input.password)){
+          console.log("e :", user?.current?.password, input?.password, cryptojs.AES.decrypt(user?.current?.password, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8))
           throw new AppError(Constants.PASSWORD_WRONG, 'PASSWORD WRONG')
         }
         // user = await Utils.getUserFull({username})
@@ -2273,7 +2283,7 @@ export default {
 
             let newInput = {
               username: data.profileObj.email,
-              password: cryptojs.AES.encrypt( data.profileObj.googleId, process.env.JWT_SECRET).toString(),
+              password: cryptojs.AES.encrypt( data.profileObj.googleId, process.env.MONGO_PASSWORD_SECRET).toString(),
               email: data.profileObj.email,
               displayName: data.profileObj.givenName +" " + data.profileObj.familyName ,
               roles: [ Constants.AUTHENTICATED ], // authenticated
@@ -2409,7 +2419,7 @@ export default {
 
             let newInput = {
               username: github_user.email,
-              password: cryptojs.AES.encrypt(data.code, process.env.JWT_SECRET).toString(),
+              password: cryptojs.AES.encrypt(data.code, process.env.MONGO_PASSWORD_SECRET).toString(),
               email: github_user.email,
               displayName: github_user.name,
               roles: [ Constants.AUTHENTICATED ], // authenticated
@@ -2470,7 +2480,7 @@ export default {
           if(_.isEmpty(user)){
             let newInput = {
               username: data.email,
-              password: cryptojs.AES.encrypt(data.id, process.env.JWT_SECRET).toString(),
+              password: cryptojs.AES.encrypt(data.id, process.env.MONGO_PASSWORD_SECRET).toString(),
               email: data.email,
               displayName: data.name,
               roles: [ Constants.AUTHENTICATED ], // authenticated
@@ -2591,7 +2601,7 @@ export default {
       
       let newInput =  {current: { ...input,  
                                   username: input.idCard,
-                                  password: cryptojs.AES.encrypt( input.tel, process.env.JWT_SECRET).toString(),
+                                  password: cryptojs.AES.encrypt( input.tel, process.env.MONGO_PASSWORD_SECRET).toString(),
                                   displayName: _.isEmpty(input.displayName) ? input.username : input.displayName ,
                                   car_brand: _.isEmpty(input.car_brand) ? "" : input.car_brand,
                                   car_model: _.isEmpty(input.car_model) ? "" : input.car_model,
@@ -3631,7 +3641,7 @@ export default {
         case "all":{
           let sessions = await Model.Session.find()
           _.map(sessions, async(session)=>{
-            let userId  = jwt.verify(session.token, process.env.JWT_SECRET);
+            let userId  = jwt.verify(session.token, process.env.MONGO_PASSWORD_SECRET);
             let current_user = await Utils.getUser({_id: userId}) 
             pubsub.publish("ME", { me: { mutation: "FORCE_LOGOUT", data: { userId: current_user?._id } } });
           })
@@ -3645,7 +3655,7 @@ export default {
 
         case "id":{
           let session = await Model.Session.findOne({_id: mongoose.Types.ObjectId(input?._id)});
-          let userId  = jwt.verify(session.token, process.env.JWT_SECRET);
+          let userId  = jwt.verify(session.token, process.env.MONGO_PASSWORD_SECRET);
           let current_user = await Utils.getUser({_id: userId}) 
           
           pubsub.publish("ME", { me: { mutation: "FORCE_LOGOUT", data: { userId: current_user?._id } } });
@@ -4034,7 +4044,7 @@ export default {
 
       return {
         status: true,
-        data: cryptojs.AES.decrypt(input?.encrypt, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8),
+        data: cryptojs.AES.decrypt(input?.encrypt, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8),
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }   
     },
@@ -4717,7 +4727,7 @@ export default {
       
       let newInput =  {current: { ...input,  
                                   username: input.username?.toLowerCase(),
-                                  password: cryptojs.AES.encrypt( input.password, process.env.JWT_SECRET).toString(),
+                                  password: cryptojs.AES.encrypt( input.password, process.env.MONGO_PASSWORD_SECRET).toString(),
                                   displayName: _.isEmpty(input.displayName) ? input.username : input.displayName ,
                                   lastAccess: Date.now(), 
                                   isOnline: true}
@@ -4999,16 +5009,17 @@ export default {
           const session = await mongoose.startSession();
           session.startTransaction();
           try {
-            if(input?._isDEV === true){
-              console.log(input?._isDEV, input);
-              // let newInput = _.omit(input?.current, ['mode']);
+            // if(input?._isDEV === true){
+            //   console.log(input?._isDEV, input);
+            //   // let newInput = _.omit(input?.current, ['mode']);
 
-              let current  = {...input?.current, ownerId: current_user._id }
+            //   let current  = {...input?.current, ownerId: current_user._id }
 
-              console.log("@@@1 product current : ", current)
+            //   console.log("@@@1 product current : ", current)
 
-              await Model.Product.insertMany([{ _isDEV: true, current }], { session });
-            }else{
+            //   await Model.Product.insertMany([{ _isDEV: true, current }], { session });
+            // }else{
+              
               let promises = []; 
               if(!_.isEmpty(input.images)){
                 for (let i = 0; i < input.images.length; i++) {
@@ -5055,12 +5066,18 @@ export default {
               // console.log("All files processed: ", images );
 
               const newInput = _.omit(input, ['mode']);
+              // let current  = {...newInput, images }
+              // if(input?._isDEV === undefined){
+              //   current  = { ...current, ownerId: current_user._id }
+              // }
+
               let current  = {...newInput, images, ownerId: current_user._id }
               
-              console.log("@@@2 product current : ", current)
+              console.log("@@@2 product current : ", current, input?._isDEV)
               
               await Model.Product.insertMany([{ current }], { session });
-            }
+
+            // }
             // Commit the transaction
             await session.commitTransaction();
           }catch(error){
@@ -5488,6 +5505,36 @@ export default {
       } catch (err) {
         throw new Error('Error generating XML');
       }
+    },
+    async address_delivery(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+      let { input } = args
+      
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.ADMINISTRATOR && 
+          role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+      const session = await mongoose.startSession();
+      session.startTransaction()
+      try{
+        await Model.Member.updateOne(
+          { _id: current_user._id },
+          { "current.address_delivery": input },
+          { session }
+        );
+
+        await session.commitTransaction();
+        console.log('Last access time updated successfully');
+      } catch(error){
+        await session.abortTransaction();
+        console.log(`init #error ${error}`)
+
+        throw new AppError(Constants.ERROR, error)
+      }finally {
+        session.endSession();
+      }  
     },
   },
   Subscription:{

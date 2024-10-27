@@ -21,6 +21,8 @@ import resolvers from "./resolvers";
 import * as Utils from "./utils"
 import pubsub from './pubsub'
 
+import connection from './mongo'
+
 const logger = require("./utils/logger");
 const { graphqlUploadExpress } = require('graphql-upload');
 

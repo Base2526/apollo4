@@ -218,4 +218,4 @@ import ข้อมูล
 
 1. export โดยใช้ mongo-express ได้ไฟล์แล้วเอาวางที share drive ของ docker แล้วรันโดย command line *** กรณีรันแบบ repl-set ให้เช็ดดู primary-cluster 
 
-docker exec -it c9e5a2180c76 mongoimport --db insurance --collection node --file /data/db/node --jsonArray
+docker exec -it 5bfb4b5ed0de mongoimport --db insurance --collection node --file /data/db/node.json --jsonArray

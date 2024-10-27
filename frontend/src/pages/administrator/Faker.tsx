@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Form, Input, Button, Checkbox, Switch, Card, Select, Row, Col, Typography  } from 'antd';
 import moment from "moment";
 import { useQuery, useMutation } from "@apollo/client";
@@ -33,6 +33,8 @@ const { mode, REACT_APP_HOST_GRAPHAL }  = process.env
 const Faker: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
+
+    const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const { profile } = useSelector((state : DefaultRootState) => state.user);
 
@@ -289,19 +291,80 @@ const Faker: React.FC = () => {
         }
     };
 
-    const onFinishProduct=  (values: any) => {
+    const onFinishProduct=  async(values: any) => {
 
-        /*
-        name: string;
-        detail: string;
-        plan: number[];
-        price: number;
-        packages: number[];
-        images: RcFile[];
-        */
+        // Function to generate a random color in HEX format
+        const getRandomColor = (): string => {
+            const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+            return `#${randomColor.padStart(6, '0')}`; // Ensure it's a 6-digit hex
+        };
 
-        const plans = [1, 2];
-        const pakg = [1, 2 ,3];
+        // Function to generate a random file name
+        const generateRandomFileName = () => {
+            const timestamp = Date.now(); // Use the current timestamp
+            return `image-${timestamp}.png`; // Create a unique filename
+        };
+
+        const createPngFile = async (): Promise<File | null> => {
+            if (canvasRef.current) {
+              const ctx = canvasRef.current.getContext('2d');
+              if (ctx) {
+                // Clear the canvas
+                ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        
+                // Generate random properties
+                const color = getRandomColor();
+        
+                // Randomly choose to draw a rectangle or circle
+                const drawShape = Math.random() < 0.5; // 50% chance to draw a rectangle or circle
+        
+                ctx.fillStyle = color;
+        
+                if (drawShape) {
+                  // Draw rectangle that fills the entire canvas
+                  ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+                } else {
+                  // Draw circle that fills the entire canvas
+                  const radius = Math.min(canvasRef.current.width, canvasRef.current.height) / 2;
+                  ctx.beginPath();
+                  ctx.arc(canvasRef.current.width / 2, canvasRef.current.height / 2, radius, 0, Math.PI * 2);
+                  ctx.fill();
+                }
+        
+                // Convert canvas to a PNG file
+                return new Promise((resolve) => {
+                    canvasRef.current && canvasRef.current.toBlob((blob) => {
+                    if (blob) {
+                      const fileName = generateRandomFileName(); // Get a random file name
+                      const file = new File([blob], fileName, { type: 'image/png' });
+                      console.log('File created:', file);
+                      resolve(file); // Resolve the promise with the file
+                    } else {
+                      resolve(null); // Resolve with null if blob creation failed
+                    }
+                  }, 'image/png');
+                });
+              }
+            }
+            return null; // Return null if canvas is not available
+        };
+    
+        // Function to generate an array of PNG files
+        const createMultiplePngFiles = async (fileCount: number): Promise<File[]> => {
+            const files: File[] = [];
+    
+            for (let i = 0; i < fileCount; i++) {
+                const file = await createPngFile();
+                if (file) {
+                    files.push(file); // Add the generated file to the array
+                }
+            }
+            return files; // Return the array of files
+        };
+
+        const ___product_type = [1, 2, 3, 4];
+        const ___package = [1, 2 ,3];
+        const ___discount_bm = [1, 2 ,3, 4, 5];
 
         const generate_img=(leth: number) =>{
             let imgs:any[] = []
@@ -320,19 +383,58 @@ const Faker: React.FC = () => {
             return imgs
         }
 
+        if(_.isEmpty(users)){
+            console.log("Empty users")
+            return;
+        }
+
         for ( var i = 0; i < 200; i++ ) {
-            let newInput = {
-                name: faker.name.jobTitle(),
-                detail: faker.name.jobTitle(),
-                plan:  [plans[Math.floor(Math.random() * plans.length)]],
-                price: faker.commerce.price(),
-                packages: [pakg[Math.floor(Math.random() * pakg.length)]],
-                images: generate_img( Math.floor(Math.random() * (10 - 1 + 1)) + 1 ),
-                quantity: Math.floor(Math.random() * 1000) + 100
+
+            const fileCount = Math.floor(Math.random() * 8) + 1; // Define the number of files you want to generate
+            const images = await createMultiplePngFiles(fileCount); // Call the function to create multiple files
+
+            const ownerId = users ? users[Math.floor(Math.random() * users.length)]._id : undefined;
+
+            if(ownerId === undefined){
+                continue;
             }
 
-            console.log("newInput :", newInput)
-            onProduct({ variables: { input: { mode:'added', _isDEV: true, current: newInput }  } });
+            let input = {
+                // name: faker.name.jobTitle(),
+                // detail: faker.name.jobTitle(),
+                // plan:  [plans[Math.floor(Math.random() * plans.length)]],
+                // price: faker.commerce.price(),
+                // packages: [pakg[Math.floor(Math.random() * pakg.length)]],
+                // images: generate_img( Math.floor(Math.random() * (10 - 1 + 1)) + 1 ),
+                // quantity: Math.floor(Math.random() * 1000) + 100
+
+                _isDEV: true,
+
+                mode:'added', 
+                ownerId,
+                name: faker.name.jobTitle(),
+                price: faker.commerce.price(),
+                price_sell: faker.commerce.price(),
+                detail: faker.name.jobTitle(),
+                images,
+                quantity: parseInt(faker.commerce.price()),
+                price_front: Math.floor(Math.random() * (100 - 1 + 1)) + 1 ,
+
+                package_front: [___package[Math.floor(Math.random() * ___package.length)]],
+                package_back: [___package[Math.floor(Math.random() * ___package.length)]],
+
+                product_type: [___product_type[Math.floor(Math.random() * ___product_type.length)]],
+                price_discount_bm: Math.floor(Math.random() * (5 - 1 + 1)) + 1 ,
+                price_discount_bs: Math.floor(Math.random() * (100 - 1 + 1)) + 1 ,
+                price_discount_from_children:  Math.floor(Math.random() * (100 - 1 + 1)) + 1 ,
+                price_discount_from_office:  Math.floor(Math.random() * (100 - 1 + 1)) + 1 ,
+                all_sale:  Math.floor(Math.random() * (100 - 1 + 1)) + 1 ,
+
+                price_delivery: Math.floor(Math.random() * (100 - 1 + 1)) + 1 ,
+            }
+
+            console.log("input :", input)
+            onProduct({ variables: { input } });
         }
     }
 
@@ -352,6 +454,7 @@ const Faker: React.FC = () => {
 
     return (
         <div>
+            <canvas ref={canvasRef} width={200} height={200} style={{ display: 'none' }} />
             <Card title="Create Member" style={{ marginBottom: '10px' }}>
                 <Form layout="vertical" onFinish={onFinishMember}>
                     <Form.Item>
