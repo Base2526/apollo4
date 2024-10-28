@@ -201,15 +201,15 @@ mongodb://root:example@mongo1:27017,mongo2:27017,mongo3:27017/?replicaSet=rs0
 # ต้อง add user ก่อนด้วย
 # use admin
 # db.createUser({
-#   user: "admin",
-#   pwd: "Somkid058848391",
-#   roles: [{ role: "root", db: "admin" }]
+#   user: "",
+#   pwd: "",
+#   roles: [{ role: "root", db: "" }]
 # })
 
 # db.createUser({
-#   user: "insurance",
-#   pwd: "Somkid058848391",
-#   roles: [{ role: "readWrite", db: "insurance" }]
+#   user: "",
+#   pwd: "",
+#   roles: [{ role: "readWrite", db: "" }]
 # })
 
 
@@ -218,4 +218,28 @@ import ข้อมูล
 
 1. export โดยใช้ mongo-express ได้ไฟล์แล้วเอาวางที share drive ของ docker แล้วรันโดย command line *** กรณีรันแบบ repl-set ให้เช็ดดู primary-cluster 
 
-docker exec -it 5bfb4b5ed0de mongoimport --db insurance --collection node --file /data/db/node.json --jsonArray
+docker exec -it xxx mongoimport --db insurance --collection node --file /data/db/node.json --jsonArray
+
+
+
+
+  
+# Step #1 docker exec -it xxxx bash
+# Step #2 mongosh
+#  rs.status()
+# Step #3 rs.initiate({_id: "rs0", members: [{ _id: 0, host: "mongo1:27017" }, { _id: 1, host: "mongo2:27017" }, { _id: 2, host: "mongo3:27017" }]})
+
+# Step #4
+# ต้อง add user ก่อนด้วย
+# use admin
+# db.createUser({
+#   user: "",
+#   pwd: "",
+#   roles: [{ role: "root", db: "admin" }]
+# })
+
+# db.createUser({
+#   user: "",
+#   pwd: "",
+#   roles: [{ role: "readWrite", db: "" }]
+# })

@@ -94,7 +94,7 @@ const backupCollectionMongoDB = () => {
 
     collections.forEach(collection => {
       const outputFilePath = `/app/backups/${collection}-${new Date().toISOString()}.json`; // Output file path
-      const command = `docker exec mongo1 mongoexport --uri="${MONGO_URI}" --db=${MONGO_DB} --collection=${collection} --out=${outputFilePath} --jsonArray`;
+      const command = `mongoexport --uri="${MONGO_URI}" --db=${MONGO_DB} --collection=${collection} --out=${outputFilePath} --jsonArray`;
 
       exec(command, (error, stdout, stderr) => {
         if (error) {
@@ -113,17 +113,17 @@ const backupCollectionMongoDB = () => {
   }
 };
 
-cron.schedule(
-  '* * * * *',
-  () => {
-    try {
-      backupCollectionMongoDB();
-    } catch (error) {
-      console.error("Error executing cron job:", error);
-    }
-  },
-  {
-    scheduled: true,
-    timezone: 'Asia/Bangkok',
-  }
-);
+// cron.schedule(
+//   '* * * * *',
+//   () => {
+//     try {
+//       // backupCollectionMongoDB();
+//     } catch (error) {
+//       console.error("Error executing cron job:", error);
+//     }
+//   },
+//   {
+//     scheduled: true,
+//     timezone: 'Asia/Bangkok',
+//   }
+// );

@@ -40,6 +40,7 @@ import HomePage from "@/pages/home";
 import CartPage from "@/pages/cart";
 import OrderPage from "@/pages/administrator/order"
 import OrderFormPage from "@/pages/administrator/order/OrderForm"
+import CheckoutPage from "@/pages/cart/CheckoutPage"
 
 import ProductListPage from "@/pages/administrator/product";
 import ProductPage from "@/pages/administrator/product/ProductForm";
@@ -113,6 +114,10 @@ const routeList: RouteObject[] = [
       {
         path: 'cart',
         element: <WrapperRouteComponent requireAuth={true} element={<CartPage />} titleId="title.dashboard" />,
+      },
+      {
+        path: 'checkout',
+        element: <WrapperRouteComponent requireAuth={true} element={<CheckoutPage />} titleId="title.dashboard" />,
       },
       {
         path: 'purchases',

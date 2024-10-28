@@ -27,21 +27,26 @@ interface LockAccount {
 }
 
 interface Current {
-  parentId: string | null;  // Assuming Schema.Types.ObjectId is string
-  username: string;
-  password: string;
-  email: string;
-  tel: string;
-  displayName: string;
-  idCard: string;
-  address: string;
-  packages: 1 | 2 | 3;
-  roles: number[];  // AUTHENTICATED, ADMINISTRATOR enum values would be numbers
-  isActive: 0 | 1;
+  parentId?: string ;  // Assuming Schema.Types.ObjectId is string
+  username?: string;
+  password?: string;
+  email?: string;
+  tel?: string;
+  displayName?: string;
+  idCard?: string;
+  address?: string;
+  packages?: 1 | 2 | 3;
+  roles?: number[];  // AUTHENTICATED, ADMINISTRATOR enum values would be numbers
+  isActive?: 0 | 1;
   avatar?: Avatar;
-  position: string;
-  lockAccount: LockAccount;
-  lastAccess: Date;
+  position?: string;
+  address_delivery?: {
+    name: string;
+    phone: string;
+    address: string;
+  }
+  lockAccount?: LockAccount;
+  lastAccess?: Date;
 }
 
 interface profileType {
@@ -86,8 +91,9 @@ export interface ProductItem {
 
     images: ProductImageType[];
     
-    quantities?: number;
+    quantities: number;
   }
+  owner:any;
   history: [];
   createdAt: string;
   updatedAt: string;

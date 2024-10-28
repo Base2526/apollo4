@@ -30,7 +30,7 @@ const Purchase: React.FC = (props) => {
 
   const { loading: loadingPurchases, data: dataPurchases, error: errorPurchases, refetch: refetchPurchases } = useQuery(guery_purchases, {
     context: { headers: getHeaders(location) },
-    fetchPolicy: 'no-cache',
+    fetchPolicy: 'cache-first',
     nextFetchPolicy: 'network-only',
     notifyOnNetworkStatusChange: false,
   });

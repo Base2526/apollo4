@@ -21,6 +21,8 @@ RUN apk add --no-cache \
     tar \
     gzip
 
+RUN apk add mongodb-tools
+
 # Optional: Verify Docker CLI installation
 RUN docker --version
 

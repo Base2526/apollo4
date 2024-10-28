@@ -33,7 +33,7 @@ const ProductList: React.FC = (props) => {
   });
 
   if (errorProducts) {
-      handlerError(props, errorProducts);
+    handlerError(props, errorProducts);
   }
 
   useEffect(() => {
@@ -41,6 +41,7 @@ const ProductList: React.FC = (props) => {
       setProducts([]);
       setFilteredProducts([]);
       if (dataProducts.products.status) {
+        console.log("dataProducts.products: ", dataProducts.products)
         _.map(dataProducts.products.data, (e) => {
           setProducts((prevItems) => Array.isArray(prevItems) ? [...prevItems, e] : [e]);
           setFilteredProducts((prevItems) => Array.isArray(prevItems) ? [...prevItems, e] : [e]);

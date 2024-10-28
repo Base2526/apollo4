@@ -895,7 +895,9 @@ export default gql`
   }
 
   type Subscription {
-    userConnected: String
+    userConnected(input:JSON): JSON
+
+
     me(userId: ID!): JSON
     subscriptionSupplierById(_id: ID!): JSON
     subscriptionSuppliers(supplierIds: String!): JSON

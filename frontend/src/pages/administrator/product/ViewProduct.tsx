@@ -50,6 +50,8 @@ const ViewProduct: React.FC = (props) => {
     const { carts } = useSelector((state : DefaultRootState) => state.user);
     const inCart = carts.find((item)=>item._id === _id ) === undefined ? false : true
 
+    console.log("ViewProduct:", _id)
+
     const { loading: loadingProduct, 
             data: dataProduct, 
             error: errorProduct,
@@ -94,22 +96,22 @@ const ViewProduct: React.FC = (props) => {
     };
 
     const productTypeView = (product_type: number[]) =>{
-        return _.map(product_type, (v)=>{
+        return _.map(product_type, (v, index)=>{
             switch(v){
-                case 1:return <Tag color="#2db7f5">เอกสิทธิพิเศษ</Tag>
-                case 2:return <Tag color="#2db7f5">แผนหน้า</Tag>
-                case 3:return <Tag color="#2db7f5">แผนหลัง</Tag>
-                case 4:return <Tag color="#2db7f5">Power ship</Tag>
+                case 1:return <Tag key={index} color="#2db7f5">เอกสิทธิพิเศษ</Tag>
+                case 2:return <Tag key={index} color="#2db7f5">แผนหน้า</Tag>
+                case 3:return <Tag key={index} color="#2db7f5">แผนหลัง</Tag>
+                case 4:return <Tag key={index} color="#2db7f5">Power ship</Tag>
             }
         } )
     }
 
     const packageFront_BackView = (package_front: number[]) =>{
-        return _.map(package_front, (v)=>{
+        return _.map(package_front, (v, index)=>{
             switch(v){
-                case 1:return <Tag color="#2db7f5">1</Tag>
-                case 2:return <Tag color="#2db7f5">8</Tag>
-                case 3:return <Tag color="#2db7f5">56</Tag>
+                case 1:return <Tag key={index} color="#2db7f5">1</Tag>
+                case 2:return <Tag key={index} color="#2db7f5">8</Tag>
+                case 3:return <Tag key={index} color="#2db7f5">56</Tag>
             }
         } )
     }

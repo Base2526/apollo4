@@ -9,7 +9,7 @@ import dayjs from 'dayjs';
 import { FC, Suspense, useEffect } from 'react';
 import { IntlProvider } from 'react-intl';
 import { useDispatch, useSelector } from 'react-redux';
-import { useApolloClient, useSubscription } from "@apollo/client";
+import { useApolloClient, useSubscription, ApolloError } from "@apollo/client";
 import { HistoryRouter, history } from '@/routes/history';
 import _ from "lodash"
 import { useTranslation } from 'react-i18next';
@@ -27,14 +27,28 @@ const App: FC = () => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
 
-  const { data: useData, loading: useLoading, error: useError } = useSubscription(userConnected);
+  useSubscription(userConnected,
+                  {
+                  variables: { input : {a : '1234'} },
+                  skip: false,
+                  onSubscriptionData: ({ subscriptionData }) => {
+                    // if (subscriptionData.data) {
+                    //   const newMessage = subscriptionData.data.newMessage;
+                    //   setMessages((prevMessages) => [...prevMessages, newMessage]);
+                    // }
+                    console.log("onSubscriptionData:", subscriptionData);
+                  },
+                  onError: (err: ApolloError) => {
+                    console.error("Subscription error:", err);
+                  },
+                  },);
 
   // Handle error here
-  if (useError) {
-    _.map(useError?.graphQLErrors, (e)=>{
-      console.error('Subscription error:',  e?.extensions, e?.extensions?.code);
-    })
-  }
+  // if (useError) {
+  //   _.map(useError?.graphQLErrors, (e)=>{
+  //     console.error('Subscription error:',  e?.extensions, e?.extensions?.code);
+  //   })
+  // }
 
   const setTheme = (dark = true) => {
     dispatch(

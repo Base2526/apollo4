@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Form, Input, message } from 'antd';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation } from '@apollo/client';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { mutation_address_delivery } from '@/apollo/gqlQuery';
 import { getHeaders } from '@/utils';
 import handlerError from '@/utils/handlerError';
+import { updateAddressDelivery } from '@/stores/user.store';
+
+import { DefaultRootState } from "@/interface/DefaultRootState"
 
 interface FormValues {
   name: string;
@@ -20,18 +25,39 @@ interface AddressModalFormProps {
 // Define a regex pattern for phone numbers (adjust as needed)
 const phoneNumberRegex = /^[0-9]{10}$/;
 
+
+const defaultValues = {
+  name: '',
+  phone: '',
+  address: '',
+}
+
 const AddressModalForm: React.FC<AddressModalFormProps> = (props) => {
   const { isModalVisible, setIsModalVisible } = props;
+
+  const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false); // Loading state for OK button
 
+  const { profile } = useSelector((state: DefaultRootState) => state.user);
+
+  const dispatch = useDispatch();
+
   const [onAddressDelivery] = useMutation(mutation_address_delivery, {
     context: { headers: getHeaders(location) },
-    update: (cache, { data: { address_delivery } }) => {
-      console.log("address_delivery :", address_delivery)
-      setLoading(false); // Reset loading state after success
-      message.success('แก้ไขที่อยู่ เรียบร้อย!');
-      setIsModalVisible();
+    update: (cache, { data: { address_delivery } }, params: any) => {
+      let { status } = address_delivery
+      if(status){
+        let { input } = params?.variables;
+        dispatch(updateAddressDelivery({ addressDelivery: input }));
+
+        setLoading(false); // Reset loading state after success
+        message.success('แก้ไขที่อยู่ เรียบร้อย!');
+        setIsModalVisible();
+
+        navigate("/checkout")
+      }
+      
     },
     onError: (error) => {
       setLoading(false); // Reset loading state on error
@@ -39,6 +65,17 @@ const AddressModalForm: React.FC<AddressModalFormProps> = (props) => {
       setIsModalVisible();
     },
   });
+
+  useEffect(()=>{
+    if(profile.current?.address_delivery){
+      let { address_delivery } = profile.current
+      form.setFieldsValue({
+        name: address_delivery.name,
+        phone: address_delivery.phone,
+        address: address_delivery.address,
+      })
+    }
+  }, [profile])
 
   const handleCancel = () => {
     setIsModalVisible();
@@ -51,11 +88,10 @@ const AddressModalForm: React.FC<AddressModalFormProps> = (props) => {
       .then((values: FormValues) => {
         setLoading(true); // Set loading state on form submit
         // Trigger mutation
-        onAddressDelivery({
-          variables: {
-            input: values, // Adjust based on your mutation input requirements
-          },
-        });
+
+        let input = {...values, mode: "added"}
+
+        onAddressDelivery({ variables: { input } });
       })
       .catch((info) => {
         console.log('Validate Failed:', info);
@@ -72,7 +108,10 @@ const AddressModalForm: React.FC<AddressModalFormProps> = (props) => {
       cancelText="ยกเลิก"
       confirmLoading={loading} // Loading state for OK button
     >
-      <Form form={form} layout="vertical">
+      <Form 
+        form={form} 
+        initialValues={defaultValues}
+        layout="vertical">
         <Form.Item
           name="name"
           label="ชื่อ-นามสกุล"

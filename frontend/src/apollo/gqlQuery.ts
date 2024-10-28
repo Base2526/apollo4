@@ -100,7 +100,7 @@ export const queryMlmById = gql`query mlmById($id: ID!) { mlmById(_id: $id) }`;
 export const mutationTest_addmember = gql`mutation test_addmember($input: MemberInput) { test_addmember(input: $input) }`;
 export const mutationMlm = gql`mutation test_addmlm($input: MLMInput) { test_addmlm(input: $input) }`;
 
-export const userConnected = gql`subscription userConnected { userConnected }`;
+export const userConnected = gql`subscription userConnected($input: JSON) { userConnected(input: $input) }`;
 
 export const mutationTest_upload = gql`mutation test_upload($input: JSON) { test_upload(input: $input) }`;
 

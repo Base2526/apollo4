@@ -2,7 +2,7 @@ import type { Role } from '@/interface/user/login';
 import type { Locale, UserState } from '@/interface/user/user';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import _ from "lodash"
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, current } from '@reduxjs/toolkit';
 
 import { getGlobalState } from '@/utils/getGloabal';
 
@@ -65,7 +65,6 @@ const userSlice = createSlice({
       state.carts = [];
     },
     // for cart
-
     updateCartQuantities: (state, action: PayloadAction<{ id: string; quantities: number }>) => {
       let {id, quantities} = action.payload
       state.carts = _.map( state.carts, item =>
@@ -74,9 +73,32 @@ const userSlice = createSlice({
                           : item
                       );
     },
+    updateAddressDelivery: (state, action: PayloadAction<{ addressDelivery: { name: string; phone: string; address: string; } }>) => {
+      state.profile = {
+        ...state.profile,
+        current: {
+          ...state.profile.current,
+          address_delivery: action.payload.addressDelivery, // assigning to address_delivery if it is the correct property name
+        },
+      };
+    },
+    deleteAddressDelivery: (state) => {
+      state.profile = {
+        ...state.profile,
+        current: {
+          ...state.profile.current,
+          address_delivery: undefined, // assigning to address_delivery if it is the correct property name
+        },
+      };
+    },
+
+    logout: (state) => {
+      // Reset the state to initialState by returning it directly
+      return initialState;
+    },
   },
 });
 
-export const { setUserItem, testSetRamdom, updateProfile, addCart, removeCart, clearAllCart, updateCartQuantities } = userSlice.actions;
+export const { setUserItem, testSetRamdom, updateProfile, addCart, removeCart, clearAllCart, updateCartQuantities, updateAddressDelivery, deleteAddressDelivery, logout } = userSlice.actions;
 
 export default userSlice.reducer;

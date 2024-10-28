@@ -4,7 +4,7 @@ services:
     build: 
       context: ./frontend
       dockerfile: Dockerfile.dev
-    container_name: insurance_frontend
+    container_name: ${PREFIX}_frontend
     env_file:
       - .env
     environment:

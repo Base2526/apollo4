@@ -1763,7 +1763,12 @@ export default {
         }
       }
 
-      let products = await Model.Product.aggregate([{
+      let products = await Model.Product.aggregate([
+                                                    {
+                                                      $addFields: {
+                                                        ownerId: "$current.ownerId"
+                                                      }
+                                                    },{
                                                       $match: {
                                                         $or: [
                                                           { 'current.package_front': { $in: [current_user.current.packages] } },
@@ -1785,7 +1790,7 @@ export default {
                                                         preserveNullAndEmptyArrays: true
                                                       }
                                                     }
-                                                    ]);
+                                                  ]);
       return {
         status:true,
         data: products,
@@ -1798,23 +1803,29 @@ export default {
 
       let { _id } = args
 
+      console.log("product :", args)
+
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
       if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
-
-      let product = await Model.Product.aggregate([{ $match: { _id: mongoose.Types.ObjectId(_id) } },
+      let product = await Model.Product.aggregate([{
+                                                      $addFields: {
+                                                        ownerId: "$current.ownerId"
+                                                      }
+                                                    },
+                                                    { $match: { _id: mongoose.Types.ObjectId(_id) } },
                                                     {
                                                       $lookup: {
                                                         localField: "ownerId",
                                                         from: "member",
                                                         foreignField: "_id",
-                                                        as: "creator"
+                                                        as: "owner"
                                                       }
                                                     },
                                                     {
                                                       $unwind: {
-                                                        path: "$creator",
+                                                        path: "$owner",
                                                         preserveNullAndEmptyArrays: true
                                                       }
                                                     }
@@ -5519,14 +5530,46 @@ export default {
       const session = await mongoose.startSession();
       session.startTransaction()
       try{
-        await Model.Member.updateOne(
-          { _id: current_user._id },
-          { "current.address_delivery": input },
-          { session }
-        );
 
-        await session.commitTransaction();
-        console.log('Last access time updated successfully');
+        switch(input.mode){
+          case 'added':{
+            let newInput =  _.omit(input, ['mode']);
+            await Model.Member.updateOne(
+              { _id: current_user._id },
+              { "current.address_delivery": newInput },
+              { session }
+            );
+    
+            await session.commitTransaction();
+    
+            pubsub.publish('USER_CONNECTED', { userConnected: 'A user connected' });
+            console.log('Last access time updated successfully');
+    
+            return {
+              status: true,
+              executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+            }
+          }
+
+          case 'deleted':{
+            await Model.Member.updateOne(
+              { _id: current_user._id },
+              { "current.address_delivery": {} },
+              { session }
+            );
+    
+            await session.commitTransaction();
+    
+            pubsub.publish('USER_CONNECTED', { userConnected: 'A user connected' });
+            console.log('Last access time updated successfully');
+    
+            return {
+              status: true,
+              executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+            }
+          }
+        }
+       
       } catch(error){
         await session.abortTransaction();
         console.log(`init #error ${error}`)
@@ -5538,246 +5581,246 @@ export default {
     },
   },
   Subscription:{
-    me: {
-      resolve: (payload) =>{
-        return payload.me
-      },
-      subscribe: withFilter((parent, args, context, info) => {
-          return pubsub.asyncIterator(["ME"])
-        }, async(payload, variables) => {
-          try{
+    // me: {
+    //   resolve: (payload) =>{
+    //     return payload.me
+    //   },
+    //   subscribe: withFilter((parent, args, context, info) => {
+    //       return pubsub.asyncIterator(["ME"])
+    //     }, async(payload, variables) => {
+    //       try{
 
-            console.log("sub ME @1 :", variables)
-            let { userId } = variables
-            // if(_.isEmpty(userId)){
-            //   return false;
-            // }
+    //         console.log("sub ME @1 :", variables)
+    //         let { userId } = variables
+    //         // if(_.isEmpty(userId)){
+    //         //   return false;
+    //         // }
 
-            let {mutation, data} = payload.me
+    //         let {mutation, data} = payload.me
 
-            // userId
-            // let authorization = await Utils.checkAuthorizationWithSessionId(sessionId);
-            // let { current_user } =  authorization
+    //         // userId
+    //         // let authorization = await Utils.checkAuthorizationWithSessionId(sessionId);
+    //         // let { current_user } =  authorization
 
-            console.log( "sub ME @2 :", payload )
-            switch(mutation){
-              case "DEPOSIT":
-              case "WITHDRAW":
-              case "BOOK":
-              case "BUY":
-              case "CANCEL":{
-                return _.isEqual(data?.userId.toString(), userId.toString()) ? true : false;
-              }
-              case "UPDATE":{
-                return _.isEqual(data?._id.toString(), userId.toString()) ? true : false;
-              }
-              case "FORCE_LOGOUT":{
-                return _.isEqual(data?.userId.toString(), userId.toString()) ? true : false;
-              }
-            }
+    //         console.log( "sub ME @2 :", payload )
+    //         switch(mutation){
+    //           case "DEPOSIT":
+    //           case "WITHDRAW":
+    //           case "BOOK":
+    //           case "BUY":
+    //           case "CANCEL":{
+    //             return _.isEqual(data?.userId.toString(), userId.toString()) ? true : false;
+    //           }
+    //           case "UPDATE":{
+    //             return _.isEqual(data?._id.toString(), userId.toString()) ? true : false;
+    //           }
+    //           case "FORCE_LOGOUT":{
+    //             return _.isEqual(data?.userId.toString(), userId.toString()) ? true : false;
+    //           }
+    //         }
 
-            console.log( "Subscription : ME @3 :", data?.userId, userId, _.isEqual(data?.userId, userId) )  
+    //         console.log( "Subscription : ME @3 :", data?.userId, userId, _.isEqual(data?.userId, userId) )  
 
-            return false;
-          } catch(err) {
-            console.log("Subscription : ME #Constants.ERROR =", err.toString())           
-            return false;
-          }
-        }
-      )
-    },
-    subscriptionSupplierById: {
-      resolve: (payload) =>{
-        return payload.supplierById
-      },
-      subscribe: withFilter((parent, args, context, info) => {
-          return pubsub.asyncIterator(["SUPPLIER_BY_ID"])
-        }, (payload, variables) => {
+    //         return false;
+    //       } catch(err) {
+    //         console.log("Subscription : ME #Constants.ERROR =", err.toString())           
+    //         return false;
+    //       }
+    //     }
+    //   )
+    // },
+    // subscriptionSupplierById: {
+    //   resolve: (payload) =>{
+    //     return payload.supplierById
+    //   },
+    //   subscribe: withFilter((parent, args, context, info) => {
+    //       return pubsub.asyncIterator(["SUPPLIER_BY_ID"])
+    //     }, (payload, variables) => {
 
-          let {mutation, data} = payload.supplierById
+    //       let {mutation, data} = payload.supplierById
 
-          console.log("subscriptionSupplierById : ", mutation, variables?._id == data?._id)
-          switch(mutation){
-            case "BOOK":
-            case "UNBOOK":
-            case "AUTO_CLEAR_BOOK":
-              {
-                return variables?._id == data?._id
-              }
-          }
-          return false;
-        }
-      )
-    },
-    subscriptionSuppliers: {
-      resolve: (payload) =>{
-        return payload.suppliers
-      },
-      subscribe: withFilter((parent, args, context, info) => {
-          return pubsub.asyncIterator(["SUPPLIERS"])
-        }, (payload, variables) => {
+    //       console.log("subscriptionSupplierById : ", mutation, variables?._id == data?._id)
+    //       switch(mutation){
+    //         case "BOOK":
+    //         case "UNBOOK":
+    //         case "AUTO_CLEAR_BOOK":
+    //           {
+    //             return variables?._id == data?._id
+    //           }
+    //       }
+    //       return false;
+    //     }
+    //   )
+    // },
+    // subscriptionSuppliers: {
+    //   resolve: (payload) =>{
+    //     return payload.suppliers
+    //   },
+    //   subscribe: withFilter((parent, args, context, info) => {
+    //       return pubsub.asyncIterator(["SUPPLIERS"])
+    //     }, (payload, variables) => {
 
-          console.log("subscriptionSuppliers")
+    //       console.log("subscriptionSuppliers")
 
-          let {mutation, data} = payload.suppliers
+    //       let {mutation, data} = payload.suppliers
 
-          switch(mutation){
-            case "BOOK":
-            case "UNBOOK":
-            case "AUTO_CLEAR_BOOK":
-              {
-                return _.includes(JSON.parse(variables.supplierIds), data._id.toString())
-              }
-          }
+    //       switch(mutation){
+    //         case "BOOK":
+    //         case "UNBOOK":
+    //         case "AUTO_CLEAR_BOOK":
+    //           {
+    //             return _.includes(JSON.parse(variables.supplierIds), data._id.toString())
+    //           }
+    //       }
 
-          return false;
-        }
-      )
-    },
-    subscriptionAdmin: {
-      resolve: (payload) =>{
-        return payload.admin
-      },
-      subscribe: withFilter((parent, args, context, info) => {
-          return pubsub.asyncIterator(["ADMIN"])
-        }, (payload, variables) => {
+    //       return false;
+    //     }
+    //   )
+    // },
+    // subscriptionAdmin: {
+    //   resolve: (payload) =>{
+    //     return payload.admin
+    //   },
+    //   subscribe: withFilter((parent, args, context, info) => {
+    //       return pubsub.asyncIterator(["ADMIN"])
+    //     }, (payload, variables) => {
 
-          console.log("subscriptionAdmin")
+    //       console.log("subscriptionAdmin")
 
-          let {mutation, data} = payload.admin
+    //       let {mutation, data} = payload.admin
 
-          // switch(mutation){
-          //   case "BOOK":
-          //   case "UNBOOK":
-          //   case "AUTO_CLEAR_BOOK":
-          //     {
-          //       return _.includes(JSON.parse(variables.supplierIds), data._id.toString())
-          //     }
-          // }
+    //       // switch(mutation){
+    //       //   case "BOOK":
+    //       //   case "UNBOOK":
+    //       //   case "AUTO_CLEAR_BOOK":
+    //       //     {
+    //       //       return _.includes(JSON.parse(variables.supplierIds), data._id.toString())
+    //       //     }
+    //       // }
 
-          return true;
-        }
-      )
-    },
-    subscriptionCommentById: {
-      resolve: (payload) =>{
-        return payload.commentById 
-      },
-      subscribe: withFilter((parent, args, context, info) => {
-          return pubsub.asyncIterator(["COMMENT_BY_ID"])
-        }, (payload, variables) => {
+    //       return true;
+    //     }
+    //   )
+    // },
+    // subscriptionCommentById: {
+    //   resolve: (payload) =>{
+    //     return payload.commentById 
+    //   },
+    //   subscribe: withFilter((parent, args, context, info) => {
+    //       return pubsub.asyncIterator(["COMMENT_BY_ID"])
+    //     }, (payload, variables) => {
 
-          let {mutation, commentId, data} = payload?.commentById
+    //       let {mutation, commentId, data} = payload?.commentById
 
-          // console.log("COMMENT_BY_ID : ", mutation, commentId, variables )
-          switch(mutation){
-            case "CREATED":
-            case "UPDATED":
-              return variables?._id == commentId
-            default:
-              return false;
-          }
-        }
-      )
-    },
-    // subConversation: {
+    //       // console.log("COMMENT_BY_ID : ", mutation, commentId, variables )
+    //       switch(mutation){
+    //         case "CREATED":
+    //         case "UPDATED":
+    //           return variables?._id == commentId
+    //         default:
+    //           return false;
+    //       }
+    //     }
+    //   )
+    // },
+    // // subConversation: {
+    // //   resolve: (payload) =>{
+    // //     return payload.conversation
+    // //   },
+    // //   subscribe: withFilter((parent, args, context, info) => {
+    // //       return pubsub.asyncIterator(["CONVERSATION"])
+    // //     }, (payload, variables, context) => {
+    // //       let {mutation, data} = payload.conversation
+          
+    // //       // let {currentUser} = context
+    // //       // if(_.isEmpty(currentUser)){
+    // //       //   return false;
+    // //       // }
+    // //       // console.log("CONVERSATION: ", payload)
+    // //       switch(mutation){
+    // //         case "CREATED":
+    // //         case "UPDATED":
+    // //         case "DELETED":
+    // //           {
+    // //             return _.findIndex(data.members, (o) => o.userId == variables.userId ) > -1
+    // //           }
+    // //         case "CONNECTED":
+    // //         case "DISCONNECTED":{
+    // //           // console.log("CONVERSATION :::: ", mutation, data)
+    // //         }
+    // //       }
+
+    // //       return false;
+          
+    // //     }
+    // //   )
+    // // },
+    // subMessage: {
+    //   resolve: (payload) =>{
+    //     return payload.message
+    //   },
+    //   subscribe: withFilter((parent, args, context, info) => {
+    //       return pubsub.asyncIterator(["MESSAGE"])
+    //     }, async (payload, variables, context) => {
+    //       let {mutation, data} = payload.message
+
+    //       // if(variables.conversationId === data.conversationId &&  variables.userId !== data.senderId) {
+            
+    //       //   let conversation = await Model.Conversation.findById(variables.conversationId);
+
+    //       //   // console.log("MESSAGE ::", variables, data)
+
+    //       //   if(!_.isEmpty(conversation)){
+
+    //       //     // update all message to read
+    //       //     await Message.updateMany({
+    //       //         conversationId: variables.conversationId, 
+    //       //         senderId: { $nin: [ variables.userId ] },
+    //       //         status: 'sent',
+    //       //         reads: { $nin: [ variables.userId ] }
+    //       //       }, 
+    //       //       // {$set: {reads: [ userId ] }}
+    //       //       { $push: {reads: variables.userId } }
+    //       //     )
+
+    //       //     // update conversation  unreadCnt = 0
+    //       //     // conversation = _.omit({...conversation._doc}, ["_id", "__v"])
+          
+    //       //     // conversation = {...conversation, members: _.map(conversation.members, (member)=>member.userId == variables.userId ? {...member, unreadCnt:0} : member) }
+
+    //       //     // let newConversation = await Model.Conversation.findOneAndUpdate({ _id : variables.conversationId }, conversation, { new: true })
+
+    //       //     // pubsub.publish("CONVERSATION", {
+    //       //     //   conversation: {
+    //       //     //     mutation: "UPDATED",
+    //       //     //     data: newConversation,
+    //       //     //   }
+    //       //     // });
+    //       //   }
+    //       // }
+    //       return data.conversationId === variables.conversationId && data.senderId !== variables.userId
+    //     }
+    //   )
+    // },
+    // conversations: {
     //   resolve: (payload) =>{
     //     return payload.conversation
     //   },
     //   subscribe: withFilter((parent, args, context, info) => {
     //       return pubsub.asyncIterator(["CONVERSATION"])
-    //     }, (payload, variables, context) => {
-    //       let {mutation, data} = payload.conversation
-          
-    //       // let {currentUser} = context
-    //       // if(_.isEmpty(currentUser)){
-    //       //   return false;
-    //       // }
-    //       // console.log("CONVERSATION: ", payload)
+    //     }, async (payload, variables, context, info) => {
+    //       let { userId } = variables
+    //       let { mutation, data } = payload.conversation
     //       switch(mutation){
     //         case "CREATED":
     //         case "UPDATED":
-    //         case "DELETED":
-    //           {
-    //             return _.findIndex(data.members, (o) => o.userId == variables.userId ) > -1
-    //           }
-    //         case "CONNECTED":
-    //         case "DISCONNECTED":{
-    //           // console.log("CONVERSATION :::: ", mutation, data)
-    //         }
+    //           return _.find( data?.members, m=> _.isEqual(m.userId.toString(), userId.toString()) ) ? true : false
     //       }
 
     //       return false;
-          
     //     }
     //   )
     // },
-    subMessage: {
-      resolve: (payload) =>{
-        return payload.message
-      },
-      subscribe: withFilter((parent, args, context, info) => {
-          return pubsub.asyncIterator(["MESSAGE"])
-        }, async (payload, variables, context) => {
-          let {mutation, data} = payload.message
-
-          // if(variables.conversationId === data.conversationId &&  variables.userId !== data.senderId) {
-            
-          //   let conversation = await Model.Conversation.findById(variables.conversationId);
-
-          //   // console.log("MESSAGE ::", variables, data)
-
-          //   if(!_.isEmpty(conversation)){
-
-          //     // update all message to read
-          //     await Message.updateMany({
-          //         conversationId: variables.conversationId, 
-          //         senderId: { $nin: [ variables.userId ] },
-          //         status: 'sent',
-          //         reads: { $nin: [ variables.userId ] }
-          //       }, 
-          //       // {$set: {reads: [ userId ] }}
-          //       { $push: {reads: variables.userId } }
-          //     )
-
-          //     // update conversation  unreadCnt = 0
-          //     // conversation = _.omit({...conversation._doc}, ["_id", "__v"])
-          
-          //     // conversation = {...conversation, members: _.map(conversation.members, (member)=>member.userId == variables.userId ? {...member, unreadCnt:0} : member) }
-
-          //     // let newConversation = await Model.Conversation.findOneAndUpdate({ _id : variables.conversationId }, conversation, { new: true })
-
-          //     // pubsub.publish("CONVERSATION", {
-          //     //   conversation: {
-          //     //     mutation: "UPDATED",
-          //     //     data: newConversation,
-          //     //   }
-          //     // });
-          //   }
-          // }
-          return data.conversationId === variables.conversationId && data.senderId !== variables.userId
-        }
-      )
-    },
-    conversations: {
-      resolve: (payload) =>{
-        return payload.conversation
-      },
-      subscribe: withFilter((parent, args, context, info) => {
-          return pubsub.asyncIterator(["CONVERSATION"])
-        }, async (payload, variables, context, info) => {
-          let { userId } = variables
-          let { mutation, data } = payload.conversation
-          switch(mutation){
-            case "CREATED":
-            case "UPDATED":
-              return _.find( data?.members, m=> _.isEqual(m.userId.toString(), userId.toString()) ) ? true : false
-          }
-
-          return false;
-        }
-      )
-    },
     userConnected: {
       resolve: (payload) =>{
         return payload.userConnected
@@ -5785,7 +5828,7 @@ export default {
       subscribe: withFilter((parent, args, context, info) => {
           return pubsub.asyncIterator(["USER_CONNECTED"])
         }, async (payload, variables, context, info) => {
-          console.log("userConnected subscribe")
+          console.log("userConnected subscribe :", payload, variables)
           return true;
         }
       ),

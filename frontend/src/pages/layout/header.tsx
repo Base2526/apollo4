@@ -2,7 +2,7 @@ import "@/pages/layout/index.less"
 
 import React, { FC } from 'react';
 import { LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined, SettingOutlined, ToolOutlined } from '@ant-design/icons';
-import { Dropdown, Layout, theme as antTheme, Tooltip, Avatar } from 'antd';
+import { Dropdown, Layout, theme as antTheme, Tooltip, Avatar, Typography } from 'antd';
 import { createElement, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -79,14 +79,15 @@ const HeaderComponent: FC<HeaderProps> = ({ collapsed, toggle }) => {
 
   return (
     <Header className="layout-page-header bg-2" style={{ backgroundColor: token.token.colorBgContainer }}>       
-      {device !== 'MOBILE' && (
-        <div className="logo" style={{ width: collapsed ? 80 : 200 }} onClick={()=>navigate('/')}>
-          <InsuranceLogo color= { theme === 'dark' ? "#FFFFFF" : "#333333" } />
-        </div>
-      )}
+      {/* {device !== 'MOBILE' && ( */}
+      <div className="logo" style={{ width: 200, justifyContent: 'start', paddingLeft: '10px'  }} onClick={()=>navigate('/')}>
+        <InsuranceLogo color= { theme === 'dark' ? "#FFFFFF" : "#333333" } />
+        <Typography style={{cursor: 'pointer', marginLeft: 10, fontSize: 20, fontWeight: 400}}>BEST MALL U</Typography>
+      </div>
+      {/* )} */}
       <div className="layout-page-header-main">
-        <div onClick={toggle} style={{ color: '#afafaf' }}>
-          <span id="sidebar-trigger">{collapsed ? <MenuUnfoldOutlined style={{ color: theme === 'dark' ? "#FFFFFF" : "#333333", fontSize: '24px' }} /> : <MenuFoldOutlined style={{ color: theme === 'dark' ? "#FFFFFF" : "#333333", fontSize: '24px' }}/>}</span>
+        <div  /*onClick={toggle}*/  style={{ color: '#afafaf' }}>
+          {/* <span id="sidebar-trigger">{collapsed ? <MenuUnfoldOutlined style={{ color: theme === 'dark' ? "#FFFFFF" : "#333333", fontSize: '24px' }} /> : <MenuFoldOutlined style={{ color: theme === 'dark' ? "#FFFFFF" : "#333333", fontSize: '24px' }}/>}</span> */}
         </div>
         <div className="actions">
           <CartComponent />

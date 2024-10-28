@@ -1,6 +1,6 @@
 import "./index.less";
 import React, { useState } from 'react';
-import { message, List, Avatar, Button, Popconfirm, InputNumber, Image } from 'antd';
+import { message, List, Card, Button, Popconfirm, InputNumber, Image } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import _ from 'lodash';
 import { useSelector, useDispatch } from 'react-redux';
@@ -20,7 +20,7 @@ const Cart: React.FC = (props) => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const { carts } = useSelector((state: DefaultRootState) => state.user);
+  const { carts, profile } = useSelector((state: DefaultRootState) => state.user);
 
   const [isModalVisible, setIsModalVisible]  = useState(false)
 
@@ -59,18 +59,20 @@ const Cart: React.FC = (props) => {
   };
 
   const onCheckout = () => {
-    setLoading(true);
-
-    const productIds =   _.map(carts, item => ({
-                            productId: item._id,
-                            quantities: item.current.quantities
-                          }));
-
-    onOrder({ variables: { input: { mode: 'added', productIds } } });
+    if(profile.current?.address_delivery){
+      navigate("/checkout")
+    }else{
+      setIsModalVisible(true)
+    }
   };
 
+  const sumAllPrice = () =>{
+    let price = _.sumBy(carts, (item) => item.current.quantities !== undefined ? parseFloat(item.current.price) * item.current.quantities  : parseFloat(item.current.price) )
+    return price * (100-5)/100
+  }
+
   return (
-    <div>
+    <Card style={{ marginBottom: '20px' }}>
       <List
         itemLayout="horizontal"
         dataSource={carts}
@@ -79,15 +81,20 @@ const Cart: React.FC = (props) => {
             <div style={{ fontSize: 20 }}>{`รายการสินค้า (${carts.length})`}</div>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <div style={{ marginRight: 8, fontSize:20 }}>
-                {`ยอดทั้งหมด: ${_.sumBy(carts, (item) => item.current.quantities !== undefined ? parseFloat(item.current.price) * item.current.quantities  : parseFloat(item.current.price) )} บาท`}
+                {`ยอดทั้งหมด: ${ sumAllPrice() } บาท`}
               </div>
-              <Button type="default" onClick={()=>{
+              {/* <Button type="default" onClick={()=>{
                 setIsModalVisible(true)
               }} >
                 {`ที่อยู่จัดส่ง`}
-              </Button>
-              <Button type="primary" onClick={onCheckout} loading={loading}>
-                {`ยืนยันการสั่งซื้อ (${carts.length})`}
+              </Button> */}
+              <Button 
+                type="primary" 
+                // disabled={ !profile.current?.address_delivery }
+                onClick={onCheckout} 
+                // onClick={()=>{ navigate("/checkout") }}
+                loading={loading}>
+                {`ชำระเงิน (${carts.length})`}
               </Button>
             </div>
           </div>
@@ -151,7 +158,7 @@ const Cart: React.FC = (props) => {
       { isModalVisible && <AddressModalForm 
                             isModalVisible={isModalVisible}
                             setIsModalVisible={()=>{ setIsModalVisible(false) }}/> }
-    </div>
+    </Card>
   );
 };
 
