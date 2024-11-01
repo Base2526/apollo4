@@ -99,7 +99,7 @@ const ProductForm: React.FC = (props) => {
         fetchPolicy: 'cache-first',
         nextFetchPolicy: 'network-only',
         notifyOnNetworkStatusChange: false,
-        skip: _.isEmpty(_id)
+        skip: _.isEmpty(_id) || mode === 'added'
     });
 
   if (errorProduct) {
@@ -316,7 +316,7 @@ const ProductForm: React.FC = (props) => {
         name="price_discount_bm"
         rules={[{ required: true, message: '' }]}
         help="หมายเหตุ: ส่วนลดเฉพาะตำแหน่ง BM ">
-        <InputNumber min={0} />
+        <InputNumber min={0} max={5}/>
       </Form.Item>
       <Form.Item
         label="ส่วนลดมาตรฐาน BS (%)"
@@ -348,7 +348,6 @@ const ProductForm: React.FC = (props) => {
         help="หมายเหตุ: All Sale">
         <InputNumber min={0} />
       </Form.Item>
-      // 
       <Form.Item
         label="ค่าจัดส่ง"
         name="price_delivery"

@@ -40,6 +40,7 @@ interface Current {
   isActive?: 0 | 1;
   avatar?: Avatar;
   position?: string;
+  positionId?: string;
   address_delivery?: {
     name: string;
     phone: string;
@@ -138,6 +139,7 @@ export interface UserState {
 export interface OrderOwner {
   _id: string;
   current: {
+    displayName: string;
     productId: string[];  // Array of product IDs
     ownerId: string;      // Owner ID
     status: number;       // Status (number type)

@@ -1,6 +1,6 @@
 import 'dayjs/locale/zh-cn';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ConfigProvider, Spin, theme as antdTheme } from 'antd';
 import enUS from 'antd/es/locale/en_US';
 import zhCN from 'antd/es/locale/zh_CN';
@@ -19,18 +19,23 @@ import  { DefaultRootState } from '@/interface/DefaultRootState';
 import { localeConfig } from './locales';
 import RenderRouter from './routes';
 import { setGlobalState } from './stores/global.store';
-import { healthCheck, userConnected } from "./apollo/gqlQuery"
+import { userConnected } from "./apollo/gqlQuery"
 
 const App: FC = () => {
-  const { locale } = useSelector((state : DefaultRootState) => state.user);
+  const { locale, profile } = useSelector((state : DefaultRootState) => state.user);
   const { theme, loading } = useSelector((state : DefaultRootState) => state.global);
   const dispatch = useDispatch();
   const { t } = useTranslation();
 
+  const [subscriptionState, setSubscriptionState] = useState({
+    _id: "",
+    isSubscribed: true
+  });
+
   useSubscription(userConnected,
-                  {
-                  variables: { input : {a : '1234'} },
-                  skip: false,
+                  { 
+                  variables: { input : {_id : profile?._id} },
+                  skip: !subscriptionState.isSubscribed,
                   onSubscriptionData: ({ subscriptionData }) => {
                     // if (subscriptionData.data) {
                     //   const newMessage = subscriptionData.data.newMessage;
@@ -49,6 +54,22 @@ const App: FC = () => {
   //     console.error('Subscription error:',  e?.extensions, e?.extensions?.code);
   //   })
   // }
+
+  useEffect(()=>{
+    console.log("@@@1 :", subscriptionState)
+  }, [subscriptionState])
+  
+  useEffect(()=>{
+    const profileId = profile?._id ?? ""; // Use empty string if profile?._id is undefined
+
+    if (subscriptionState._id !== profileId) {
+      setSubscriptionState({ _id: profileId, isSubscribed: false });
+  
+      setTimeout(() => {
+        setSubscriptionState({ _id: profileId, isSubscribed: true });
+      }, 0);
+    }
+  }, [profile])
 
   const setTheme = (dark = true) => {
     dispatch(

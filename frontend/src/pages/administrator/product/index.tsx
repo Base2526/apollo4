@@ -199,7 +199,7 @@ const ProductList: React.FC = (props) => {
 
     const { loading: loadingProducts, data: dataProducts, error: errorProducts, refetch: refetchProduct } = useQuery(guery_products, {
         context: { headers: getHeaders(location) },
-        fetchPolicy: 'no-cache',
+        fetchPolicy: 'cache-first',
         nextFetchPolicy: 'network-only',
         notifyOnNetworkStatusChange: false,
     });

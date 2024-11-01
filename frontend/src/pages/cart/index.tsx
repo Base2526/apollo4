@@ -1,19 +1,27 @@
 import "./index.less";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { message, List, Card, Button, Popconfirm, InputNumber, Image } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import _ from 'lodash';
 import { useSelector, useDispatch } from 'react-redux';
-import { useMutation } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import { DefaultRootState } from '@/interface/DefaultRootState';
 import { removeCart, clearAllCart, updateCartQuantities } from '@/stores/user.store';
 import { ProductItem } from "@/interface/user/user";
-import { mutation_order } from '@/apollo/gqlQuery';
+import { query_positions, mutation_order } from '@/apollo/gqlQuery';
 import { getHeaders } from '@/utils';
 import handlerError from '@/utils/handlerError';
 
 import AddressModalForm from "@/pages/cart/AddressModalForm"
+
+interface positionInterface {
+  _id: string;
+  level: number;
+  name: string;
+  percent: number;
+  budget: number;
+}
 
 const { REACT_APP_HOST_GRAPHAL } = process.env;
 const Cart: React.FC = (props) => {
@@ -24,22 +32,39 @@ const Cart: React.FC = (props) => {
 
   const [isModalVisible, setIsModalVisible]  = useState(false)
 
-  console.log("Cart :", carts)
+  console.log("Cart :", carts, profile)
   const [loading, setLoading] = useState(false);
 
-  const [onOrder] = useMutation(mutation_order, {
-    context: { headers: getHeaders(location) },
-    update: (cache, { data: { order } }) => {
-      dispatch(clearAllCart());
-      setLoading(false);
-      message.success('Order placed successfully!');
-      navigate("/");
-    },
-    onError: (error) => {
-      setLoading(false);
-      handlerError(props, error);
-    }
+  const [positions, setPositions] = useState<positionInterface[]>([]);
+
+  const { loading: loadingPositions, data: dataPositions } = useQuery(query_positions, {
+      context: { headers: getHeaders(location) },
+      fetchPolicy: 'cache-first',
+      nextFetchPolicy: 'network-only'
   });
+
+  useEffect(() => {
+      if (!loadingPositions && !_.isEmpty(dataPositions?.positions)) {
+          const { status, data } = dataPositions.positions;
+          if (status) {
+              setPositions(data);
+          }
+      }
+  }, [dataPositions, loadingPositions]);
+
+  // const [onOrder] = useMutation(mutation_order, {
+  //   context: { headers: getHeaders(location) },
+  //   update: (cache, { data: { order } }) => {
+  //     dispatch(clearAllCart());
+  //     setLoading(false);
+  //     message.success('Order placed successfully!');
+  //     navigate("/");
+  //   },
+  //   onError: (error) => {
+  //     setLoading(false);
+  //     handlerError(props, error);
+  //   }
+  // });
 
   const onView = (_id: string) => {
     navigate(`/view?v=${_id}`, { state: { _id } });
@@ -67,8 +92,45 @@ const Cart: React.FC = (props) => {
   };
 
   const sumAllPrice = () =>{
-    let price = _.sumBy(carts, (item) => item.current.quantities !== undefined ? parseFloat(item.current.price) * item.current.quantities  : parseFloat(item.current.price) )
-    return price * (100-5)/100
+    let sum_price = 0;
+    _.map(carts, (cart)=>{
+      let position = _.find(positions, (p)=>p._id?.toString() === profile.current?.positionId?.toString())
+      switch(position?.name?.toLocaleUpperCase()){
+        case "BM":{
+          sum_price +=((cart.current.quantities * parseFloat(cart.current.price_sell)) * (100-cart.current.price_discount_bm)/100 );
+          break;
+        }
+        // BS, BG, BD, BP, MA, MB, MC, MD, ME, MF, MG, MH, MI, MJ, MK, ML, MM, MN, MO, MP, MQ, MR, MS
+        case "BS":
+        case "BG":
+        case "BD":
+        case "BP":
+        case "MA":
+        case "MB":
+        case "MC":
+        case "MD":
+        case "ME":
+        case "MF":
+        case "MG":
+        case "MH":
+        case "MI":
+        case "MJ":
+        case "MK":
+        case "ML":
+        case "MM":
+        case "MN":
+        case "MO":
+        case "MP":
+        case "MG":
+        case "MR":
+        case "MS":{
+          sum_price +=((cart.current.quantities * parseFloat(cart.current.price_sell)) * (100-(cart.current.price_discount_bs + position.percent ))/100 );
+          break;
+        }
+      }
+    })
+
+    return sum_price;
   }
 
   return (
@@ -81,7 +143,7 @@ const Cart: React.FC = (props) => {
             <div style={{ fontSize: 20 }}>{`รายการสินค้า (${carts.length})`}</div>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <div style={{ marginRight: 8, fontSize:20 }}>
-                {`ยอดทั้งหมด: ${ sumAllPrice() } บาท`}
+                {`ยอดทั้งหมด(หลังหัก % ค่าตำแหน่ง): ${ Math.ceil(sumAllPrice()) } บาท`}
               </div>
               {/* <Button type="default" onClick={()=>{
                 setIsModalVisible(true)
@@ -136,8 +198,10 @@ const Cart: React.FC = (props) => {
                       description={
                         <div>
                           <div>{`รายละเอียด: ${item.current.detail}`}</div>
-                          <div>{`ราคาต่อหน่อย: ${ item.current.quantities !== undefined ? parseInt(item.current.price) * item.current.quantities : parseInt(item.current.price)  } บาท`}</div>
+                          <div>{`ราคาต่อหน่อย: ${ item.current.price_sell } x ${ item.current.quantities } = ${ item.current.quantities !== undefined ? parseInt(item.current.price_sell) * item.current.quantities : parseInt(item.current.price_sell)  } บาท`}</div>
                           <div>{`จำนวนสินค้าทั้งหมด: ${ item.current.quantity } ชิ้น`}</div>
+                          <div>{`ส่วนลดเฉพาะตำแหน่ง BM (ไม่เกิม 5%): ${ item.current.price_discount_bm } %`}</div>
+                          <div>{`ส่วนลดมาตรฐาน BS (%): ${ item.current.price_discount_bs } %`}</div>
                           <div>{`ค่าจัดส่ง: ${ item.current.price_delivery } บาท`}</div>
                           <div style={{ marginTop: 8 }}>
                             <span>จำนวนสินค้าทีสั่งซื้อ: </span>

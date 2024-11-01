@@ -77,7 +77,7 @@ services:
     environment:
       NODE_ENV: production
     env_file:
-      - ./env/.env.ui.ts
+      - .env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock  # set can run docker inside ex. run docker backup db(a4_mongo)
       - ./backend/src:/app/src        

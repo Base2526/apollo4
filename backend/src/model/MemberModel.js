@@ -10,7 +10,6 @@ const historySchema = new Schema({
 });
 
 
-
 const memberSchema = new Schema({
     current: {
         // parentId: { type: Schema.Types.ObjectId, required:[true, "Parent ID Request is a required field"]  },
@@ -85,6 +84,11 @@ const memberSchema = new Schema({
             default: 'BM',  // Default value
             required: true,
         },
+        positionId: { 
+            type: Schema.Types.ObjectId, 
+            default: mongoose.Types.ObjectId('6721098ce9dccb02aab4cb3e'),
+            required: true,
+        },
         address_delivery:{
             name: { type: String },
             phone: { type: String },
@@ -97,4 +101,10 @@ const memberSchema = new Schema({
     timestamps: true
 })
 
-export default mongoose.model('member', memberSchema,'member')
+// export default mongoose.model('member', memberSchema,'member')
+
+const member = mongoose.model('member', memberSchema,'member')
+export {
+    member,
+    memberSchema
+} 

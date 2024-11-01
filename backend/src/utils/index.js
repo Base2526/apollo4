@@ -2110,3 +2110,119 @@ export const calculateAmount = async(nodeId, currentPeriod) => {
 
     return []
 }
+
+
+///////////////// calcute_plan_back
+
+async function calculatePB(parentId = null, level = 1, startPeriod, endPeriod) {
+    const nodes = await Model.Node.find({ 'current.parentNodeId': parentId });
+    
+    return await Promise.all(nodes.map(async (node) => {
+
+        /*
+        เช็ดว่า node นี้มีการจ่าเงินใน period นี้หรือเปล่า
+        - ถ้าอยู่จะนําเอาไปคำนวณเงิน 
+        */
+        /*
+        find range period for now()
+        */
+        // const currentPeriod = await Model.Period.findOne({
+        //     start: { $lte: timePeriod }, // Start date should be less than or equal to now
+        //     end: { $gte: timePeriod }    // End date should be greater than or equal to now
+        // });
+
+        /** ยอดเสมือนจ่ายจริงแต่ละ period 
+         *  จะเช็ดเฉพาะ node ที่ถูกสร้างใน period นี้
+         * **/
+        // console.log("จะเช็ดเฉพาะ node ที่ถูกสร้างใน period นี้ : ", node.createdAt)
+        // Check if createdAt is within the range
+        if (node.createdAt >= startPeriod && node.createdAt <= endPeriod) {
+            // console.log(`createdAt is within the specified period = ${ node }`);
+            node = {...node._doc, inVisulPeriod: true}
+        }else{
+            node = {...node._doc, inVisulPeriod: false}
+        }
+
+        /** ยอดเสมือนจ่ายจริงแต่ละ period **/
+
+
+        /** ยอดจ่ายจริงแต่ละ period **/
+        /**
+         หา order ที่อยู่ใน period  
+        */
+        const query = {
+            'current.ownerId': node.current.ownerId,
+            'current.status': 2,
+            updatedAt: {
+                $gte: startPeriod,
+                $lte: endPeriod
+            }
+        };
+
+        const order = await Model.Order.findOne(query);
+        if(order !== null){
+            node = {...node, inRealPeriod: true}
+        }else{
+            node = {...node, inRealPeriod: false}
+        }
+        /** ยอดจ่ายจริงแต่ละ period **/
+
+        /*
+        เช็ดว่า node นี้มีการจ่าเงินใน period นี้หรือเปล่า
+        */
+
+        // const level = await calculateNodeLevel(node._id);
+
+        const nextLevel = level + 1;
+        
+        // Check if current level exceeds maxLevel
+        if (nextLevel >= 6) {
+            // Do not build children if the max level is reached
+            return {
+                title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
+                key: node._id.toString(),
+                node,
+                owner: await Model.Member.findById(node.current.ownerId),
+                level: nextLevel,
+                children: null, // No children if max level is reached
+            };
+        } else {
+            // Continue building the tree recursively if max level is not reached
+            const children = await calculatePB(node._id, nextLevel, startPeriod, endPeriod);
+            return {
+                title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
+                key: node._id.toString(),
+                node,
+                owner: await Model.Member.findById(node.current.ownerId),
+                level: nextLevel,
+                children: children.length ? children : null,
+            };
+        }
+    }));
+}
+
+export const calculate_plan_back = async(nodeId, startDate, endDate) =>{
+    console.log("calculate_plan_back :", nodeId, startDate, endDate)
+
+    const level = 1;
+
+    let startPeriod = startDate;
+    let endPeriod = endDate;
+
+    const node = await Model.Node.findById(nodeId);
+    if(node){
+        const trees = await calculatePB(nodeId, level, startPeriod, endPeriod)
+        const owner = await Model.Member.findById(node.current.ownerId)
+        return [{
+                    title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId} ,ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: 1, isParent: ${node.current.isParent}`,
+                    key: node._id.toString(),
+                    node,
+                    owner,
+                    level,
+                    children: trees
+                }]
+    }
+
+    return []
+}
+///////////////// calcute_plan_back

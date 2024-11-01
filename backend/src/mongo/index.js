@@ -4,7 +4,7 @@ let logger = require("../utils/logger");
 
 import * as Utils from "../utils"
 
-import { init_admin,  init_node} from "./init_data"
+import { init_admin,  init_node, init_position } from "./init_data"
 
 const modelExists =()=>{
 
@@ -454,13 +454,19 @@ const modelExists =()=>{
     } else {
       let newOrder = new Model.Order({     
                                         current : { 
-                                          productIds: [
+                                          products: [
                                             {
-                                              productId: new mongoose.Types.ObjectId(),
+                                              // productId: new mongoose.Types.ObjectId(),
+                                              product: {
+                                                _id: new mongoose.Types.ObjectId(),
+                                              },
                                               quantities: 1
                                             }
                                           ], 
-                                          ownerId: new mongoose.Types.ObjectId(), 
+                                          owner: { 
+                                            _id: new mongoose.Types.ObjectId(),
+                                            positionId: new mongoose.Types.ObjectId(),
+                                          }, 
                                           status: 1
                                         }
                                       });
@@ -480,6 +486,13 @@ const modelExists =()=>{
       await Utils.createPeriod();
     }
   }); 
+
+  Model.Position.find({},async(err, result) =>{
+    if (result.length > 0) {
+    } else {
+      await Model.Position.insertMany(init_position);
+    }
+  });
 }
 
 // TODO: initial and connect to MongoDB

@@ -2,11 +2,12 @@ import React, { FC, useState, useRef, useEffect } from 'react';
 import { Card, Descriptions, Typography, Button, Input, message, Tag, Image as ImagesAntd, Space, Avatar, Spin } from 'antd';
 import { CopyOutlined, DownloadOutlined, EditOutlined, UserOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { useMutation } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
 import QRCode from 'react-qr-code';
+import _ from "lodash"
 
-import { mutationProfile, mutation_address_delivery } from "@/apollo/gqlQuery";
+import { query_positions, mutation_profile, mutation_address_delivery } from "@/apollo/gqlQuery";
 import { getHeaders } from "@/utils";
 import { updateProfile, deleteAddressDelivery } from '@/stores/user.store';
 import "@/pages/profile/index.less";
@@ -18,6 +19,14 @@ import * as Constants from "@/constants"
 const { Paragraph, Text } = Typography;
 
 const { REACT_APP_HOST_GRAPHAL }  = process.env
+
+interface positionInterface {
+  _id: string;
+  level: number;
+  name: string;
+  percent: number;
+  budget: number;
+}
 
 const ProfilePage: FC = (props) => {
   const navigate = useNavigate();
@@ -31,7 +40,7 @@ const ProfilePage: FC = (props) => {
 
   console.log("ProfilePage :", profile)
 
-  const [onUpdateProfile] = useMutation(mutationProfile, {
+  const [onProfile] = useMutation(mutation_profile, {
     context: { headers: getHeaders(location) },
     update: (cache, { data: { profile } }) => {
       if (profile.status) {
@@ -68,6 +77,23 @@ const ProfilePage: FC = (props) => {
       // setIsModalVisible();
     },
   });
+
+  const [positions, setPositions] = useState<positionInterface[]>([]);
+
+  const { loading: loadingPositions, data: dataPositions } = useQuery(query_positions, {
+      context: { headers: getHeaders(location) },
+      fetchPolicy: 'cache-first',
+      nextFetchPolicy: 'network-only'
+  });
+
+  useEffect(() => {
+      if (!loadingPositions && !_.isEmpty(dataPositions?.positions)) {
+          const { status, data } = dataPositions.positions;
+          if (status) {
+              setPositions(data);
+          }
+      }
+  }, [dataPositions, loadingPositions]);
 
   const copyToClipboard = (text: string) => {
     if (navigator.clipboard) {
@@ -161,7 +187,7 @@ const ProfilePage: FC = (props) => {
     if (file) {
       // setSelectedFile(file); // Set the selected file
       setLoadingUpdateProfile(true)
-      onUpdateProfile({ variables: { input: { file } } })
+      onProfile({ variables: { input: { mode: 'edited', file } } })
     }
   };
 
@@ -171,6 +197,11 @@ const ProfilePage: FC = (props) => {
       case 2: return 8;
       case 3: return 56;
     }
+  }
+
+  const __ViewPosition = (positionId: string) =>{
+    let position = _.find(positions, position => position._id === positionId);
+    return position?.name;
   }
 
   return (
@@ -236,7 +267,7 @@ const ProfilePage: FC = (props) => {
         </div>
         <Descriptions title="User Information" bordered column={1} style={{ marginTop: '20px' }}>
           <Descriptions.Item label="เบอร์โทรศัพท์"><Paragraph className='ant-typography-tel' copyable>{profile?.current?.tel}</Paragraph></Descriptions.Item>
-          <Descriptions.Item label="ตำแหน่ง"><Tag color="#2db7f5">{profile?.current?.position}</Tag></Descriptions.Item>
+          <Descriptions.Item label="ตำแหน่ง"><Tag color="#2db7f5">{__ViewPosition(profile?.current?.positionId || "")}</Tag></Descriptions.Item>
           <Descriptions.Item label="Package"><Tag color="#2db7f5">{__ViewPackage(profile?.current?.packages || 0)}</Tag></Descriptions.Item>
         
           {/* CloseOutlined 
@@ -300,14 +331,14 @@ const ProfilePage: FC = (props) => {
                 navigate('/administrator/wallet')
               }}>Show Wallet</Button>
           </Descriptions.Item>
-          {/* <Descriptions.Item label="Bills">
+          <Descriptions.Item label="Bills">
             <Button 
               type="primary" 
               style={{ marginRight: '10px' }}
               onClick={()=>{
-                navigate('/administrator/billlist')
-              }}>Show Bills</Button>
-          </Descriptions.Item> */}
+                navigate('/administrator/calcuteplanback')
+              }}>คำนวณผลประโยชน์แผนหลัง</Button>
+          </Descriptions.Item>
 
 {/* 
           {

@@ -62,6 +62,8 @@ import CalTreeHistoryListPage from "@/pages/administrator/CalTreeHistoryList"
 
 import NoticeListPage from "@/pages/administrator/NoticeList"
 
+import CalcutePlanBackPage from "@/pages/administrator/CalcutePlanBackPage"
+
 import WrapperRouteComponent from '@/routes/config';
 
 const NotFound = lazy(() => import(/* webpackChunkName: "404'"*/ '@/pages/404'));
@@ -234,6 +236,11 @@ const routeList: RouteObject[] = [
       {
         path: 'administrator/products/view',
         element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<ViewProductPage />} titleId="title.insurance" />,
+      },
+
+      {
+        path: 'administrator/calcuteplanback',
+        element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<CalcutePlanBackPage />} titleId="title.insurance" />,
       },
 
       {

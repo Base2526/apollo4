@@ -105,9 +105,9 @@ const LayoutPage: FC = () => {
     };
   }, [dispatch]);
 
-  useEffect(() => {
-    newUser && driverStart();
-  }, [newUser]);
+  // useEffect(() => {
+  //   newUser && driverStart();
+  // }, [newUser]);
 
   return (
     <Layout className="layout-page">

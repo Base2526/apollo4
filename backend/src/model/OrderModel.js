@@ -10,8 +10,22 @@ const historySchema = new Schema({
     updatedAt: Date
 });
 
-const productIdSchema = new Schema({
-    productId: { type: Schema.Types.ObjectId, required:[true, "Product-ID is a required field"]},
+const productSchema = new Schema({
+    // productId: { type: Schema.Types.ObjectId, required:[true, "Product-ID is a required field"]},
+    product: { 
+        _id: {
+            type: Schema.Types.ObjectId, 
+            required: true,
+        },
+        price: { type: Number , default: 0 },
+        price_sell: { type: Number , default: 0 },
+        price_discount_bm:  { type: Number , default: 0 },
+        price_discount_bs:  { type: Number , default: 0 },
+        price_discount_from_children:  { type: Number , default: 0 },
+        price_discount_from_office:  { type: Number , default: 0 },
+        all_sale:  { type: Number , default: 0 },
+        price_delivery: { type: Number , default: 0 },
+    },
     quantities: { 
                     type: Number,
                     required: true,
@@ -20,11 +34,19 @@ const productIdSchema = new Schema({
 });
 
 const orderSchema = new Schema({
-    _isDEV: { type: Boolean, default: false },
     current: {
-        productIds: { type: [productIdSchema], required:[true, "Products-ID is a required field"]},
-        ownerId: { type: Schema.Types.ObjectId, required:[true, "Owner-ID is a required field"]},
-        editer: { type: Schema.Types.ObjectId },
+        products: { type: [productSchema], required:[true, "Products is a required field"]},
+        owner: { 
+            _id: { 
+                type: Schema.Types.ObjectId, 
+                required: true,
+            },
+            positionId: { 
+                type: Schema.Types.ObjectId, 
+                required: true,
+            }
+        }, // เจ้าของ order
+        editer: { type: Schema.Types.ObjectId },                                     // คน  edit/update
         message: { type: String  },
         attachFile: { type: [file], default: [] }, 
         status: { type: Number, 

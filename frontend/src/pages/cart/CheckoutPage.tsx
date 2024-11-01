@@ -3,22 +3,29 @@ import { Layout, Row, Col, Card, Typography, Divider, Button, Image, message, Sk
 import { useSelector, useDispatch } from 'react-redux';
 import { ShopOutlined } from "@ant-design/icons";
 import _ from "lodash"
-import { useMutation } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import { DefaultRootState } from "@/interface/DefaultRootState"
 import AddressModalForm from "@/pages/cart/AddressModalForm"
-import { mutation_order } from '@/apollo/gqlQuery';
+import { query_positions, mutation_order } from '@/apollo/gqlQuery';
 import { getHeaders } from '@/utils';
 import { removeCart, clearAllCart, updateCartQuantities } from '@/stores/user.store';
 
 import handlerError from '@/utils/handlerError';
 
+
 const { Header, Content, Footer } = Layout;
 const { Text, Title, Link } = Typography;
-
-
 const { REACT_APP_HOST_GRAPHAL } = process.env;
+
+interface positionInterface {
+  _id: string;
+  level: number;
+  name: string;
+  percent: number;
+  budget: number;
+}
 
 const CheckoutPage: React.FC = (props) => {
   const navigate = useNavigate();
@@ -42,18 +49,75 @@ const CheckoutPage: React.FC = (props) => {
     }
   });
 
+  const [positions, setPositions] = useState<positionInterface[]>([]);
+  const { loading: loadingPositions, data: dataPositions } = useQuery(query_positions, {
+      context: { headers: getHeaders(location) },
+      fetchPolicy: 'cache-first',
+      nextFetchPolicy: 'network-only'
+  });
+  useEffect(() => {
+      if (!loadingPositions && !_.isEmpty(dataPositions?.positions)) {
+          const { status, data } = dataPositions.positions;
+          if (status) {
+              setPositions(data);
+          }
+      }
+  }, [dataPositions, loadingPositions]);
+
   const onCheckout = () => {
     setLoading(true);
-    const productIds =   _.map(carts, item => ({
+    const products =   _.map(carts, item => ({
                             productId: item._id,
                             quantities: item.current.quantities
                           }));
-    onOrder({ variables: { input: { mode: 'added', productIds } } });
+    onOrder({ variables: { input: { mode: 'added', products } } });
   };
 
+  // const sumAllPrice = () =>{
+  //   let price = _.sumBy(carts, (item) => item.current.quantities !== undefined ? parseFloat(item.current.price) * item.current.quantities  : parseFloat(item.current.price) )
+  //   return price * (100-5)/100
+  // }
+
   const sumAllPrice = () =>{
-    let price = _.sumBy(carts, (item) => item.current.quantities !== undefined ? parseFloat(item.current.price) * item.current.quantities  : parseFloat(item.current.price) )
-    return price * (100-5)/100
+    let sum_price = 0;
+    _.map(carts, (cart)=>{
+      let position = _.find(positions, (p)=>p._id?.toString() === profile.current?.positionId?.toString())
+      switch(position?.name?.toLocaleUpperCase()){
+        case "BM":{
+          sum_price +=((cart.current.quantities * parseFloat(cart.current.price_sell)) * (100-cart.current.price_discount_bm)/100 );
+          break;
+        }
+        // BS, BG, BD, BP, MA, MB, MC, MD, ME, MF, MG, MH, MI, MJ, MK, ML, MM, MN, MO, MP, MQ, MR, MS
+        case "BS":
+        case "BG":
+        case "BD":
+        case "BP":
+        case "MA":
+        case "MB":
+        case "MC":
+        case "MD":
+        case "ME":
+        case "MF":
+        case "MG":
+        case "MH":
+        case "MI":
+        case "MJ":
+        case "MK":
+        case "ML":
+        case "MM":
+        case "MN":
+        case "MO":
+        case "MP":
+        case "MG":
+        case "MR":
+        case "MS":{
+          sum_price +=((cart.current.quantities * parseFloat(cart.current.price_sell)) * (100-(cart.current.price_discount_bs + position.percent ))/100 );
+          break;
+        }
+      }
+    })
+
+    return sum_price;
   }
 
   const sumAllDelivery = () =>{
@@ -90,8 +154,17 @@ const CheckoutPage: React.FC = (props) => {
             <Col span={4}>
               <Text style={{fontSize: 25}}>สั่งซื้อสินค้าแล้ว</Text>
             </Col>
-            <Col span={5}>
+            <Col span={3}>
             </Col>
+
+            <Col span={4} style={{ textAlign: 'right' }}>
+              <Text style={{color: 'gray'}}>ส่วนลดเฉพาะตำแหน่ง BM (ไม่เกิม 5%)</Text>
+            </Col>
+
+            <Col span={2} style={{ textAlign: 'right' }}>
+              <Text style={{color: 'gray'}}>ส่วนลดมาตรฐาน BS (%)</Text>
+            </Col>
+
             <Col span={2} style={{ textAlign: 'right' }}>
               <Text style={{color: 'gray'}}>ราคาต่อหน่วย</Text>
             </Col>
@@ -101,6 +174,10 @@ const CheckoutPage: React.FC = (props) => {
             <Col span={2} style={{ textAlign: 'right' }}>
               <Text style={{color: 'gray'}}>รายการย่อย</Text>
             </Col>
+            <Col span={2} style={{ textAlign: 'right' }}>
+              <Text style={{color: 'gray'}}>สว่นลดตำแหน่งสมาชิก</Text>
+            </Col>
+            
           </Row>
           
           {/* Store and Chat Section */}
@@ -158,6 +235,14 @@ const CheckoutPage: React.FC = (props) => {
                         <br />
                         {/* <Text type="secondary">ตัวเลือกสินค้า: PAE30 - 5m</Text> */}
                       </Col>
+
+                      <Col span={2} style={{ textAlign: 'right' }}>
+                        <Text>{ cart.current.price_discount_bm } %</Text>
+                      </Col>
+                      <Col span={2} style={{ textAlign: 'right' }}>
+                        <Text>{ cart.current.price_discount_bs } %</Text>
+                      </Col>
+
                       <Col span={2} style={{ textAlign: 'right' }}>
                         <Text>฿{ cart.current.price_sell }</Text>
                       </Col>
@@ -167,6 +252,11 @@ const CheckoutPage: React.FC = (props) => {
                       <Col span={2} style={{ textAlign: 'right' }}>
                         <Text>฿{ parseInt(cart.current.price_sell)  * cart.current.quantities }</Text>
                       </Col>
+                      <Col span={2} style={{ textAlign: 'right' }}>
+                        <Text>฿----</Text>
+                      </Col>
+
+                      
                     </Row>
                     <Row justify="space-between" align="middle">
                       <Col span={5}>
@@ -277,15 +367,31 @@ const CheckoutPage: React.FC = (props) => {
             <Col span={24}>
               <Row justify="end" align="bottom" style={{ marginBottom: 8 }}>
                 <Text style={{ paddingRight: 10 }}>รวมการสั่งซื้อ</Text>
-                <Text>฿{ sumAllPrice() }</Text>
+                <Text>฿{ Math.ceil(sumAllPrice()) }</Text>
               </Row>
               <Row justify="end" align="bottom" style={{ marginBottom: 8 }}>
                 <Text style={{ paddingRight: 10 }}>ค่าจัดส่ง</Text>
                 <Text>฿{ sumAllDelivery() }</Text>
               </Row>
+
+              <Row justify="end" align="bottom" style={{ marginBottom: 8 }}>
+                <Text style={{ paddingRight: 10 }}>ส่วนลด (ราคาทีได้ลด)</Text>
+                <Text>฿---</Text>
+              </Row>
+
+              <Row justify="end" align="bottom" style={{ marginBottom: 8 }}>
+                <Text style={{ paddingRight: 10 }}>โปรโมทชั่นค่าจัดส่ง</Text>
+                <Text>฿---</Text>
+              </Row>
+
+              <Row justify="end" align="bottom" style={{ marginBottom: 8 }}>
+                <Text style={{ paddingRight: 10 }}>ส่วนลดทั้งหมด</Text>
+                <Text>฿---</Text>
+              </Row>
+
               <Row justify="end" align="bottom">
                 <Text style={{ paddingRight: 10 }}>ยอดชำระเงินทั้งหมด</Text>
-                <Text style={{ color: 'red', fontSize: 25, fontWeight: 600 }}>฿{ sumAllPrice() + sumAllDelivery() } </Text>
+                <Text style={{ color: 'red', fontSize: 25, fontWeight: 600 }}>฿{ Math.ceil(sumAllPrice()) + sumAllDelivery() } </Text>
               </Row>
             </Col>
           </Row>
