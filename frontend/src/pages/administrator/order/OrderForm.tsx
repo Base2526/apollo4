@@ -18,25 +18,11 @@ import { OrderItem, OrderProductDetail }  from "@/interface/user/user"
 const { TextArea } = Input;
 const { Paragraph, Text } = Typography;
 
-
 interface ImageItem {
   id: number;
   src: string;
   alt: string;
 }
-
-const images: ImageItem[] = [
-  { id: 1, src: 'https://via.placeholder.com/150', alt: 'Image 1' },
-  { id: 2, src: 'https://via.placeholder.com/150', alt: 'Image 2' },
-  { id: 3, src: 'https://via.placeholder.com/150', alt: 'Image 3' },
-  { id: 4, src: 'https://via.placeholder.com/150', alt: 'Image 4' },
-  { id: 5, src: 'https://via.placeholder.com/150', alt: 'Image 5' },
-  { id: 6, src: 'https://via.placeholder.com/150', alt: 'Image 6' },
-  { id: 7, src: 'https://via.placeholder.com/150', alt: 'Image 7' },
-  { id: 8, src: 'https://via.placeholder.com/150', alt: 'Image 8' },
-  { id: 9, src: 'https://via.placeholder.com/150', alt: 'Image 9' },
-  { id: 10, src: 'https://via.placeholder.com/150', alt: 'Image 10' },
-];
 
 interface FormValues {
   name: string;
@@ -107,19 +93,19 @@ const OrderForm: React.FC = (props) => {
     if (mode === 'edited' && !loadingOrder && dataOrder?.order) {
       const order = dataOrder.order.data;
 
-      console.log("order : ", order)
+      console.log("order : ", order, order.current.status)
       form.setFieldsValue({
         _id: order._id,
-        ownerName: order.owner.current.displayName,
+        // ownerName: order.owner.current.displayName,
         status: order.current.status,
-        editer: order.editer !== undefined ? order.editer.current.displayName : "",
-        total: _.sumBy(order.productDetails, (item: OrderProductDetail) => item.current.price ),
-        message: order.current.message,
+        // editer: order.editer !== undefined ? order.editer.current.displayName : "",
+        // total: _.sumBy(order.productDetails, (item: OrderProductDetail) => item.current.price ),
+        // message: order.current.message,
       });
 
-      setOrder(order)
-      setAttachFile(order.current.attachFile);
-      setProductDetails(order.productDetails);
+      // setOrder(order)
+      // setAttachFile(order.current.attachFile);
+      // setProductDetails(order.productDetails);
     }
   }, [dataOrder, loadingOrder, form]);
 

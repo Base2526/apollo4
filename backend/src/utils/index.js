@@ -68,9 +68,9 @@ export const getSession = async(userId, input) => {
     await Model.Session.deleteOne({userId})
     let session = await Model.Session.create({  ...input, 
                                                 userId, 
-                                                token: jwt.sign(userId.toString(), process.env.JWT_SECRET)});
+                                                token: jwt.sign(userId.toString(), process.env.MONGO_PASSWORD_SECRET)});
   
-    return cryptojs.AES.encrypt(session?._id.toString(), process.env.JWT_SECRET).toString() 
+    return cryptojs.AES.encrypt(session?._id.toString(), process.env.MONGO_PASSWORD_SECRET).toString() 
 }
 
 export const checkAuth = async(req) => {
@@ -80,7 +80,7 @@ export const checkAuth = async(req) => {
         const parts   = auth.split(" ");
         const bearer  = parts[0];
         try{
-            const sessionId   = cryptojs.AES.decrypt(parts[1], process.env.JWT_SECRET).toString(cryptojs.enc.Utf8);
+            const sessionId   = cryptojs.AES.decrypt(parts[1], process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8);
             if (bearer === "Bearer") {
                 let session = await Model.Session.findOne({_id: sessionId});
                 if(!_.isEmpty(session)){
@@ -91,7 +91,7 @@ export const checkAuth = async(req) => {
                     //  0 : anonymums
                     //  1 : OK
                     if(expiredDays >= 0){
-                        let userId  = jwt.verify(session.token, process.env.JWT_SECRET);
+                        let userId  = jwt.verify(session.token, process.env.MONGO_PASSWORD_SECRET);
                         let current_user = await getMember({_id: userId}) 
 
                         if(!_.isNull(current_user)){
@@ -125,9 +125,9 @@ export const userAgent = (req) => {
 }
 
 export const checkAuthorizationWithSessionId = async(sessionId) => {
-    // let decode = jwt.verify(token, process.env.JWT_SECRET);
+    // let decode = jwt.verify(token, process.env.MONGO_PASSWORD_SECRET);
     // console.log("sessionId > ", sessionId)
-    var sId   = cryptojs.AES.decrypt(sessionId, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8);
+    var sId   = cryptojs.AES.decrypt(sessionId, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8);
        
     let session = await Model.Session.findById(sId)   
 
@@ -141,7 +141,7 @@ export const checkAuthorizationWithSessionId = async(sessionId) => {
         //  0 : anonymums
         //  1 : OK
         if(expiredDays >= 0){
-            let userId  = jwt.verify(session.token, process.env.JWT_SECRET);
+            let userId  = jwt.verify(session.token, process.env.MONGO_PASSWORD_SECRET);
 
 
             // console.log("checkAuthorization : ", session.token, userId )
@@ -832,7 +832,7 @@ export const logUserAccess = async (mode, ctx) =>{
         case 0: {
             let request = {...extra.request.headers, ip: connectionParams?.ip, }
             if(connectionParams?.authToken){
-                var sessionId   = cryptojs.AES.decrypt(connectionParams?.authToken, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8);
+                var sessionId   = cryptojs.AES.decrypt(connectionParams?.authToken, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8);
                 let session     = await Model.Session.findOne({_id: sessionId});
                 // console.log("checkAuth #  session @1 : ", session)
                 if(!_.isEmpty(session)){
@@ -843,7 +843,7 @@ export const logUserAccess = async (mode, ctx) =>{
                     //  0 : anonymums
                     //  1 : OK
                     if(expiredDays >= 0){
-                        let userId  = jwt.verify(session.token, process.env.JWT_SECRET);
+                        let userId  = jwt.verify(session.token, process.env.MONGO_PASSWORD_SECRET);
                         let current_user = await getMember({_id: userId}) 
 
                         let userAccess = await Model.LogUserAccess.findOne({"current.userId": current_user?._id })
@@ -862,7 +862,7 @@ export const logUserAccess = async (mode, ctx) =>{
 
         case 1: {
             if(connectionParams?.authToken){
-                var sessionId   = cryptojs.AES.decrypt(connectionParams?.authToken, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8);
+                var sessionId   = cryptojs.AES.decrypt(connectionParams?.authToken, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8);
                 let session     = await Model.Session.findOne({_id: sessionId});
                 // console.log("checkAuth #  session @1 : ", session)
                 if(!_.isEmpty(session)){
@@ -873,7 +873,7 @@ export const logUserAccess = async (mode, ctx) =>{
                     //  0 : anonymums
                     //  1 : OK
                     if(expiredDays >= 0){
-                        let userId  = jwt.verify(session.token, process.env.JWT_SECRET);
+                        let userId  = jwt.verify(session.token, process.env.MONGO_PASSWORD_SECRET);
                         // let current_user = await Utils.getMember({_id: userId}) //await Model.User.findOne({_id: userId});
         
                         let userAccess = await Model.LogUserAccess.findOne({"current.websocketKey": extra?.request?.headers['sec-websocket-key'] })
@@ -1900,7 +1900,7 @@ export const ___calculateTree = async () => {
                 status = 1;
             }
             let newTree = {
-                userId: mongoose.Types.ObjectId(process.env.ID_USER_ADMIN),
+                userId: mongoose.Types.ObjectId(process.env.USER_ADMIN_ID),
                 path: outputFile,
                 fileName: path.basename(outputFile),
                 status
@@ -2110,3 +2110,119 @@ export const calculateAmount = async(nodeId, currentPeriod) => {
 
     return []
 }
+
+
+///////////////// calcute_plan_back
+
+async function calculatePB(parentId = null, level = 1, startPeriod, endPeriod) {
+    const nodes = await Model.Node.find({ 'current.parentNodeId': parentId });
+    
+    return await Promise.all(nodes.map(async (node) => {
+
+        /*
+        เช็ดว่า node นี้มีการจ่าเงินใน period นี้หรือเปล่า
+        - ถ้าอยู่จะนําเอาไปคำนวณเงิน 
+        */
+        /*
+        find range period for now()
+        */
+        // const currentPeriod = await Model.Period.findOne({
+        //     start: { $lte: timePeriod }, // Start date should be less than or equal to now
+        //     end: { $gte: timePeriod }    // End date should be greater than or equal to now
+        // });
+
+        /** ยอดเสมือนจ่ายจริงแต่ละ period 
+         *  จะเช็ดเฉพาะ node ที่ถูกสร้างใน period นี้
+         * **/
+        // console.log("จะเช็ดเฉพาะ node ที่ถูกสร้างใน period นี้ : ", node.createdAt)
+        // Check if createdAt is within the range
+        if (node.createdAt >= startPeriod && node.createdAt <= endPeriod) {
+            // console.log(`createdAt is within the specified period = ${ node }`);
+            node = {...node._doc, inVisulPeriod: true}
+        }else{
+            node = {...node._doc, inVisulPeriod: false}
+        }
+
+        /** ยอดเสมือนจ่ายจริงแต่ละ period **/
+
+
+        /** ยอดจ่ายจริงแต่ละ period **/
+        /**
+         หา order ที่อยู่ใน period  
+        */
+        const query = {
+            'current.ownerId': node.current.ownerId,
+            'current.status': 2,
+            updatedAt: {
+                $gte: startPeriod,
+                $lte: endPeriod
+            }
+        };
+
+        const order = await Model.Order.findOne(query);
+        if(order !== null){
+            node = {...node, inRealPeriod: true}
+        }else{
+            node = {...node, inRealPeriod: false}
+        }
+        /** ยอดจ่ายจริงแต่ละ period **/
+
+        /*
+        เช็ดว่า node นี้มีการจ่าเงินใน period นี้หรือเปล่า
+        */
+
+        // const level = await calculateNodeLevel(node._id);
+
+        const nextLevel = level + 1;
+        
+        // Check if current level exceeds maxLevel
+        if (nextLevel >= 6) {
+            // Do not build children if the max level is reached
+            return {
+                title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
+                key: node._id.toString(),
+                node,
+                owner: await Model.Member.findById(node.current.ownerId),
+                level: nextLevel,
+                children: null, // No children if max level is reached
+            };
+        } else {
+            // Continue building the tree recursively if max level is not reached
+            const children = await calculatePB(node._id, nextLevel, startPeriod, endPeriod);
+            return {
+                title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
+                key: node._id.toString(),
+                node,
+                owner: await Model.Member.findById(node.current.ownerId),
+                level: nextLevel,
+                children: children.length ? children : null,
+            };
+        }
+    }));
+}
+
+export const calculate_plan_back = async(nodeId, startDate, endDate) =>{
+    console.log("calculate_plan_back :", nodeId, startDate, endDate)
+
+    const level = 1;
+
+    let startPeriod = startDate;
+    let endPeriod = endDate;
+
+    const node = await Model.Node.findById(nodeId);
+    if(node){
+        const trees = await calculatePB(nodeId, level, startPeriod, endPeriod)
+        const owner = await Model.Member.findById(node.current.ownerId)
+        return [{
+                    title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId} ,ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: 1, isParent: ${node.current.isParent}`,
+                    key: node._id.toString(),
+                    node,
+                    owner,
+                    level,
+                    children: trees
+                }]
+    }
+
+    return []
+}
+///////////////// calcute_plan_back

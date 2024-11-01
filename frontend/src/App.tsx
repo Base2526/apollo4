@@ -1,6 +1,6 @@
 import 'dayjs/locale/zh-cn';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ConfigProvider, Spin, theme as antdTheme } from 'antd';
 import enUS from 'antd/es/locale/en_US';
 import zhCN from 'antd/es/locale/zh_CN';
@@ -9,7 +9,7 @@ import dayjs from 'dayjs';
 import { FC, Suspense, useEffect } from 'react';
 import { IntlProvider } from 'react-intl';
 import { useDispatch, useSelector } from 'react-redux';
-import { useApolloClient, useSubscription } from "@apollo/client";
+import { useApolloClient, useSubscription, ApolloError } from "@apollo/client";
 import { HistoryRouter, history } from '@/routes/history';
 import _ from "lodash"
 import { useTranslation } from 'react-i18next';
@@ -19,22 +19,57 @@ import  { DefaultRootState } from '@/interface/DefaultRootState';
 import { localeConfig } from './locales';
 import RenderRouter from './routes';
 import { setGlobalState } from './stores/global.store';
-import { healthCheck, userConnected } from "./apollo/gqlQuery"
+import { userConnected } from "./apollo/gqlQuery"
 
 const App: FC = () => {
-  const { locale } = useSelector((state : DefaultRootState) => state.user);
+  const { locale, profile } = useSelector((state : DefaultRootState) => state.user);
   const { theme, loading } = useSelector((state : DefaultRootState) => state.global);
   const dispatch = useDispatch();
   const { t } = useTranslation();
 
-  const { data: useData, loading: useLoading, error: useError } = useSubscription(userConnected);
+  const [subscriptionState, setSubscriptionState] = useState({
+    _id: "",
+    isSubscribed: true
+  });
+
+  useSubscription(userConnected,
+                  { 
+                  variables: { input : {_id : profile?._id} },
+                  skip: !subscriptionState.isSubscribed,
+                  onSubscriptionData: ({ subscriptionData }) => {
+                    // if (subscriptionData.data) {
+                    //   const newMessage = subscriptionData.data.newMessage;
+                    //   setMessages((prevMessages) => [...prevMessages, newMessage]);
+                    // }
+                    console.log("onSubscriptionData:", subscriptionData);
+                  },
+                  onError: (err: ApolloError) => {
+                    console.error("Subscription error:", err);
+                  },
+                  },);
 
   // Handle error here
-  if (useError) {
-    _.map(useError?.graphQLErrors, (e)=>{
-      console.error('Subscription error:',  e?.extensions, e?.extensions?.code);
-    })
-  }
+  // if (useError) {
+  //   _.map(useError?.graphQLErrors, (e)=>{
+  //     console.error('Subscription error:',  e?.extensions, e?.extensions?.code);
+  //   })
+  // }
+
+  useEffect(()=>{
+    console.log("@@@1 :", subscriptionState)
+  }, [subscriptionState])
+  
+  useEffect(()=>{
+    const profileId = profile?._id ?? ""; // Use empty string if profile?._id is undefined
+
+    if (subscriptionState._id !== profileId) {
+      setSubscriptionState({ _id: profileId, isSubscribed: false });
+  
+      setTimeout(() => {
+        setSubscriptionState({ _id: profileId, isSubscribed: true });
+      }, 0);
+    }
+  }, [profile])
 
   const setTheme = (dark = true) => {
     dispatch(

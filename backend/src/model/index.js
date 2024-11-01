@@ -27,10 +27,17 @@ import TestModel from "./TestModel"
 import ManageLotteryModel from "./ManageLotteryModel"
 import LogUserAccessModel from './LogUserAccessModel'
 
+/*
+export {
+    member,
+    memberSchema
+} 
+*/
 
-import MemberModel from "./MemberModel"
+import { member as MemberModel } from "./MemberModel"
+
 import MLMModel from './MLMModel'
-import { file } from "./FileModel"
+import { file as FileModel } from "./FileModel"
 
 import InsuranceModel from "./InsuranceModel"
 import AgentModel from "./AgentModel"
@@ -39,11 +46,15 @@ import NodeModel from "./NodeModel"
 
 import CalTreeModel from "./CalTreeModel"
 
-import ProductModel from "./ProductModel"
+// import ProductModel from "./ProductModel"
+
+import { product as ProductModel } from "./ProductModel"
 
 import OrderModel from "./OrderModel"
 
 import PeriodModel from "./PeriodModel"
+
+import PositionModel from "./PositionModel"
 
 module.exports =  {
     Bank:BankModel,
@@ -76,7 +87,7 @@ module.exports =  {
     Member: MemberModel,
     MLM: MLMModel,
     LogUserAccess: LogUserAccessModel,
-    File: file,
+    File: FileModel,
     Insurance: InsuranceModel,
     Agent: AgentModel,
     Node: NodeModel,
@@ -86,4 +97,6 @@ module.exports =  {
     Order: OrderModel,
 
     Period: PeriodModel,
+
+    Position: PositionModel,
 };

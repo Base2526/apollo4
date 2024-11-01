@@ -117,7 +117,7 @@ FRONTEND_PORT=3000
 # graphql
 RA_HOST=http://localhost:4001/
 GRAPHQL_PORT=4001
-JWT_SECRET=
+MONGO_PASSWORD_SECRET=
 
 # github
 GITHUB_URL_OAUTH_ACCESS_TOKEN=https://github.com/login/oauth/access_token
@@ -170,3 +170,6 @@ db.getCollection("supplier").aggregate([
     __v: 0
 }
 
+
+
+$ npm install --save @nestjs/swagger

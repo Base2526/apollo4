@@ -94,17 +94,18 @@ export const subConversations = gql`subscription conversations($userId: ID!) { c
 export const gqlUser = gql`query User($id: ID){ user(_id: $id) }`;
 export const gqlUsers = gql`query users($page: Int, $perPage: Int){ users(page: $page, perPage: $perPage) }`;
 
+export const query_member = gql`query member($id: ID!) { member(_id: $id) }`;
 export const queryMembers = gql`query members { members }`;
 export const queryFiles = gql`query files { files }`;
 export const queryMlmById = gql`query mlmById($id: ID!) { mlmById(_id: $id) }`;
 export const mutationTest_addmember = gql`mutation test_addmember($input: MemberInput) { test_addmember(input: $input) }`;
 export const mutationMlm = gql`mutation test_addmlm($input: MLMInput) { test_addmlm(input: $input) }`;
 
-export const userConnected = gql`subscription userConnected { userConnected }`;
+export const userConnected = gql`subscription userConnected($input: JSON) { userConnected(input: $input) }`;
 
 export const mutationTest_upload = gql`mutation test_upload($input: JSON) { test_upload(input: $input) }`;
 
-export const mutationProfile = gql`mutation profile($input: JSON) { profile(input: $input) }`;
+export const mutation_profile = gql`mutation profile($input: JSON) { profile(input: $input) }`;
 
 export const faker_agent        = gql`mutation faker_agent($input: JSON) { faker_agent(input: $input) }`;
 export const faker_insurance    = gql`mutation faker_insurance($input: JSON) { faker_insurance(input: $input) }`;
@@ -130,9 +131,14 @@ export const mutation_order   = gql`mutation order($input: JSON) { order(input: 
 
 export const mutation_tree_by_node_id   = gql`mutation tree_by_node_id($input: JSON) { tree_by_node_id(input: $input) }`;
 
-
 export const guery_purchases  = gql`query purchases { purchases }`;
 export const query_periods    = gql`query periods { periods }`;
 
+export const query_positions    = gql`query positions { positions }`;
+
 export const mutation_bills   = gql`mutation bills($input: JSON) { bills(input: $input) }`;
 export const mutation_bills_xml2js = gql`mutation bills_xml2js($input: JSON) { bills_xml2js(input: $input) }`;
+
+export const mutation_address_delivery = gql`mutation address_delivery($input: JSON) { address_delivery(input: $input) }`;
+
+export const mutation_calcute_plan_back = gql`mutation calcute_plan_back($input: JSON) { calcute_plan_back(input: $input) }`;

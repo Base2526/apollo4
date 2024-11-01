@@ -134,7 +134,6 @@ const countInVisulPeriodNodes = (nodes: DataNode[]): number => {
     return count;
 };
 
-
 const countAllInRealPeriodNodes = (bills: BillsType[]): number => {
     const countInRealPeriodNodes = (nodes: DataNode[]): number => {
         // console.log("@ countInRealPeriodNodes :", nodes)

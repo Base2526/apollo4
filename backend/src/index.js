@@ -21,6 +21,8 @@ import resolvers from "./resolvers";
 import * as Utils from "./utils"
 import pubsub from './pubsub'
 
+import connection from './mongo'
+
 const logger = require("./utils/logger");
 const { graphqlUploadExpress } = require('graphql-upload');
 
@@ -103,7 +105,7 @@ server.start().then(() => {
     'http://167.99.75.91:5173',
     'http://localhost:1984',
     'http://bestmallu.com',
-    'https://bestmallu.com'
+    'https://bestmallu.com',
     // Add more origins as needed
   ];
 

@@ -1,41 +1,70 @@
 import "./index.less";
-import React, { useState } from 'react';
-import { message, List, Avatar, Button, Popconfirm, InputNumber, Image } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { message, List, Card, Button, Popconfirm, InputNumber, Image } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import _ from 'lodash';
 import { useSelector, useDispatch } from 'react-redux';
-import { useMutation } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import { DefaultRootState } from '@/interface/DefaultRootState';
 import { removeCart, clearAllCart, updateCartQuantities } from '@/stores/user.store';
 import { ProductItem } from "@/interface/user/user";
-import { mutation_order } from '@/apollo/gqlQuery';
+import { query_positions, mutation_order } from '@/apollo/gqlQuery';
 import { getHeaders } from '@/utils';
 import handlerError from '@/utils/handlerError';
+
+import AddressModalForm from "@/pages/cart/AddressModalForm"
+
+interface positionInterface {
+  _id: string;
+  level: number;
+  name: string;
+  percent: number;
+  budget: number;
+}
 
 const { REACT_APP_HOST_GRAPHAL } = process.env;
 const Cart: React.FC = (props) => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const { carts } = useSelector((state: DefaultRootState) => state.user);
+  const { carts, profile } = useSelector((state: DefaultRootState) => state.user);
 
-  console.log("Cart :", carts)
+  const [isModalVisible, setIsModalVisible]  = useState(false)
+
+  console.log("Cart :", carts, profile)
   const [loading, setLoading] = useState(false);
 
-  const [onOrder] = useMutation(mutation_order, {
-    context: { headers: getHeaders(location) },
-    update: (cache, { data: { order } }) => {
-      dispatch(clearAllCart());
-      setLoading(false);
-      message.success('Order placed successfully!');
-      navigate("/");
-    },
-    onError: (error) => {
-      setLoading(false);
-      handlerError(props, error);
-    }
+  const [positions, setPositions] = useState<positionInterface[]>([]);
+
+  const { loading: loadingPositions, data: dataPositions } = useQuery(query_positions, {
+      context: { headers: getHeaders(location) },
+      fetchPolicy: 'cache-first',
+      nextFetchPolicy: 'network-only'
   });
+
+  useEffect(() => {
+      if (!loadingPositions && !_.isEmpty(dataPositions?.positions)) {
+          const { status, data } = dataPositions.positions;
+          if (status) {
+              setPositions(data);
+          }
+      }
+  }, [dataPositions, loadingPositions]);
+
+  // const [onOrder] = useMutation(mutation_order, {
+  //   context: { headers: getHeaders(location) },
+  //   update: (cache, { data: { order } }) => {
+  //     dispatch(clearAllCart());
+  //     setLoading(false);
+  //     message.success('Order placed successfully!');
+  //     navigate("/");
+  //   },
+  //   onError: (error) => {
+  //     setLoading(false);
+  //     handlerError(props, error);
+  //   }
+  // });
 
   const onView = (_id: string) => {
     navigate(`/view?v=${_id}`, { state: { _id } });
@@ -55,43 +84,95 @@ const Cart: React.FC = (props) => {
   };
 
   const onCheckout = () => {
-    setLoading(true);
-
-    const productIds =   _.map(carts, item => ({
-                            productId: item._id,
-                            quantities: item.current.quantities
-                          }));
-
-    onOrder({ variables: { input: { mode: 'added', productIds } } });
+    if(profile.current?.address_delivery){
+      navigate("/checkout")
+    }else{
+      setIsModalVisible(true)
+    }
   };
 
+  const sumAllPrice = () =>{
+    let sum_price = 0;
+    _.map(carts, (cart)=>{
+      let position = _.find(positions, (p)=>p._id?.toString() === profile.current?.positionId?.toString())
+      switch(position?.name?.toLocaleUpperCase()){
+        case "BM":{
+          sum_price +=((cart.current.quantities * parseFloat(cart.current.price_sell)) * (100-cart.current.price_discount_bm)/100 );
+          break;
+        }
+        // BS, BG, BD, BP, MA, MB, MC, MD, ME, MF, MG, MH, MI, MJ, MK, ML, MM, MN, MO, MP, MQ, MR, MS
+        case "BS":
+        case "BG":
+        case "BD":
+        case "BP":
+        case "MA":
+        case "MB":
+        case "MC":
+        case "MD":
+        case "ME":
+        case "MF":
+        case "MG":
+        case "MH":
+        case "MI":
+        case "MJ":
+        case "MK":
+        case "ML":
+        case "MM":
+        case "MN":
+        case "MO":
+        case "MP":
+        case "MG":
+        case "MR":
+        case "MS":{
+          sum_price +=((cart.current.quantities * parseFloat(cart.current.price_sell)) * (100-(cart.current.price_discount_bs + position.percent ))/100 );
+          break;
+        }
+      }
+    })
+
+    return sum_price;
+  }
+
   return (
-    <div>
+    <Card style={{ marginBottom: '20px' }}>
       <List
         itemLayout="horizontal"
         dataSource={carts}
         header={
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px' }}>
-            <div style={{ fontSize: 20 }}>{`List product (${carts.length})`}</div>
+            <div style={{ fontSize: 20 }}>{`รายการสินค้า (${carts.length})`}</div>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <div style={{ marginRight: 8, fontSize:20 }}>
-                Total: ${_.sumBy(carts, (item) => item.current.quantities !== undefined ? parseFloat(item.current.price) * item.current.quantities  : parseFloat(item.current.price) )}
+                {`ยอดทั้งหมด(หลังหัก % ค่าตำแหน่ง): ${ Math.ceil(sumAllPrice()) } บาท`}
               </div>
-              <Button type="primary" onClick={onCheckout} loading={loading}>
-                {`Checkout (${carts.length})`}
+              {/* <Button type="default" onClick={()=>{
+                setIsModalVisible(true)
+              }} >
+                {`ที่อยู่จัดส่ง`}
+              </Button> */}
+              <Button 
+                type="primary" 
+                // disabled={ !profile.current?.address_delivery }
+                onClick={onCheckout} 
+                // onClick={()=>{ navigate("/checkout") }}
+                loading={loading}>
+                {`ชำระเงิน (${carts.length})`}
               </Button>
             </div>
           </div>
         }
-        renderItem={(item: ProductItem) => {
+        renderItem={(item: ProductItem, index: number) => {
           // let items = item.current.images
+
+          // console.log("index :", index)
 
           const items = _.map(item.current.images, v=> `http://${REACT_APP_HOST_GRAPHAL}/${v.url}`);
           return  <List.Item
+                    key={index}
                     style={{ padding: '10px' }}
                     actions={[
                       <Button type="link" icon={<EyeOutlined />} onClick={() => onView(item._id)}>
-                        View
+                        ดู
                       </Button>,
                       <Popconfirm
                         title="Are you sure to delete this product?"
@@ -99,7 +180,7 @@ const Cart: React.FC = (props) => {
                         okText="Yes"
                         cancelText="No">
                         <Button type="link" danger icon={<DeleteOutlined />}>
-                          Delete
+                          ลบ
                         </Button>
                       </Popconfirm>,
                     ]}>
@@ -116,10 +197,14 @@ const Cart: React.FC = (props) => {
                       title={item.current.name}
                       description={
                         <div>
-                          <div>{`Price: $${ item.current.quantities !== undefined ? parseInt(item.current.price) * item.current.quantities : parseInt(item.current.price)  } - ${item.current.detail}`}</div>
-                          <div>Max quantity: { item.current.quantity }</div>
+                          <div>{`รายละเอียด: ${item.current.detail}`}</div>
+                          <div>{`ราคาต่อหน่อย: ${ item.current.price_sell } x ${ item.current.quantities } = ${ item.current.quantities !== undefined ? parseInt(item.current.price_sell) * item.current.quantities : parseInt(item.current.price_sell)  } บาท`}</div>
+                          <div>{`จำนวนสินค้าทั้งหมด: ${ item.current.quantity } ชิ้น`}</div>
+                          <div>{`ส่วนลดเฉพาะตำแหน่ง BM (ไม่เกิม 5%): ${ item.current.price_discount_bm } %`}</div>
+                          <div>{`ส่วนลดมาตรฐาน BS (%): ${ item.current.price_discount_bs } %`}</div>
+                          <div>{`ค่าจัดส่ง: ${ item.current.price_delivery } บาท`}</div>
                           <div style={{ marginTop: 8 }}>
-                            <span>Quantity: </span>
+                            <span>จำนวนสินค้าทีสั่งซื้อ: </span>
                             <InputNumber
                               min={1}
                               max={item.current.quantity}
@@ -133,7 +218,11 @@ const Cart: React.FC = (props) => {
                   </List.Item>
         }}
       />
-    </div>
+
+      { isModalVisible && <AddressModalForm 
+                            isModalVisible={isModalVisible}
+                            setIsModalVisible={()=>{ setIsModalVisible(false) }}/> }
+    </Card>
   );
 };
 

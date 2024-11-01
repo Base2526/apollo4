@@ -7,7 +7,7 @@ import type { RcFile, UploadChangeParam } from 'antd/es/upload/interface';
 import { useQuery, useMutation } from "@apollo/client";
 import { useLocation } from 'react-router-dom';
 import _ from "lodash"
-import { query_bill, mutationProfile, mutation_paid_bill } from "../../apollo/gqlQuery"
+import { query_bill, mutation_profile, mutation_paid_bill } from "../../apollo/gqlQuery"
 import { getHeaders } from "../../utils"
 
 const { Title } = Typography;
@@ -84,18 +84,18 @@ const Bill: React.FC = () => {
     }
   });
 
-  const [onMutationProfile, resultProfile] = useMutation(mutationProfile, {
-      context: { headers: getHeaders(location) },
-      update: (cache, {data: {profile}}) => {
-          console.log("update :", profile)
-      },
-      onCompleted(data) {
-          console.log("onCompleted :", data)
-      },
-      onError(error){
-          console.log("onError :", error)
-      }
-  });
+  // const [onMutationProfile, resultProfile] = useMutation(mutation_profile, {
+  //     context: { headers: getHeaders(location) },
+  //     update: (cache, {data: {profile}}) => {
+  //         console.log("update :", profile)
+  //     },
+  //     onCompleted(data) {
+  //         console.log("onCompleted :", data)
+  //     },
+  //     onError(error){
+  //         console.log("onError :", error)
+  //     }
+  // });
 
   const { loading: loadingBill, 
           data: dataBill, 

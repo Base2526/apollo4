@@ -105,15 +105,15 @@ const LayoutPage: FC = () => {
     };
   }, [dispatch]);
 
-  useEffect(() => {
-    newUser && driverStart();
-  }, [newUser]);
+  // useEffect(() => {
+  //   newUser && driverStart();
+  // }, [newUser]);
 
   return (
     <Layout className="layout-page">
       <HeaderComponent collapsed={collapsed} toggle={toggle} />
       <Layout>
-        {!isMobile ? (
+        {/* {!isMobile ? (
           <Sider
             className="layout-page-sider"
             trigger={null}
@@ -146,7 +146,7 @@ const LayoutPage: FC = () => {
               selectedKey={selectedKey}
               onChangeSelectedKey={k => setSelectedKey(k)} />
           </Drawer>
-        )}
+        )} */}
         <Content className="layout-page-content">
           {/* <TagsView /> */}
           <div style={{ padding: '0px 10px' }}>

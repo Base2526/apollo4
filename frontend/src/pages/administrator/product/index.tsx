@@ -30,13 +30,30 @@ const columns = (navigate: ReturnType<typeof useNavigate>, onDelete: (item: Prod
         dataIndex: ['current', 'images'],
         render: (images: ProductImageType[]) => {
             const items = _.map(images, v=> `http://${REACT_APP_HOST_GRAPHAL}/${v.url}`);
-            return  <Image.PreviewGroup items={items}>
-                        <Image
-                        style={{ borderRadius: 5 }}
-                        width={80}
-                        src={`${items[0]}`}
-                        />
-                    </Image.PreviewGroup>
+            return  <div style={{ position: 'relative', display: 'inline-block' }}>
+                        <Image.PreviewGroup items={items}>
+                            <Image
+                            style={{ borderRadius: 5 }}
+                            width={80}
+                            src={`${items[0]}`}
+                            />
+                        </Image.PreviewGroup>
+                        {/* Text count positioned at the bottom-right */}
+                        <div
+                            style={{
+                                position: 'absolute',
+                                bottom: 5,
+                                right: 5,
+                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                color: '#fff',
+                                padding: '2px 6px',
+                                borderRadius: '5px',
+                                fontSize: '12px',
+                            }}
+                        >
+                            {items.length}
+                        </div>
+                    </div>
         },
     },
     {
@@ -45,43 +62,62 @@ const columns = (navigate: ReturnType<typeof useNavigate>, onDelete: (item: Prod
         render: (name: string) => <Typography>{name}</Typography> ,
     },
     {
-        title: 'Price',
+        title: 'ราคา (บาท)',
         dataIndex: ['current', 'price'],
         render: (price: number) => <Typography>{price}</Typography>,
     },
     {
-        title: 'Plan',
-        dataIndex: ['current', 'plan'],
-        render: (plan: string[]) => {
-            return <>{plan.map((item, index) => (
-                            <Tag color="#2db7f5" key={index}>
-                                {parseInt(item) === 1 ? 'Frontend' : 'Backend'}
-                            </Tag>
-                    ))} </>
-        },
+        title: 'ราคาขาย (บาท)',
+        dataIndex: ['current', 'price_sell'],
+        render: (price_sell: number) => <Typography>{price_sell}</Typography>,
     },
     {
-        title: 'Packages',
-        dataIndex: ['current', 'packages'],
-        render: (packages: string[]) => {
-            return <>
-                    {packages.map((pkg, index) => {
-                    switch (parseInt(pkg)) {
-                        case 1:
-                            return <Tag color="#2db7f5" key={index}>1</Tag>;
-                        case 2:
-                            return <Tag color="#2db7f5" key={index}>8</Tag>;
-                        case 3:
-                            return <Tag color="#2db7f5" key={index}>57</Tag>;
-                        default:
-                            return null;
-                    }
-                })}
-            </>
-        },
+        title: 'ประเภทสินค้า',
+        dataIndex: ['current', 'product_type'],
+        render: (product_type: number[]) =>{
+            return _.map(product_type, (v, index)=>{
+                switch(v){
+                    case 1:return <Tag key={index} color="#2db7f5">เอกสิทธิพิเศษ</Tag>
+                    case 2:return <Tag key={index} color="#2db7f5">แผนหน้า</Tag>
+                    case 3:return <Tag key={index} color="#2db7f5">แผนหลัง</Tag>
+                    case 4:return <Tag key={index} color="#2db7f5">Power ship</Tag>
+                }
+            } )
+        } ,
     },
+    // {
+    //     title: 'Plan',
+    //     dataIndex: ['current', 'plan'],
+    //     render: (plan: string[]) => {
+    //         return <>{plan.map((item, index) => (
+    //                         <Tag color="#2db7f5" key={index}>
+    //                             {parseInt(item) === 1 ? 'Frontend' : 'Backend'}
+    //                         </Tag>
+    //                 ))} </>
+    //     },
+    // },
+    // {
+    //     title: 'Packages',
+    //     dataIndex: ['current', 'packages'],
+    //     render: (packages: string[]) => {
+    //         return <>
+    //                 {packages.map((pkg, index) => {
+    //                 switch (parseInt(pkg)) {
+    //                     case 1:
+    //                         return <Tag color="#2db7f5" key={index}>1</Tag>;
+    //                     case 2:
+    //                         return <Tag color="#2db7f5" key={index}>8</Tag>;
+    //                     case 3:
+    //                         return <Tag color="#2db7f5" key={index}>57</Tag>;
+    //                     default:
+    //                         return null;
+    //                 }
+    //             })}
+    //         </>
+    //     },
+    // },
     {
-        title: 'Quantity',
+        title: 'จำนวนสินค้าทั้งหมด',
         dataIndex: ['current', 'quantity'],
         render: (quantity: number) =>{
             // console.log("quantity :", quantity)
@@ -89,7 +125,14 @@ const columns = (navigate: ReturnType<typeof useNavigate>, onDelete: (item: Prod
         } 
     },
     {
-        title: 'Date',
+        title: 'Owner',
+        dataIndex: 'owner',
+        render: (owner: any) => {
+            return <Tag color="#2db7f5">{owner?.current?.displayName}</Tag>
+        },
+    },
+    {
+        title: 'Updated at',
         dataIndex: 'updatedAt',
         render: (updatedAt: string) => (
             <div>{moment(new Date(updatedAt), 'YYYY-MM-DD HH:mm').format('MM Do YY, h:mm')}</div>
@@ -156,7 +199,7 @@ const ProductList: React.FC = (props) => {
 
     const { loading: loadingProducts, data: dataProducts, error: errorProducts, refetch: refetchProduct } = useQuery(guery_products, {
         context: { headers: getHeaders(location) },
-        fetchPolicy: 'no-cache',
+        fetchPolicy: 'cache-first',
         nextFetchPolicy: 'network-only',
         notifyOnNetworkStatusChange: false,
     });
@@ -168,7 +211,7 @@ const ProductList: React.FC = (props) => {
             setData([]);
             setFilteredData([]);
             if (dataProducts.products.status) {
-                console.log("dataProducts.products.data ", dataProducts.products.data)
+                // console.log("dataProducts.products.data ", dataProducts.products.data)
                 _.map(dataProducts.products.data, (e, key) => {
                     setData((prevItems) => Array.isArray(prevItems) ? [...prevItems, e] : [e]);
                     setFilteredData((prevItems) => Array.isArray(prevItems) ? [...prevItems, e] : [e]);

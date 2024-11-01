@@ -7,86 +7,244 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import _ from 'lodash';
 import { EyeOutlined } from '@ant-design/icons';
 import { useSelector } from 'react-redux';
-import { guery_orders, mutation_product } from '@/apollo/gqlQuery';
+import { query_positions, guery_orders, mutation_product } from '@/apollo/gqlQuery';
 import { getHeaders } from '@/utils';
 import handlerError from '@/utils/handlerError';
-import { OrderItem, OrderProductDetail } from "@/interface/user/user"
+import { OrderItem, OrderProductDetail, OrderOwner } from "@/interface/user/user"
 const { Paragraph, Text } = Typography;
 
-interface MenuItem {
-  key: string;
-  label: string;
+interface positionInterface {
+  _id: string;
+  level: number;
+  name: string;
+  percent: number;
+  budget: number;
 }
 
-const menuItems: MenuItem[] = [
-  { key: '1', label: 'Edit' },
-  { key: '2', label: 'Delete' },
-];
-
-
-const columns = (navigate: ReturnType<typeof useNavigate>, onDelete: (item: OrderItem) => void) => [
+const columns = ( navigate: ReturnType<typeof useNavigate>, 
+                  onDelete: (item: OrderItem) => void,
+                  positions: positionInterface[] ) => [
   {
     title: 'Code ID',
     dataIndex: '_id',
     render: (_id: string) => <Paragraph copyable>{_id}</Paragraph>
   },
   {
-    title: 'Products',
-    dataIndex: 'productDetails',
-    render: (values: OrderProductDetail[]) => {
-      return (
-        <Tree
-          treeData={values.map((detail, index) => ({
-            title: `${index+1} : ${detail.current.name} - $${detail.current.price}`,
-            key: detail._id,
-            // You can add more properties here if needed
-          }))}
-          defaultExpandAll
-        />
-      );
+    title: 'owner',
+    dataIndex: 'owner',
+    render: (owner: any) => {
+      return <Tag color="green" >{owner.current.displayName}</Tag> 
+        // 1 : waiting, 2: complete, 3: cancel
+        // switch(status){
+        //     case 1: {
+        //       return <Tag color="#2db7f5" key={status}>{"WAITING"}</Tag> 
+        //     }
+        //     case 2: {
+        //       return <Tag color="green" key={status}>{"COMPLETE"}</Tag> 
+        //     }
+        //     case 3: {
+        //       return <Tag color="red" key={status}>{"CANCEL"}</Tag> 
+        //     }
+        //     case 4: {
+        //       return <Tag color="red" key={status}>{"DELETE"}</Tag> 
+        //   }
+        // }
     }
   },
+  // {
+  //   title: 'Products',
+  //   dataIndex: 'productDetails',
+  //   render: (values: OrderProductDetail[]) => {
+  //     return (
+  //       <Tree
+  //         treeData={values.map((detail, index) => ({
+  //           title: `${index+1} : ${detail.current.name} - $${detail.current.price}`,
+  //           key: detail._id,
+  //           // You can add more properties here if needed
+  //         }))}
+  //         defaultExpandAll
+  //       />
+  //     );
+  //   }
+  // },
   {
     title: 'Total',
-    dataIndex: 'productDetails',
-    render: (values: OrderProductDetail[]) => {
-        return <Typography>${  _.sumBy(values, (item) => item.current.price )} </Typography>
+    // dataIndex: 'productDetails',
+    render: (values: any) => {
+      console.log('Total :', values)
+
+      /*
+      const sumAllPrice = (values: any) =>{
+        let { productDetails, owner } = values
+        let sum_price = 0;
+        _.map(productDetails, (cart)=>{
+          let position = _.find(positions, (p)=>p._id?.toString() === owner.current?.positionId?.toString())
+          let quantities =  cart.current.quantities === undefined ? 1 : cart.current.quantities
+
+          // console.log("position @001:", position?.name, quantities, cart.current.price, cart.current.price_discount_bm)
+          
+          switch(position?.name?.toLocaleUpperCase()){
+            case "BM":{
+
+              sum_price +=((quantities * parseFloat(cart.current.price)) * (100-cart.current.price_discount_bm)/100 );
+              break;
+            }
+            // BS, BG, BD, BP, MA, MB, MC, MD, ME, MF, MG, MH, MI, MJ, MK, ML, MM, MN, MO, MP, MQ, MR, MS
+            case "BS":
+            case "BG":
+            case "BD":
+            case "BP":
+            case "MA":
+            case "MB":
+            case "MC":
+            case "MD":
+            case "ME":
+            case "MF":
+            case "MG":
+            case "MH":
+            case "MI":
+            case "MJ":
+            case "MK":
+            case "ML":
+            case "MM":
+            case "MN":
+            case "MO":
+            case "MP":
+            case "MG":
+            case "MR":
+            case "MS":{
+              sum_price +=((quantities * parseFloat(cart.current.price)) * (100-(cart.current.price_discount_bs + position.percent ))/100 );
+              break;
+            }
+          }
+        })    
+        return sum_price;
+      }
+
+      const sumAllDelivery = (values: any) =>{
+        let { productDetails } = values
+        let sum_price = 0;
+        _.map(productDetails, (cart)=>{
+          sum_price +=cart?.current?.price_delivery;
+        })
+
+        return sum_price;
+      }
+
+      let prices = Math.ceil(sumAllPrice(values))
+      let delivery = sumAllDelivery(values)
+
+      return <Typography>{ prices }+{ delivery }(ค่าขนส่ง) = { prices + delivery }</Typography>
+      */
+
+      const sumAllPrice = (values: any) =>{
+        let { products, owner } = values.current
+        let sum_price = 0;
+        // console.log("sumAllPrice @000 ", products, owner, values)
+        _.map(products, (cart)=>{
+          let position = _.find(positions, (p)=>p._id?.toString() === owner?.positionId?.toString())
+          let quantities =  cart.quantities === undefined ? 1 : cart.quantities
+
+          // console.log("sumAllPrice position @001:", position?.name, quantities, cart.product.price, cart.product.price_discount_bm)
+          
+          switch(position?.name?.toLocaleUpperCase()){
+            case "BM":{
+
+              sum_price +=((quantities * parseFloat(cart.product.price)) * (100-cart.product.price_discount_bm)/100 );
+              break;
+            }
+            // BS, BG, BD, BP, MA, MB, MC, MD, ME, MF, MG, MH, MI, MJ, MK, ML, MM, MN, MO, MP, MQ, MR, MS
+            case "BS":
+            case "BG":
+            case "BD":
+            case "BP":
+            case "MA":
+            case "MB":
+            case "MC":
+            case "MD":
+            case "ME":
+            case "MF":
+            case "MG":
+            case "MH":
+            case "MI":
+            case "MJ":
+            case "MK":
+            case "ML":
+            case "MM":
+            case "MN":
+            case "MO":
+            case "MP":
+            case "MG":
+            case "MR":
+            case "MS":{
+              sum_price +=((quantities * parseFloat(cart.product.price)) * (100-(cart.product.price_discount_bs + position.percent ))/100 );
+              break;
+            }
+          }
+        })    
+        return sum_price;
+      }
+
+      const sumAllDelivery = (values: any) =>{
+        let { products } = values.current
+        let sum_price = 0;
+        _.map(products, (cart)=>{
+          sum_price +=cart?.product.price_delivery;
+        })
+
+        return sum_price;
+      }
+
+      let prices = Math.ceil(sumAllPrice(values))
+      let delivery = sumAllDelivery(values)
+
+      return <Typography>{ prices }+{ delivery }(ค่าขนส่ง) = { prices + delivery }</Typography>
     }
   },  
-  // status
-  {
-    title: 'Status',
-    dataIndex: ['current', 'status'],
-    render: (status: number) => {
-        // 1 : waiting, 2: complete, 3: cancel
-        switch(status){
-            case 1: {
-              return <Tag color="#2db7f5" key={status}>{"WAITING"}</Tag> 
-            }
-            case 2: {
-              return <Tag color="green" key={status}>{"COMPLETE"}</Tag> 
-            }
-            case 3: {
-              return <Tag color="red" key={status}>{"CANCEL"}</Tag> 
-            }
-            case 4: {
-              return <Tag color="red" key={status}>{"DELETE"}</Tag> 
-          }
-        }
-    }
-  },
-  // editer
-  {
-  title: 'Approver',
-  // dataIndex: ['current', 'status'],
-  render: (item: OrderItem) => {
-      console.log("item :", item)
-      if(item.editer && item.editer.current !== undefined){
-        return <Tag color="#2db7f5" key={status}>{item.editer.current.displayName}</Tag>
-      }
-      return <></>
-    }
-  },
+  // {
+  //   title: 'Status',
+  //   dataIndex: ['current', 'status'],
+  //   render: (status: number) => {
+  //       // 1 : waiting, 2: complete, 3: cancel
+  //       switch(status){
+  //           case 1: {
+  //             return <Tag color="#2db7f5" key={status}>{"WAITING"}</Tag> 
+  //           }
+  //           case 2: {
+  //             return <Tag color="green" key={status}>{"COMPLETE"}</Tag> 
+  //           }
+  //           case 3: {
+  //             return <Tag color="red" key={status}>{"CANCEL"}</Tag> 
+  //           }
+  //           case 4: {
+  //             return <Tag color="red" key={status}>{"DELETE"}</Tag> 
+  //         }
+  //       }
+  //   }
+  // },
+  // // 
+  // {
+  //   title: 'Customer',
+  //   dataIndex: ['owner'],
+  //   render: (item: OrderOwner) => {
+  //       // console.log("OrderOwner :", item)
+  //       if(item.current !== undefined){
+  //         return <Tag color="#2db7f5" key={status}>{item.current.displayName}</Tag>
+  //       }
+  //       return <></>
+  //     }
+  // },
+  // {
+  // title: 'Approver',
+  // // dataIndex: ['current', 'status'],
+  // render: (item: OrderItem) => {
+  //     // console.log("item :", item)
+  //     if(item.editer && item.editer.current !== undefined){
+  //       return <Tag color="#2db7f5" key={status}>{item.editer.current.displayName}</Tag>
+  //     }
+  //     return <></>
+  //   }
+  // },
   {
     title: 'Created at',
     dataIndex: 'createdAt',
@@ -94,13 +252,13 @@ const columns = (navigate: ReturnType<typeof useNavigate>, onDelete: (item: Orde
       <div>{moment(new Date(updatedAt), 'YYYY-MM-DD HH:mm').format('MM Do YY, h:mm')}</div>
     ),
   },
-  {
-    title: 'Updated at',
-    dataIndex: 'updatedAt',
-    render: (updatedAt: string) => (
-      <div>{moment(new Date(updatedAt), 'YYYY-MM-DD HH:mm').format('MM Do YY, h:mm')}</div>
-    ),
-  },
+  // {
+  //   title: 'Updated at',
+  //   dataIndex: 'updatedAt',
+  //   render: (updatedAt: string) => (
+  //     <div>{moment(new Date(updatedAt), 'YYYY-MM-DD HH:mm').format('MM Do YY, h:mm')}</div>
+  //   ),
+  // },
   {
     title: 'Action',
     key: 'action',
@@ -161,6 +319,22 @@ const OrderList: React.FC = (props) => {
     }
   });
 
+  const [positions, setPositions] = useState<positionInterface[]>([]);
+  const { loading: loadingPositions, data: dataPositions } = useQuery(query_positions, {
+      context: { headers: getHeaders(location) },
+      fetchPolicy: 'cache-first',
+      nextFetchPolicy: 'network-only'
+  });
+  useEffect(() => {
+    if (!loadingPositions && !_.isEmpty(dataPositions?.positions)) {
+      const { status, data } = dataPositions.positions;
+      if (status) {
+        console.log("setPositions :", data)
+        setPositions(data);
+      }
+    }
+  }, [dataPositions, loadingPositions]);
+
   const { loading: loadingOrders, data: dataOrders, error: errorOrders, refetch: refetchOrders } = useQuery(guery_orders, {
     context: { headers: getHeaders(location) },
     fetchPolicy: 'no-cache',
@@ -218,7 +392,7 @@ const OrderList: React.FC = (props) => {
         />
       </Space>
       <Table
-        columns={columns(navigate, showDeleteConfirm)}
+        columns={columns(navigate, showDeleteConfirm, positions)}
         dataSource={filteredData}
         pagination={{ pageSize: 50 }}
         rowKey="_id"

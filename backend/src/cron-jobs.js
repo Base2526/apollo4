@@ -87,31 +87,43 @@ const deleteOldBackups = () => {
 // });
 
 // Function to back up MongoDB collections
-const backupMongoDB = () => {
-  const dbName = 'insurance'; // Replace with your database name
-  const collections = ['member', 'node', 'product']; // List your collections to back up
-  const mongoUri = process.env.MONGO_URI;//'mongodb://username:password@localhost:27017'; // Replace with your MongoDB URI
+const backupCollectionMongoDB = () => {
+  try {
+    let { MONGO_URI, MONGO_DB, MONGO_BACKUP_COLLECTION } = process.env
+    const collections = MONGO_BACKUP_COLLECTION?.split(',').map(item => item.trim())
 
-  collections.forEach(collection => {
-    const outputFilePath = `./backups/${collection}-${new Date().toISOString()}.json`; // Output file path
-    const command = `mongoexport --uri="${mongoUri}" --db=${dbName} --collection=${collection} --out=${outputFilePath} --jsonArray`;
+    collections.forEach(collection => {
+      const outputFilePath = `/app/backups/${collection}-${new Date().toISOString()}.json`; // Output file path
+      const command = `mongoexport --uri="${MONGO_URI}" --db=${MONGO_DB} --collection=${collection} --out=${outputFilePath} --jsonArray`;
 
-    exec(command, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Error exporting collection ${collection}: ${error.message}`);
-        return;
-      }
-      if (stderr) {
-        console.error(`stderr: ${stderr}`);
-        return;
-      }
-      console.log(`Backup of collection ${collection} completed: ${outputFilePath}`);
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error exporting collection ${collection}: ${error.message}`);
+          return;
+        }
+        if (stderr) {
+          console.error(`stderr: ${stderr}`);
+          return;
+        }
+        console.log(`Backup of collection ${collection} completed: ${outputFilePath}`);
+      });
     });
-  });
+  } catch (error) {
+    console.error("backupCollectionMongoDB :", error)
+  }
 };
 
-// Schedule the backup every 6 hours
-cron.schedule('5 * * * *', backupMongoDB, {
-  scheduled: true,
-  timezone: 'Asia/Bangkok', // Adjust timezone as needed
-});
+// cron.schedule(
+//   '* * * * *',
+//   () => {
+//     try {
+//       // backupCollectionMongoDB();
+//     } catch (error) {
+//       console.error("Error executing cron job:", error);
+//     }
+//   },
+//   {
+//     scheduled: true,
+//     timezone: 'Asia/Bangkok',
+//   }
+// );

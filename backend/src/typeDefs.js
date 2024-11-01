@@ -522,6 +522,8 @@ export default gql`
     contentById(_id: ID!): JSON
 
     members: JSON
+    member(_id: ID!): JSON
+    
     files: JSON
     mlmById(_id: ID!): JSON
 
@@ -538,7 +540,7 @@ export default gql`
     purchases:JSON
 
     periods: JSON
-
+    positions: JSON
   }  
   
   input RoomInput {
@@ -890,10 +892,16 @@ export default gql`
 
     bills(input:JSON): JSON
     bills_xml2js(input:JSON): JSON
+
+    address_delivery(input:JSON): JSON
+
+    calcute_plan_back(input:JSON): JSON
   }
 
   type Subscription {
-    userConnected: String
+    userConnected(input:JSON): JSON
+
+
     me(userId: ID!): JSON
     subscriptionSupplierById(_id: ID!): JSON
     subscriptionSuppliers(supplierIds: String!): JSON

@@ -14,8 +14,8 @@ i18n.use(initReactI18next).init({
       translation: th_TH,
     },
   },
-  lng: 'en_US', // Default language
-  fallbackLng: 'en_US', // Fallback language
+  lng: 'th_TH', // Default language
+  fallbackLng: 'th_TH', // Fallback language
   interpolation: {
     escapeValue: false, // React already escapes values
   },

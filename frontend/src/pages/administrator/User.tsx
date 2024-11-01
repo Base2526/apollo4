@@ -1,271 +1,214 @@
-// src/UserForm.tsx
-import React, { useState, useEffect } from 'react';
-import { Form, Input, Upload, Button, Select, Switch, DatePicker, Row, Col, message, Image, GetProp, UploadProps} from 'antd';
-import moment from 'moment';
-import { UploadOutlined, LoadingOutlined, PlusOutlined } from '@ant-design/icons';
-import type { RcFile, UploadChangeParam } from 'antd/es/upload/interface';
+import React, { useState, useEffect, useRef } from 'react';
+import { Form, Input, Button, Select, message, Space, Avatar } from 'antd';
 import { useQuery, useMutation } from "@apollo/client";
+import { useLocation } from 'react-router-dom';
+import _ from "lodash";
+import { EditOutlined, UserOutlined } from '@ant-design/icons';
 
-import { mutationProfile } from "../../apollo/gqlQuery"
-import { getHeaders } from "../../utils"
+import { mutation_profile, query_positions, query_member } from "@/apollo/gqlQuery";
+import { getHeaders } from "@/utils";
+import handlerError from '@/utils/handlerError';
 
-type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
-
-const { Option } = Select;
-
-interface UserTypes {
-  username: string;
-  password: string;
-  email: string;
-  displayName: string;
-  roles: number[];
-  isActive: number; // 0: FALSE, 1: TRUE
-  avatar?: {
-    url: string;
-    filename: string;
-    mimetype: string;
-    encoding: string;
-  };
-  lockAccount: {
-    lock: boolean;
-    date: Date;
-  };
-  lastAccess: Date;
+interface positionInterface {
+  _id: string;
+  level: number;
+  name: string;
+  percent: number;
+  budget: number;
 }
 
-const getBase64 = (img: FileType, callback: (url: string) => void) => {
-    const reader = new FileReader();
-    reader.addEventListener('load', () => callback(reader.result as string));
-    reader.readAsDataURL(img);
+interface FormValues {
+  displayName: string;
+  email: string;
+  positionId?: string;
+}
+
+const defaultValues = {
+  displayName: "",
+  email: "",
+  positionId: ""
 };
 
-const User: React.FC = () => {
-    const [user, setUser] = useState<UserTypes>({
-        username: '',
-        password: '',
-        email: '',
-        displayName: '',
-        roles: [0], // Default role
-        isActive: 0,
-        lockAccount: {
-        lock: false,
-        date: new Date(),
-        },
-        lastAccess: new Date(),
-    });
+const { REACT_APP_HOST_GRAPHAL }  = process.env
+const User: React.FC = (props) => {
+  const [form] = Form.useForm();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  let { mode, _id } = location.state || { mode: searchParams.get('mode'), _id: searchParams.get('v') };
 
-    const [mode, setMode] = useState<'view' | 'edit'>('view'); // Set default mode to view
-    const [avatar, setAvatar] = useState<File | null>(null); // State for uploaded avatar
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [loading, setLoading] = useState(false);
+  const [positions, setPositions] = useState<positionInterface[]>([]);
+  const [image, setImage] = useState<File | any>();
 
-    const [imageUrl, setImageUrl] = useState<string>("https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/698.jpg");
-    const [loading, setLoading] = useState(false);
-  
-    const [onMutationProfile, resultProfile] = useMutation(mutationProfile, {
-        context: { headers: getHeaders(location) },
-        update: (cache, {data: {profile}}) => {
-            console.log("update :", profile)
-        },
-        onCompleted(data) {
-            console.log("onCompleted :", data)
-        },
-        onError(error){
-            console.log("onError :", error)
-        }
-    });
+  const [onProfile, resultProfile] = useMutation(mutation_profile, {
+    context: { headers: getHeaders(location) },
+    update: (cache, { data: { profile } }) => {
+      console.log("update :", profile);
+    },
+    onCompleted(data) {
+      console.log("onCompleted :", data);
+      let { status } = data.profile
+      if(status){
+        message.success('Update profile success!');
+      }
 
-  useEffect(()=>{
-    setMode("edit")
-  }, [])
-  
+      setLoading(false);
+    },
+    onError(error) {
+      console.log("onError :", error);
 
-  const beforeUpload = (file: FileType) => {
-    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-    if (!isJpgOrPng) {
-      message.error('You can only upload JPG/PNG file!');
+      setLoading(false);
+      handlerError(props, error)
     }
-    const isLt2M = file.size / 1024 / 1024 < 2;
-    if (!isLt2M) {
-      message.error('Image must smaller than 2MB!');
+  });
+
+  const { loading: loadingPositions, data: dataPositions } = useQuery(query_positions, {
+    context: { headers: getHeaders(location) },
+    fetchPolicy: 'cache-first',
+    nextFetchPolicy: 'network-only'
+  });
+
+  useEffect(() => {
+    if (!loadingPositions && !_.isEmpty(dataPositions?.positions)) {
+      const { status, data } = dataPositions.positions;
+      if (status) {
+        // Sort the data by level in ascending order before setting it in state
+        const sortedPositions = [...data].sort((a: positionInterface, b: positionInterface) => a.level - b.level);
+        setPositions(sortedPositions);
+      }
     }
-    return isJpgOrPng && isLt2M;
-  };
+  }, [dataPositions, loadingPositions]);
 
-//   const handleFileChange = (info: UploadChangeParam<RcFile>) => {
-//     if (info.file.status === 'done') {
-//       setUser({
-//         ...user,
-//         avatar: {
-//           url: info.file.response.url, // Assume the server returns a URL
-//           filename: info.file.name,
-//           mimetype: info.file.type,
-//           encoding: info.file.encoding,
-//         },
-//       });
-//     }
-//   };
-  const handleFileChange: UploadProps['onChange'] = (info) => {
-    if (info.file.status === 'uploading') {
-    //   setLoading(true);
-      return;
+  const { loading: loadingMember, data: dataMember, refetch: refetchMember } = useQuery(query_member, {
+    context: { headers: getHeaders(location) },
+    fetchPolicy: 'no-cache',
+    nextFetchPolicy: 'network-only',
+    skip: _.isEmpty(_id) || mode === 'added'
+  });
+
+  useEffect(() => {
+    if (_id) {
+      refetchMember({ id: _id });
     }
-    if (info.file.status === 'done') {
-      // Get this url from response in real world.
-      getBase64(info.file.originFileObj as FileType, (url) => {
-        // setLoading(false);
-        setImageUrl(url);
-      });
+  }, [_id, refetchMember]);
+
+  useEffect(() => {
+    if (!loadingMember && !_.isEmpty(dataMember?.member)) {
+      const { status, data } = dataMember.member;
+      if (status) {
+        // console.log("dataMember.member :", data)
+        form.setFieldsValue({
+          displayName: data.current.displayName,
+          email: data.current.email,
+          positionId: data.current.positionId
+        });
+
+        data.current.avatar ? setImage(data.current.avatar) : ""
+      }
+    }
+  }, [dataMember, loadingMember]);
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return; 
+    const file = e.target.files?.[0]; // Access the first file (if any)
+    if (file) {
+      setImage(file)
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setUser({ ...user, [name]: value });
+  const handleClick = () => {
+    if (inputRef.current) {
+      inputRef.current.click();
+    }
   };
 
-  const handleSelectChange = (value: number[]) => {
-    setUser({ ...user, roles: value });
+  const onFinish = (input: FormValues) => {
+    console.log("onFinish :", input);
+
+    if (mode === 'added') {
+      setLoading(true);
+      onProfile({ variables: { input: { ...input, mode, image } } });
+    } else {
+      setLoading(true);
+      if(image instanceof File){
+        onProfile({ variables: { input: { ...input, _id, mode, image } } });
+      }else{
+        onProfile({ variables: { input: { ...input, _id, mode } } });
+      }
+    }
   };
 
-  const handleSwitchChange = (checked: boolean) => {
-    setUser({ ...user, lockAccount: { ...user.lockAccount, lock: checked } });
-  };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log(user);
-    // Here you would usually send the user data to your backend
-  };
-
-  const uploadButton = (
-    <button style={{ border: 0, background: 'none' }} type="button">
-      {loading ? <LoadingOutlined /> : <PlusOutlined />}
-      <div style={{ marginTop: 8 }}>Upload</div>
-    </button>
-  );
-
-  const customRequest = async (options: any) => {
-    const { file, onSuccess, onError } = options;
-    onMutationProfile({ variables: { input: { file } } })
-  };
-  
   return (
-    <Form onSubmitCapture={handleSubmit} layout="vertical">
-        <Form.Item label="Avatar">
-            {/* {user.avatar ? (
-              <Image
-                width={100}
-                src={user.avatar.url}
-                preview={false}
-              />
-            ) : (
-              <div>No avatar uploaded</div>
-            )} */}
-            {/* {mode === 'edit' && (  
-            //   <Upload
-            //     name="avatar"
-            //     action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload" // Replace with your upload URL
-            //     showUploadList={false}
-            //     onChange={handleFileChange}
-            //   >
-            //     <Button icon={<UploadOutlined />}>Upload Avatar</Button>
-            //   </Upload> 
-            */} 
-                <Upload
-                    name="avatar"
-                    listType="picture-card"
-                    className="avatar-uploader"
-                    showUploadList={false}
-                    // action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload"
-                    customRequest={customRequest}
-                    beforeUpload={beforeUpload}
-                    onChange={handleFileChange}
-                >
-                    {imageUrl ? <img src={imageUrl} alt="avatar" style={{ width: '100%' }} /> : uploadButton}
-                </Upload>
-            {/* )} */}
-          </Form.Item>
-      <Form.Item label="Username" required>
-        <Input
-          name="username"
-          value={user.username}
-          onChange={handleChange}
-          disabled={mode === 'view'}
-        />
-      </Form.Item>
-      <Form.Item label="Password" required>
-        <Input.Password
-          name="password"
-          value={user.password}
-          onChange={handleChange}
-          disabled={mode === 'view'}
-        />
-      </Form.Item>
-      <Form.Item label="Email" required>
-        <Input
-          name="email"
-          value={user.email}
-          onChange={handleChange}
-          disabled={mode === 'view'}
-        />
-      </Form.Item>
-      <Form.Item label="Display Name" required>
-        <Input
-          name="displayName"
-          value={user.displayName}
-          onChange={handleChange}
-          disabled={mode === 'view'}
-        />
-      </Form.Item>
-      <Form.Item label="Roles" required>
-        <Select
-          mode="multiple"
-          value={user.roles}
-          onChange={handleSelectChange}
-          disabled={mode === 'view'}
+    <Form
+      form={form}
+      layout="vertical"
+      onFinish={onFinish}
+      initialValues={defaultValues}>
+      <Space style={{ position: "relative", width: 100, height: 100 }}>
+        {/* Image */}
+        {
+          <Avatar 
+            className="user-avator" 
+            shape="square"
+            size={100} 
+            icon={<UserOutlined />}
+            src={ image instanceof File? URL.createObjectURL(image) : `http://${REACT_APP_HOST_GRAPHAL}/${ image?.url }` } />
+        }
+        {/* Edit button */}
+        <div
+          className="edit"
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 3,
+            padding: "2px",
+          }}
         >
-          <Option value={0}>Authenticated</Option>
-          <Option value={1}>Administrator</Option>
+          <input
+            type="file"
+            id="contained-button-file"
+            ref={inputRef}
+            style={{ display: "none" }}
+            multiple={false}
+            accept="image/*"
+            onChange={onFileChange}
+          />
+          <Button icon={<EditOutlined />} type="link" onClick={handleClick} />
+        </div>
+      </Space>
+
+      <Form.Item
+        label="ชื่อ"
+        name="displayName"
+        rules={[{ required: true, message: 'กรุณากรอกชื่อ' }]}>
+        <Input />
+      </Form.Item>
+      
+      <Form.Item
+        label="อีเมลล์"
+        name="email"
+        rules={[{ required: true, message: 'กรุณากรอกอีเมลล์' }]}>
+        <Input disabled={true} />
+      </Form.Item>
+
+      <Form.Item
+        label="ตำแหน่ง"
+        name="positionId"
+        rules={[{ required: true, message: 'กรุณาเลือกตำแหน่ง' }]}>
+        <Select loading={loadingPositions} placeholder="เลือกตำแหน่ง">
+          {positions.map((position) => (
+            <Select.Option key={position._id} value={position._id}>
+              { position.level + 1} : {position.name}
+            </Select.Option>
+          ))}
         </Select>
       </Form.Item>
-      <Form.Item label="Is Active">
-        <Switch
-          checked={user.isActive === 1}
-          onChange={(checked) => setUser({ ...user, isActive: checked ? 1 : 0 })}
-          disabled={mode === 'view'}
-        />
+      <Form.Item>
+        <Button type="primary" htmlType="submit" loading={loading}>
+          {mode === 'edited' ? "แก้ไข" : "บันทึก"}
+        </Button>
       </Form.Item>
-      <Form.Item label="Lock Account">
-        <Switch
-          checked={user.lockAccount.lock}
-          onChange={handleSwitchChange}
-          disabled={mode === 'view'}
-        />
-      </Form.Item>
-      <Form.Item label="Last Access Date">
-        <DatePicker
-          value={user.lastAccess ? moment(user.lastAccess) : null}
-          onChange={(date) => setUser({ ...user, lastAccess: date?.toDate() || new Date() })}
-          disabled={mode === 'view'}
-        />
-      </Form.Item>
-      <Row gutter={16}>
-        <Col>
-          {mode === 'view' ? (
-            <Button type="primary" onClick={() => setMode('edit')}>
-              Edit
-            </Button>
-          ) : (
-            <>
-              <Button type="primary" htmlType="submit">
-                Submit
-              </Button>
-              <Button onClick={() => setMode('view')} style={{ marginLeft: '8px' }}>
-                Cancel
-              </Button>
-            </>
-          )}
-        </Col>
-      </Row>
     </Form>
   );
 };

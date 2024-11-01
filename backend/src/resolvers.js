@@ -251,7 +251,7 @@ export default {
       try {
         let newInput =  {current: { 
                                     username: 'admin',
-                                    password: cryptojs.AES.encrypt( 'Somkid058848391@', process.env.JWT_SECRET).toString(),
+                                    password: cryptojs.AES.encrypt( 'Somkid058848391@', process.env.MONGO_PASSWORD_SECRET).toString(),
                                     displayName: "ADMIN",
                                     email : "admin@local.local",
                                     tel : "0000000000", 
@@ -1577,6 +1577,13 @@ export default {
 
       let members =  await Model.Member.aggregate([
                                                     {
+                                                      $addFields: {
+                                                        'current.positionId': {
+                                                          $ifNull: ['$current.positionId', mongoose.Types.ObjectId('6721098ce9dccb02aab4cb3e')]
+                                                        }
+                                                      }
+                                                    },
+                                                    {
                                                       $lookup: {
                                                         localField: "_id",
                                                         from: "logUserAccess",
@@ -1591,12 +1598,34 @@ export default {
                                                       }
                                                     }
                                                   ])
-
-      // console.log("members :", members)
       return {
         status:true,
         data: members,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+    async member(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+      let { _id } = args
+
+      try {
+        console.log("member @1 :", _id)
+        let { current_user } =  await Utils.checkAuth(req);
+        let role = Utils.checkRole(current_user)
+
+        if( role !== Constants.ADMINISTRATOR && role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+        let data = await Model.Member.findById(_id)
+
+        console.log("member @2 :", data)
+        return {
+          status:true,
+          data,
+          executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+        }
+      } catch (error) {
+        new AppError(Constants.UNAUTHENTICATED, 'permission denied')
       }
     },
     async files(parent, args, context, info) {
@@ -1735,16 +1764,23 @@ export default {
       if( role === Constants.ADMINISTRATOR ){
         let products = await Model.Product.aggregate([
                                                       {
+                                                        $addFields: {
+                                                          ownerId: "$current.ownerId",  // Bring the nested field to the top level
+                                                          // editerId: "$current.editer",   // Bring editerId to the top level
+                                                          // productId: "$current.productIds.productId"
+                                                        }
+                                                      },
+                                                      {
                                                         $lookup: {
                                                           localField: "ownerId",
                                                           from: "member",
                                                           foreignField: "_id",
-                                                          as: "creator"
+                                                          as: "owner"
                                                         }
                                                       },
                                                       {
                                                         $unwind: {
-                                                          path: "$creator",
+                                                          path: "$owner",
                                                           preserveNullAndEmptyArrays: true
                                                         }
                                                       }
@@ -1756,26 +1792,35 @@ export default {
         }
       }
 
-      let products = await Model.Product.aggregate([{
-                                                      $match: {
-                                                        'current.packages': { $in: [ current_user.current.packages ] }
+      let products = await Model.Product.aggregate([
+                                                    {
+                                                      $addFields: {
+                                                        ownerId: "$current.ownerId"
                                                       }
                                                     },
+                                                    // {
+                                                    //   $match: {
+                                                    //     $or: [
+                                                    //       { 'current.package_front': { $in: [current_user.current.packages] } },
+                                                    //       { 'current.package_back': { $in: [current_user.current.packages] } }
+                                                    //     ]
+                                                    //   }
+                                                    // },
                                                     {
                                                       $lookup: {
                                                         localField: "ownerId",
                                                         from: "member",
                                                         foreignField: "_id",
-                                                        as: "creator"
+                                                        as: "owner"
                                                       }
                                                     },
                                                     {
                                                       $unwind: {
-                                                        path: "$creator",
+                                                        path: "$owner",
                                                         preserveNullAndEmptyArrays: true
                                                       }
                                                     }
-                                                    ]);
+                                                  ]);
       return {
         status:true,
         data: products,
@@ -1788,23 +1833,29 @@ export default {
 
       let { _id } = args
 
+      console.log("product :", args)
+
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
       if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
-
-      let product = await Model.Product.aggregate([{ $match: { _id: mongoose.Types.ObjectId(_id) } },
+      let product = await Model.Product.aggregate([{
+                                                      $addFields: {
+                                                        ownerId: "$current.ownerId"
+                                                      }
+                                                    },
+                                                    { $match: { _id: mongoose.Types.ObjectId(_id) } },
                                                     {
                                                       $lookup: {
                                                         localField: "ownerId",
                                                         from: "member",
                                                         foreignField: "_id",
-                                                        as: "creator"
+                                                        as: "owner"
                                                       }
                                                     },
                                                     {
                                                       $unwind: {
-                                                        path: "$creator",
+                                                        path: "$owner",
                                                         preserveNullAndEmptyArrays: true
                                                       }
                                                     }
@@ -1824,52 +1875,62 @@ export default {
       let role = Utils.checkRole(current_user)
       if( role !== Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
       
-        let orders = await Model.Order.aggregate([
-                                                  {
-                                                    $addFields: {
-                                                      ownerId: "$current.ownerId",  // Bring the nested field to the top level
-                                                      editerId: "$current.editer",   // Bring editerId to the top level
-                                                      productId: "$current.productIds.productId"
-                                                    }
-                                                  },{
-                                                    $lookup: {
-                                                      localField: "ownerId",
-                                                      from: "member",
-                                                      foreignField: "_id",
-                                                      as: "owner"
-                                                    }
-                                                  },
-                                                  {
-                                                    $unwind: {
-                                                      path: "$owner",
-                                                      preserveNullAndEmptyArrays: true
-                                                    }
-                                                  },
-                                                  // Lookup to fetch the editer details from the "member" collection
-                                                  {
-                                                    $lookup: {
-                                                      from: "member",  // Referencing the member collection
-                                                      localField: "editerId",  // Field from the current pipeline
-                                                      foreignField: "_id",  // Field from the member collection
-                                                      as: "editer"  // Output the result as "editer"
-                                                    }
-                                                  },
-                                                  {
-                                                    $unwind: {
-                                                      path: "$editer",
-                                                      preserveNullAndEmptyArrays: true  // Handle cases where there might be no editer
-                                                    }
-                                                  },
-                                                  // Lookup to fetch the product details from the "Product" collection based on productIds array
-                                                  {
-                                                    $lookup: {
-                                                      from: "product", // the collection you're referencing (Product collection)
-                                                      localField: "productId", // field in the Orders collection (array of ObjectId)
-                                                      foreignField: "_id", // field in the Product collection
-                                                      as: "productDetails" // field to store the resulting product details
-                                                    }
-                                                  },
-                                                ]);                                      
+      let orders = await Model.Order.aggregate([
+                                                {
+                                                  $addFields: {
+                                                    ownerId: "$current.owner._id",  // Bring the nested field to the top level
+                                                    // editerId: "$current.editer",   // Bring editerId to the top level
+                                                    // productId: "$current.productIds.productId"
+                                                  }
+                                                },
+                                                {
+                                                  $lookup: {
+                                                    localField: "ownerId",
+                                                    from: "member",
+                                                    foreignField: "_id",
+                                                    as: "owner"
+                                                  }
+                                                },
+                                                {
+                                                  $unwind: {
+                                                    path: "$owner",
+                                                    preserveNullAndEmptyArrays: true
+                                                  }
+                                                },
+                                                // Lookup to fetch the editer details from the "member" collection
+                                                // {
+                                                //   $lookup: {
+                                                //     from: "member",  // Referencing the member collection
+                                                //     localField: "editerId",  // Field from the current pipeline
+                                                //     foreignField: "_id",  // Field from the member collection
+                                                //     as: "editer"  // Output the result as "editer"
+                                                //   }
+                                                // },
+                                                // {
+                                                //   $unwind: {
+                                                //     path: "$editer",
+                                                //     preserveNullAndEmptyArrays: true  // Handle cases where there might be no editer
+                                                //   }
+                                                // },
+                                                // Lookup to fetch the product details from the "Product" collection based on productIds array
+                                                // {
+                                                //   $lookup: {
+                                                //     from: "product", // the collection you're referencing (Product collection)
+                                                //     localField: "productId", // field in the Orders collection (array of ObjectId)
+                                                //     foreignField: "_id", // field in the Product collection
+                                                //     as: "productDetails" // field to store the resulting product details
+                                                //   }
+                                                // },
+                                                // Add default fields if they are missing
+                                                // {
+                                                //   $addFields: {
+                                                //     "owner.current.positionId": { $ifNull: ["$owner.current.positionId", mongoose.Types.ObjectId('6721098ce9dccb02aab4cb3e')] },
+                                                //     // "editer.defaultField": { $ifNull: ["$editer.defaultField", "defaultValue"] },
+                                                //     // "productDetails.defaultField": { $ifNull: ["$productDetails.defaultField", "defaultValue"] }
+                                                //   }
+                                                // }
+                                              ]);     
+                                  
       return {
         status: true,
         data: orders,
@@ -1892,11 +1953,12 @@ export default {
         let order = await Model.Order.aggregate([ { $match: { _id: mongoose.Types.ObjectId(_id) } },
                                                   {
                                                     $addFields: {
-                                                      ownerId: "$current.ownerId",  // Bring the nested field to the top level
+                                                      // ownerId: "$current.ownerId",  // Bring the nested field to the top level
                                                       editerId: "$current.editer",   // Bring editerId to the top level
-                                                      productId: "$current.productIds.productId"
+                                                      // productId: "$current.productIds.productId"
                                                     }
-                                                  },{
+                                                  },
+                                                  /*{
                                                     $lookup: {
                                                       localField: "ownerId",
                                                       from: "member",
@@ -1910,6 +1972,7 @@ export default {
                                                       preserveNullAndEmptyArrays: true
                                                     }
                                                   },
+                                                  */
                                                   // Lookup to fetch the editer details from the "member" collection
                                                   {
                                                     $lookup: {
@@ -1926,14 +1989,14 @@ export default {
                                                     }
                                                   },
                                                   // Lookup to fetch the product details from the "Product" collection based on productIds array
-                                                  {
-                                                    $lookup: {
-                                                      from: "product", // the collection you're referencing (Product collection)
-                                                      localField: "productId", // field in the Orders collection (array of ObjectId)
-                                                      foreignField: "_id", // field in the Product collection
-                                                      as: "productDetails" // field to store the resulting product details
-                                                    }
-                                                  },
+                                                  // {
+                                                  //   $lookup: {
+                                                  //     from: "product", // the collection you're referencing (Product collection)
+                                                  //     localField: "productId", // field in the Orders collection (array of ObjectId)
+                                                  //     foreignField: "_id", // field in the Product collection
+                                                  //     as: "productDetails" // field to store the resulting product details
+                                                  //   }
+                                                  // },
                                                   ]);
 
         return {
@@ -1955,17 +2018,19 @@ export default {
       let { current_user } =  await Utils.checkAuth(req);
       let role = Utils.checkRole(current_user)
       if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
-        let purchases = await Model.Order.aggregate([{
-                                                    $match: {
-                                                      "current.ownerId": current_user._id  // Replace xxxxx with the actual OwnerId value you're looking for
-                                                    }
-                                                  },
+        let purchases = await Model.Order.aggregate([
+                                                  // {
+                                                  //   $match: {
+                                                  //     "current.ownerId": current_user._id  // Replace xxxxx with the actual OwnerId value you're looking for
+                                                  //   }
+                                                  // },
                                                   {
                                                     $addFields: {
-                                                      ownerId: "$current.ownerId",  // Bring the nested field to the top level
+                                                      // ownerId: "$current.ownerId",  // Bring the nested field to the top level
                                                       productId: "$current.productIds.productId"
                                                     }
-                                                  },{
+                                                  },
+                                                  /*{
                                                     $lookup: {
                                                       localField: "ownerId",
                                                       from: "member",
@@ -1978,7 +2043,7 @@ export default {
                                                       path: "$owner",
                                                       preserveNullAndEmptyArrays: true
                                                     }
-                                                  },
+                                                  },*/
                                                   // Lookup to fetch the product details from the "Product" collection based on productIds array
                                                   {
                                                     $lookup: {
@@ -2035,6 +2100,24 @@ export default {
       return {
         status: true,
         data: periods,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      }
+    },
+
+    async positions(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+        
+      let positions = await Model.Position.find({});
+      // console.log("positions :", positions);
+
+      return {
+        status: true,
+        data: positions,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },
@@ -2114,9 +2197,9 @@ export default {
       // });
 
       let text = "7P569uV6nR2zr3y26mtTn"
-      let encrypt = cryptojs.AES.encrypt(text, process.env.JWT_SECRET).toString()
+      let encrypt = cryptojs.AES.encrypt(text, process.env.MONGO_PASSWORD_SECRET).toString()
       // encrypt = "U2FsdGVkX18wIs5DOBhZOddShspHwri5Z8KFIXtyHzU="
-      let decrypt = cryptojs.AES.decrypt(encrypt, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8);
+      let decrypt = cryptojs.AES.decrypt(encrypt, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8);
       console.log("encrypt ++ :", text, encrypt, decrypt)
   
       return {  status:true, 
@@ -2128,7 +2211,7 @@ export default {
       let start = Date.now()
       let {input} = args
 
-      console.log("login :", input, process.env.JWT_SECRET, cryptojs.AES.encrypt( input.password, process.env.JWT_SECRET).toString())
+      console.log("login :", input, process.env.MONGO_PASSWORD_SECRET, cryptojs.AES.encrypt( input.password, process.env.MONGO_PASSWORD_SECRET).toString())
 
       /*
       let username = input.username.toLowerCase()
@@ -2139,9 +2222,9 @@ export default {
         if( _.isNull(user) ){
           throw new AppError(Constants.USER_NOT_FOUND, 'USER NOT FOUND')
         }
-        if(!_.isEqual(cryptojs.AES.decrypt(user?.password, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8), input.password)){
+        if(!_.isEqual(cryptojs.AES.decrypt(user?.password, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8), input.password)){
           
-          console.log("e :", user?.password, input?.password, cryptojs.AES.decrypt(user?.password, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8))
+          console.log("e :", user?.password, input?.password, cryptojs.AES.decrypt(user?.password, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8))
           throw new AppError(Constants.PASSWORD_WRONG, 'PASSWORD WRONG')
         }
         user = await Utils.getUserFull({email: username})
@@ -2150,8 +2233,8 @@ export default {
         if( _.isNull(user) ){
           throw new AppError(Constants.USER_NOT_FOUND, 'USER NOT FOUND')
         }
-        if(!_.isEqual(cryptojs.AES.decrypt(user?.password, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8), input.password)){
-          console.log("e :", user?.password, input?.password, cryptojs.AES.decrypt(user?.password, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8))
+        if(!_.isEqual(cryptojs.AES.decrypt(user?.password, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8), input.password)){
+          console.log("e :", user?.password, input?.password, cryptojs.AES.decrypt(user?.password, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8))
           throw new AppError(Constants.PASSWORD_WRONG, 'PASSWORD WRONG')
         }
         user = await Utils.getUserFull({username})
@@ -2177,9 +2260,9 @@ export default {
         if( _.isNull(user) ){
           throw new AppError(Constants.USER_NOT_FOUND, 'USER NOT FOUND')
         }
-        if(!_.isEqual(cryptojs.AES.decrypt(user?.current?.password, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8), input.password)){
+        if(!_.isEqual(cryptojs.AES.decrypt(user?.current?.password, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8), input.password)){
           
-          console.log("e :", user?.current?.password, input?.password, cryptojs.AES.decrypt(user?.current?.password, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8))
+          console.log("e :", user?.current?.password, input?.password, cryptojs.AES.decrypt(user?.current?.password, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8))
           throw new AppError(Constants.PASSWORD_WRONG, 'PASSWORD WRONG')
         }
         // user = await Utils.getUserFull({email: username})
@@ -2189,8 +2272,8 @@ export default {
         if( _.isNull(user) ){
           throw new AppError(Constants.USER_NOT_FOUND, 'USER NOT FOUND')
         }
-        if(!_.isEqual(cryptojs.AES.decrypt(user?.current?.password, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8), input.password)){
-          console.log("e :", user?.current?.password, input?.password, cryptojs.AES.decrypt(user?.current?.password, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8))
+        if(!_.isEqual(cryptojs.AES.decrypt(user?.current?.password, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8), input.password)){
+          console.log("e :", user?.current?.password, input?.password, cryptojs.AES.decrypt(user?.current?.password, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8))
           throw new AppError(Constants.PASSWORD_WRONG, 'PASSWORD WRONG')
         }
         // user = await Utils.getUserFull({username})
@@ -2273,7 +2356,7 @@ export default {
 
             let newInput = {
               username: data.profileObj.email,
-              password: cryptojs.AES.encrypt( data.profileObj.googleId, process.env.JWT_SECRET).toString(),
+              password: cryptojs.AES.encrypt( data.profileObj.googleId, process.env.MONGO_PASSWORD_SECRET).toString(),
               email: data.profileObj.email,
               displayName: data.profileObj.givenName +" " + data.profileObj.familyName ,
               roles: [ Constants.AUTHENTICATED ], // authenticated
@@ -2409,7 +2492,7 @@ export default {
 
             let newInput = {
               username: github_user.email,
-              password: cryptojs.AES.encrypt(data.code, process.env.JWT_SECRET).toString(),
+              password: cryptojs.AES.encrypt(data.code, process.env.MONGO_PASSWORD_SECRET).toString(),
               email: github_user.email,
               displayName: github_user.name,
               roles: [ Constants.AUTHENTICATED ], // authenticated
@@ -2470,7 +2553,7 @@ export default {
           if(_.isEmpty(user)){
             let newInput = {
               username: data.email,
-              password: cryptojs.AES.encrypt(data.id, process.env.JWT_SECRET).toString(),
+              password: cryptojs.AES.encrypt(data.id, process.env.MONGO_PASSWORD_SECRET).toString(),
               email: data.email,
               displayName: data.name,
               roles: [ Constants.AUTHENTICATED ], // authenticated
@@ -2591,7 +2674,7 @@ export default {
       
       let newInput =  {current: { ...input,  
                                   username: input.idCard,
-                                  password: cryptojs.AES.encrypt( input.tel, process.env.JWT_SECRET).toString(),
+                                  password: cryptojs.AES.encrypt( input.tel, process.env.MONGO_PASSWORD_SECRET).toString(),
                                   displayName: _.isEmpty(input.displayName) ? input.username : input.displayName ,
                                   car_brand: _.isEmpty(input.car_brand) ? "" : input.car_brand,
                                   car_model: _.isEmpty(input.car_model) ? "" : input.car_model,
@@ -3631,7 +3714,7 @@ export default {
         case "all":{
           let sessions = await Model.Session.find()
           _.map(sessions, async(session)=>{
-            let userId  = jwt.verify(session.token, process.env.JWT_SECRET);
+            let userId  = jwt.verify(session.token, process.env.MONGO_PASSWORD_SECRET);
             let current_user = await Utils.getUser({_id: userId}) 
             pubsub.publish("ME", { me: { mutation: "FORCE_LOGOUT", data: { userId: current_user?._id } } });
           })
@@ -3645,7 +3728,7 @@ export default {
 
         case "id":{
           let session = await Model.Session.findOne({_id: mongoose.Types.ObjectId(input?._id)});
-          let userId  = jwt.verify(session.token, process.env.JWT_SECRET);
+          let userId  = jwt.verify(session.token, process.env.MONGO_PASSWORD_SECRET);
           let current_user = await Utils.getUser({_id: userId}) 
           
           pubsub.publish("ME", { me: { mutation: "FORCE_LOGOUT", data: { userId: current_user?._id } } });
@@ -4034,7 +4117,7 @@ export default {
 
       return {
         status: true,
-        data: cryptojs.AES.decrypt(input?.encrypt, process.env.JWT_SECRET).toString(cryptojs.enc.Utf8),
+        data: cryptojs.AES.decrypt(input?.encrypt, process.env.MONGO_PASSWORD_SECRET).toString(cryptojs.enc.Utf8),
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }   
     },
@@ -4717,7 +4800,7 @@ export default {
       
       let newInput =  {current: { ...input,  
                                   username: input.username?.toLowerCase(),
-                                  password: cryptojs.AES.encrypt( input.password, process.env.JWT_SECRET).toString(),
+                                  password: cryptojs.AES.encrypt( input.password, process.env.MONGO_PASSWORD_SECRET).toString(),
                                   displayName: _.isEmpty(input.displayName) ? input.username : input.displayName ,
                                   lastAccess: Date.now(), 
                                   isOnline: true}
@@ -4774,20 +4857,161 @@ export default {
       let { input } = args
       let { req } = context
 
+      console.log("profile :", input)
+
       let { current_user } =  await Utils.checkAuth(req);
-      let prof  =  await Utils.saveFile(current_user, input.file)
 
-      console.log("profile :", current_user, prof)
+      // let prof  =  await Utils.saveFile(current_user, input.file)
+      // console.log("profile :", current_user, prof)
+      // let member = await Model.Member.findOne({ _id: mongoose.Types.ObjectId(current_user?._id) })
+      // await Model.Member.updateOne({ _id: mongoose.Types.ObjectId(current_user?._id) }, 
+      //                              { "current.avatar": { url: prof.url, filename: prof.filename, encoding: prof.encoding, mimetype: prof.mimetype }, history: Utils.createRevision(member) }
+      //                             );
+      // let user = await Utils.getMember({ _id: mongoose.Types.ObjectId(current_user?._id) }, false)
 
-      let member = await Model.Member.findOne({ _id: mongoose.Types.ObjectId(current_user?._id) })
-      await Model.Member.updateOne({ _id: mongoose.Types.ObjectId(current_user?._id) }, 
-                                   { "current.avatar": { url: prof.url, filename: prof.filename, encoding: prof.encoding, mimetype: prof.mimetype }, history: Utils.createRevision(member) }
-                                  );
+      let { _id, mode } = input
 
-      let user = await Utils.getMember({ _id: mongoose.Types.ObjectId(current_user?._id) }, false)
+      switch(mode){
+        case 'added':{
+          const session = await mongoose.startSession();
+          session.startTransaction();
+          try {
+            /*
+            let promises = []; 
+            if(!_.isEmpty(input.images)){
+              for (let i = 0; i < input.images.length; i++) {
+                const { createReadStream, filename, encoding, mimetype } = (await input.images[i]).file //await input.files[i];
+      
+                const stream = createReadStream();
+                const assetUniqName = Utils.fileRenamer(filename);
+                let pathName = `/app/uploads/${assetUniqName}`;
+      
+                const output = fs.createWriteStream(pathName)
+                stream.pipe(output);
+      
+                const promise = await new Promise(function (resolve, reject) {
+                  // output.on('close', () => {
+                  //   resolve("close");
+                  // });
+
+                  output.on('finish', async () => {
+                    try {
+                        // Save data to MongoDB after the stream has finished writing
+                        // await saveDataToMongoDB(data, dbUrl, dbName, collectionName);
+                        // console.log("finish : ", { url: `images/${assetUniqName}`, filename, encoding, mimetype })
+                        
+                        // let newInput ={current: { parentId: input?.parentId, childs: [{childId: current_user?._id}]}}  
+                        let file = await Model.File.insertMany([{userId:current_user._id, url: `images/${assetUniqName}`, filename, encoding, mimetype }], {session});
+                        // console.log("file ", file)
+                        resolve(file !== null ? file[0] : undefined );
+                    } catch (error) {
+                        reject(`Failed to save data to MongoDB: ${error.message}`);
+                    }
+                  });
+            
+                  output.on('error', async(err) => {
+                    await Utils.loggerError(req, err.toString());
+      
+                    reject(err);
+                  });
+                });
+                promises.push(promise);
+              }
+            }
+
+            let images = await Promise.all(promises);
+            // console.log("All files processed: ", images );
+
+            const newInput = _.omit(input, ['mode']);
+            // let current  = {...newInput, images }
+            // if(input?._isDEV === undefined){
+            //   current  = { ...current, ownerId: current_user._id }
+            // }
+
+            let current  = {...newInput, images, ownerId: current_user._id }
+            
+            console.log("@@@2 product current : ", current, input?._isDEV)
+            
+            await Model.Product.insertMany([{ current }], { session });
+
+            // Commit the transaction
+            await session.commitTransaction();
+            */
+          }catch(error){
+              console.log("error @@@@@@@1 :", error)
+              await session.abortTransaction();
+          
+              throw new AppError(Constants.ERROR, error)
+          }finally {
+              session.endSession();
+              console.log("finally @@@@@@@1 :")
+          }  
+
+          break;
+        }
+
+        case 'edited':{
+          const session = await mongoose.startSession();
+          session.startTransaction();
+          try {
+            if(input.image){
+              let avatar  =  await Utils.saveFile(current_user, input.image)
+
+              let history = await Model.Member.findOne({ _id: mongoose.Types.ObjectId(_id) })
+              let newInput = _.omit(input, ['_id', 'mode', 'image']);
+
+              let current = { ...history.current, 
+                              ...newInput,
+                              avatar: { url: avatar.url, filename: avatar.filename, encoding: avatar.encoding, mimetype: avatar.mimetype } 
+                            }
+
+              await Model.Member.updateOne({ _id }, { $set: { current, history: Utils.createRevision(history) } }, { session });
+            }else{
+              let history   = await Model.Member.findOne({ _id: mongoose.Types.ObjectId(_id) })
+              let newInput  = _.omit(input, ['_id', 'mode']);
+              let current   = { ...history.current, ...newInput }
+
+              console.log("order current :", current)
+              await Model.Member.updateOne({ _id }, { $set: { current, history: Utils.createRevision(history) } }, { session });
+            }
+             
+            await session.commitTransaction();
+          }catch(error){
+            console.log("error @@@@@@@1 :", error)
+            await session.abortTransaction();
+        
+            throw new AppError(Constants.ERROR, error)
+          }finally {
+            session.endSession();
+            console.log("finally @@@@@@@1 :")
+          }  
+
+          break;
+        }
+
+        case 'deleted':{
+          const session = await mongoose.startSession();
+          session.startTransaction();
+          try {
+
+            // Commit the transaction
+            await session.commitTransaction();
+          }catch(error){
+            console.log("error @@@@@@@1 :", error)
+            await session.abortTransaction();
+        
+            throw new AppError(Constants.ERROR, error)
+          }finally {
+            session.endSession();
+            console.log("finally @@@@@@@1 :")
+          } 
+          break;
+        }
+      }
+
       return {
         status: true,
-        data: user,
+        // data: user,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       } 
     },
@@ -4999,16 +5223,17 @@ export default {
           const session = await mongoose.startSession();
           session.startTransaction();
           try {
-            if(input?._isDEV === true){
-              console.log(input?._isDEV, input);
-              // let newInput = _.omit(input?.current, ['mode']);
+            // if(input?._isDEV === true){
+            //   console.log(input?._isDEV, input);
+            //   // let newInput = _.omit(input?.current, ['mode']);
 
-              let current  = {...input?.current, ownerId: current_user._id }
+            //   let current  = {...input?.current, ownerId: current_user._id }
 
-              console.log("@@@1 product current : ", current)
+            //   console.log("@@@1 product current : ", current)
 
-              await Model.Product.insertMany([{ _isDEV: true, current }], { session });
-            }else{
+            //   await Model.Product.insertMany([{ _isDEV: true, current }], { session });
+            // }else{
+              
               let promises = []; 
               if(!_.isEmpty(input.images)){
                 for (let i = 0; i < input.images.length; i++) {
@@ -5055,12 +5280,18 @@ export default {
               // console.log("All files processed: ", images );
 
               const newInput = _.omit(input, ['mode']);
+              // let current  = {...newInput, images }
+              // if(input?._isDEV === undefined){
+              //   current  = { ...current, ownerId: current_user._id }
+              // }
+
               let current  = {...newInput, images, ownerId: current_user._id }
               
-              console.log("@@@2 product current : ", current)
+              console.log("@@@2 product current : ", current, input?._isDEV)
               
               await Model.Product.insertMany([{ current }], { session });
-            }
+
+            // }
             // Commit the transaction
             await session.commitTransaction();
           }catch(error){
@@ -5156,9 +5387,9 @@ export default {
             let newInput = _.omit(input, ['_id', 'mode']);
             
             let history = await Model.Product.findOne({ _id: mongoose.Types.ObjectId(input._id) })
-            let result = await Model.Product.updateOne({ _id: input._id }, { $set: { current: {...newInput, images: [...images, ...newFiles]}, history: Utils.createRevision(history) } }, { session });
+            let result = await Model.Product.updateOne({ _id: input._id }, { $set: { current: {...history.current, ...newInput, images: [...images, ...newFiles]}, history: Utils.createRevision(history) } }, { session });
 
-            console.log("All files processed @@@ : ", result, input._id, newInput );
+            console.log("All files processed @@@ : ", result );
             // Commit the transaction
             await session.commitTransaction();
           }catch(error){
@@ -5210,13 +5441,14 @@ export default {
       if( role !==Constants.ADMINISTRATOR &&
           role !==Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
           
-      console.log("order : ", input)
+      // console.log("order : ", input)
 
       switch(input.mode){
         case 'added':{
           const session = await mongoose.startSession();
           session.startTransaction();
           try {
+            /*
             const promises =  _.map(input.productIds, async (vi) => {
                                 let { productId, quantities } = vi;
                                 const document = await Model.Product.findOne({ _id: mongoose.Types.ObjectId(productId) });
@@ -5235,12 +5467,64 @@ export default {
         
             // Wait for all promises to resolve
             await Promise.all(promises);
+            */
+            const promises = _.map(input.products, async (vi) => {
+              let { productId, quantities } = vi;
+            
+              // Fetch the product product from the database
+              const product = await Model.Product.findOne({ _id: mongoose.Types.ObjectId(productId) });
+            
+              // Check if the product exists
+              if (product) {
+                // Check if the requested quantity is available
+                if (quantities > product.current.quantity) {
+                  throw new AppError(Constants.ERROR, "Quantity not enough");
+                }
+                
+                // Update the product quantity in the database
+                await Model.Product.updateOne(
+                  { _id: mongoose.Types.ObjectId(productId) },
+                  { $inc: { 'current.quantity': -quantities } },
+                  { session }
+                );
+            
+                let newProduct = {
+                  _id: product._id,
+                  price: product.current.price,
+                  price_sell: product.current.price_sell,
+                  price_discount_bm: product.current.price_discount_bm,
+                  price_discount_bs: product.current.price_discount_bs,
+                  price_discount_from_children: product.current.price_discount_from_children,
+                  price_discount_from_office: product.current.price_discount_from_office,
+                  all_sale: product.current.all_sale,
+                  price_delivery: product.current.price_delivery,
+                }
 
-            let current  = { productIds: input.productIds, 
-                             ownerId: current_user._id,
+                // Return the product and quantities
+                return { product: newProduct, quantities };
+              } else {
+                // Return null or handle case when product doesn't exist
+                return null; // or you can throw an error
+              }
+            });
+
+            // Wait for all promises to resolve
+            const results = await Promise.all(promises);
+
+            // Filter out null results (if any documents were not found)
+            const validResults = results.filter(result => result !== null);
+
+            let current  = { products: validResults, 
+                             owner: { 
+                                      _id: current_user._id,  
+                                      positionId: current_user.current.positionId 
+                                    } ,
                              status: 1 }
+
             await Model.Order.insertMany([{ current }], { session });
 
+            // throw new AppError(Constants.ERROR, "error")
+  
             // Commit the transaction
             await session.commitTransaction();
           }catch(error){
@@ -5252,7 +5536,6 @@ export default {
             session.endSession();
             console.log("finally @@@@@@@1 :")
           } 
-
           break;
         }
 
@@ -5261,6 +5544,7 @@ export default {
           session.startTransaction();
           try {
 
+            // cancel, complete order
             switch( input.type ){
               case 2:
               case 3:{
@@ -5311,6 +5595,103 @@ export default {
                 };
                 await Model.Order.updateOne( filter , update, { session });
 
+                if(input.type === 2){
+                  // เช็ดยอดเพือปรับตำแหน่ง
+ 
+                  const owner = await Model.Member.findById(history.current.ownerId).session(session);
+                  const orderProducts =  history.current.products
+                  const ids = orderProducts.map(item => mongoose.Types.ObjectId(item.productId));
+                   
+                  const productsData = await Model.Product.find({ _id: { $in: ids } })
+
+                  let sumPrice =  _.sumBy(productsData, (prod)=>{
+                    let quant = _.find(orderProducts, (value)=>value.productId.toString() === prod._id.toString())
+                    return (quant.quantities * prod.current.price_sell)  * (100-5)/100
+                  })
+
+                  /*
+                  {"_id":"6721098ce9dccb02aab4cb3e","level":0,"name":"BM","percent":0,"budget":0 },
+                  {"_id":"6721098ce9dccb02aab4cb3f","level":1,"name":"BS","percent":0,"budget":5000 },
+                  {"_id":"6721098ce9dccb02aab4cb40","level":2,"name":"BG","percent":0.5,"budget":10000 },
+                  {"_id":"6721098ce9dccb02aab4cb41","level":3,"name":"BD","percent":1,"budget":50000 },
+                  {"_id":"6721098ce9dccb02aab4cb42","level":4,"name":"BP","percent":2,"budget":200000 },
+                  */
+   
+                  if(sumPrice >= 5000 && sumPrice <= 9999){
+                    // BS
+                    const codes = ['6721098ce9dccb02aab4cb3f', '6721098ce9dccb02aab4cb40', '6721098ce9dccb02aab4cb41', '6721098ce9dccb02aab4cb42'];
+                    const check_includes =  _.includes(codes, owner.current.positionId)
+
+                    if(!check_includes){
+                      await Model.Member.updateOne(
+                        { _id: owner._id },
+                        {  "current.positionId": "6721098ce9dccb02aab4cb3f" },
+                        { session }
+                      );
+                    }
+
+                    console.log("@@@@@: BS")
+                  }else if(sumPrice >= 10000 && sumPrice <= 49999){
+                    // BG 
+                    const codes = ['6721098ce9dccb02aab4cb40', '6721098ce9dccb02aab4cb41', '6721098ce9dccb02aab4cb42'];
+                    const check_includes =  _.includes(codes, owner.current.positionId)
+
+                    if(!check_includes){
+                      await Model.Member.updateOne(
+                        { _id: owner._id },
+                        { "current.positionId": "6721098ce9dccb02aab4cb40" },
+                        { session }
+                      );
+                    }
+
+                    console.log("@@@@@: BG")
+                  }else if(sumPrice >= 50000 && sumPrice <= 199999){
+                    // BD
+                    const codes = ['6721098ce9dccb02aab4cb41', '6721098ce9dccb02aab4cb42'];
+                    const check_includes =  _.includes(codes, owner.current.positionId)
+
+                    if(!check_includes){
+                      await Model.Member.updateOne(
+                        { _id: owner._id },
+                        { "current.position": "6721098ce9dccb02aab4cb41" },
+                        { session }
+                      );
+                    }
+                    
+                    console.log("@@@@@: BD")
+                  }else if(sumPrice >= 200000){
+                    // BP
+                    const codes = ['6721098ce9dccb02aab4cb42'];
+                    const check_includes =  _.includes(codes, owner.current.positionId)
+
+                    if(!check_includes){
+                      await Model.Member.updateOne(
+                        { _id: owner._id },
+                        { "current.position": "6721098ce9dccb02aab4cb42" },
+                        { session }
+                      );
+                    }
+
+                    console.log("@@@@@: BP")
+                  }
+                }
+
+                // Commit the transaction
+                await session.commitTransaction();
+
+                // pubsub.publish('USER_CONNECTED', { userConnected: 'A user connected' });
+
+                const updatedProfile = await Model.Member.findById(history.current.ownerId).session(session); // Attach session to the query
+                console.log("@@@@@: ", updatedProfile)
+                pubsub.publish("USER_CONNECTED", {
+                  userConnected: {
+                    mutation: "UPDATED_PROFILE",
+                    data: updatedProfile,
+                  }
+                });
+
+                // throw new AppError(Constants.ERROR)
+
                 break;
               }
               case 4:{
@@ -5324,13 +5705,12 @@ export default {
                   }
                 };
                 await Model.Order.updateOne( filter , update, { session });
+
+                 // Commit the transaction
+                await session.commitTransaction();
                 break;
               }
             }
-
-
-            // Commit the transaction
-            await session.commitTransaction();
           }catch(error){
             console.log("error @@@@@@@1 :", error)
             await session.abortTransaction();
@@ -5489,248 +5869,354 @@ export default {
         throw new Error('Error generating XML');
       }
     },
+    async address_delivery(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+      let { input } = args
+      
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.ADMINISTRATOR && 
+          role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+      const session = await mongoose.startSession();
+      session.startTransaction()
+      try{
+
+        switch(input.mode){
+          case 'added':{
+            let newInput =  _.omit(input, ['mode']);
+            await Model.Member.updateOne(
+              { _id: current_user._id },
+              { "current.address_delivery": newInput },
+              { session }
+            );
+    
+            await session.commitTransaction();
+  
+            pubsub.publish('USER_CONNECTED', { userConnected: 'A user connected' });
+            console.log('Last access time updated successfully');
+    
+            return {
+              status: true,
+              executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+            }
+          }
+
+          case 'deleted':{
+            await Model.Member.updateOne(
+              { _id: current_user._id },
+              { "current.address_delivery": {} },
+              { session }
+            );
+    
+            await session.commitTransaction();
+    
+            pubsub.publish('USER_CONNECTED', { userConnected: 'A user connected' });
+            console.log('Last access time updated successfully');
+    
+            return {
+              status: true,
+              executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+            }
+          }
+        }
+       
+      } catch(error){
+        await session.abortTransaction();
+        console.log(`init #error ${error}`)
+
+        throw new AppError(Constants.ERROR, error)
+      }finally {
+        session.endSession();
+      }  
+    },
+
+    async calcute_plan_back(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+      let { input } = args
+      
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.ADMINISTRATOR && 
+          role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+      const session = await mongoose.startSession();
+      session.startTransaction()
+      try{
+
+        let node_uid = await Model.Node.findOne({'current.ownerId':  mongoose.Types.ObjectId(input.userId)})
+
+        console.log("calcute_plan_back input:", input, node_uid)
+        if(node_uid){
+          let result_calculate_plan_back =  await Utils.calculate_plan_back(node_uid._id, input.startDate, input.endDate)
+
+          console.log("result_calculate_plan_back :", result_calculate_plan_back)
+
+          return {
+            status: true,
+            data: result_calculate_plan_back,
+            executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+          }   
+        }
+        
+        // await session.commitTransaction();
+        return {
+          status: true,
+          executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+        }      
+      } catch(error){
+        await session.abortTransaction();
+        console.log(`init #error ${error}`)
+
+        throw new AppError(Constants.ERROR, error)
+      }finally {
+        session.endSession();
+      }  
+    },
   },
   Subscription:{
-    me: {
-      resolve: (payload) =>{
-        return payload.me
-      },
-      subscribe: withFilter((parent, args, context, info) => {
-          return pubsub.asyncIterator(["ME"])
-        }, async(payload, variables) => {
-          try{
+    // me: {
+    //   resolve: (payload) =>{
+    //     return payload.me
+    //   },
+    //   subscribe: withFilter((parent, args, context, info) => {
+    //       return pubsub.asyncIterator(["ME"])
+    //     }, async(payload, variables) => {
+    //       try{
 
-            console.log("sub ME @1 :", variables)
-            let { userId } = variables
-            // if(_.isEmpty(userId)){
-            //   return false;
-            // }
+    //         console.log("sub ME @1 :", variables)
+    //         let { userId } = variables
+    //         // if(_.isEmpty(userId)){
+    //         //   return false;
+    //         // }
 
-            let {mutation, data} = payload.me
+    //         let {mutation, data} = payload.me
 
-            // userId
-            // let authorization = await Utils.checkAuthorizationWithSessionId(sessionId);
-            // let { current_user } =  authorization
+    //         // userId
+    //         // let authorization = await Utils.checkAuthorizationWithSessionId(sessionId);
+    //         // let { current_user } =  authorization
 
-            console.log( "sub ME @2 :", payload )
-            switch(mutation){
-              case "DEPOSIT":
-              case "WITHDRAW":
-              case "BOOK":
-              case "BUY":
-              case "CANCEL":{
-                return _.isEqual(data?.userId.toString(), userId.toString()) ? true : false;
-              }
-              case "UPDATE":{
-                return _.isEqual(data?._id.toString(), userId.toString()) ? true : false;
-              }
-              case "FORCE_LOGOUT":{
-                return _.isEqual(data?.userId.toString(), userId.toString()) ? true : false;
-              }
-            }
+    //         console.log( "sub ME @2 :", payload )
+    //         switch(mutation){
+    //           case "DEPOSIT":
+    //           case "WITHDRAW":
+    //           case "BOOK":
+    //           case "BUY":
+    //           case "CANCEL":{
+    //             return _.isEqual(data?.userId.toString(), userId.toString()) ? true : false;
+    //           }
+    //           case "UPDATE":{
+    //             return _.isEqual(data?._id.toString(), userId.toString()) ? true : false;
+    //           }
+    //           case "FORCE_LOGOUT":{
+    //             return _.isEqual(data?.userId.toString(), userId.toString()) ? true : false;
+    //           }
+    //         }
 
-            console.log( "Subscription : ME @3 :", data?.userId, userId, _.isEqual(data?.userId, userId) )  
+    //         console.log( "Subscription : ME @3 :", data?.userId, userId, _.isEqual(data?.userId, userId) )  
 
-            return false;
-          } catch(err) {
-            console.log("Subscription : ME #Constants.ERROR =", err.toString())           
-            return false;
-          }
-        }
-      )
-    },
-    subscriptionSupplierById: {
-      resolve: (payload) =>{
-        return payload.supplierById
-      },
-      subscribe: withFilter((parent, args, context, info) => {
-          return pubsub.asyncIterator(["SUPPLIER_BY_ID"])
-        }, (payload, variables) => {
+    //         return false;
+    //       } catch(err) {
+    //         console.log("Subscription : ME #Constants.ERROR =", err.toString())           
+    //         return false;
+    //       }
+    //     }
+    //   )
+    // },
+    // subscriptionSupplierById: {
+    //   resolve: (payload) =>{
+    //     return payload.supplierById
+    //   },
+    //   subscribe: withFilter((parent, args, context, info) => {
+    //       return pubsub.asyncIterator(["SUPPLIER_BY_ID"])
+    //     }, (payload, variables) => {
 
-          let {mutation, data} = payload.supplierById
+    //       let {mutation, data} = payload.supplierById
 
-          console.log("subscriptionSupplierById : ", mutation, variables?._id == data?._id)
-          switch(mutation){
-            case "BOOK":
-            case "UNBOOK":
-            case "AUTO_CLEAR_BOOK":
-              {
-                return variables?._id == data?._id
-              }
-          }
-          return false;
-        }
-      )
-    },
-    subscriptionSuppliers: {
-      resolve: (payload) =>{
-        return payload.suppliers
-      },
-      subscribe: withFilter((parent, args, context, info) => {
-          return pubsub.asyncIterator(["SUPPLIERS"])
-        }, (payload, variables) => {
+    //       console.log("subscriptionSupplierById : ", mutation, variables?._id == data?._id)
+    //       switch(mutation){
+    //         case "BOOK":
+    //         case "UNBOOK":
+    //         case "AUTO_CLEAR_BOOK":
+    //           {
+    //             return variables?._id == data?._id
+    //           }
+    //       }
+    //       return false;
+    //     }
+    //   )
+    // },
+    // subscriptionSuppliers: {
+    //   resolve: (payload) =>{
+    //     return payload.suppliers
+    //   },
+    //   subscribe: withFilter((parent, args, context, info) => {
+    //       return pubsub.asyncIterator(["SUPPLIERS"])
+    //     }, (payload, variables) => {
 
-          console.log("subscriptionSuppliers")
+    //       console.log("subscriptionSuppliers")
 
-          let {mutation, data} = payload.suppliers
+    //       let {mutation, data} = payload.suppliers
 
-          switch(mutation){
-            case "BOOK":
-            case "UNBOOK":
-            case "AUTO_CLEAR_BOOK":
-              {
-                return _.includes(JSON.parse(variables.supplierIds), data._id.toString())
-              }
-          }
+    //       switch(mutation){
+    //         case "BOOK":
+    //         case "UNBOOK":
+    //         case "AUTO_CLEAR_BOOK":
+    //           {
+    //             return _.includes(JSON.parse(variables.supplierIds), data._id.toString())
+    //           }
+    //       }
 
-          return false;
-        }
-      )
-    },
-    subscriptionAdmin: {
-      resolve: (payload) =>{
-        return payload.admin
-      },
-      subscribe: withFilter((parent, args, context, info) => {
-          return pubsub.asyncIterator(["ADMIN"])
-        }, (payload, variables) => {
+    //       return false;
+    //     }
+    //   )
+    // },
+    // subscriptionAdmin: {
+    //   resolve: (payload) =>{
+    //     return payload.admin
+    //   },
+    //   subscribe: withFilter((parent, args, context, info) => {
+    //       return pubsub.asyncIterator(["ADMIN"])
+    //     }, (payload, variables) => {
 
-          console.log("subscriptionAdmin")
+    //       console.log("subscriptionAdmin")
 
-          let {mutation, data} = payload.admin
+    //       let {mutation, data} = payload.admin
 
-          // switch(mutation){
-          //   case "BOOK":
-          //   case "UNBOOK":
-          //   case "AUTO_CLEAR_BOOK":
-          //     {
-          //       return _.includes(JSON.parse(variables.supplierIds), data._id.toString())
-          //     }
-          // }
+    //       // switch(mutation){
+    //       //   case "BOOK":
+    //       //   case "UNBOOK":
+    //       //   case "AUTO_CLEAR_BOOK":
+    //       //     {
+    //       //       return _.includes(JSON.parse(variables.supplierIds), data._id.toString())
+    //       //     }
+    //       // }
 
-          return true;
-        }
-      )
-    },
-    subscriptionCommentById: {
-      resolve: (payload) =>{
-        return payload.commentById 
-      },
-      subscribe: withFilter((parent, args, context, info) => {
-          return pubsub.asyncIterator(["COMMENT_BY_ID"])
-        }, (payload, variables) => {
+    //       return true;
+    //     }
+    //   )
+    // },
+    // subscriptionCommentById: {
+    //   resolve: (payload) =>{
+    //     return payload.commentById 
+    //   },
+    //   subscribe: withFilter((parent, args, context, info) => {
+    //       return pubsub.asyncIterator(["COMMENT_BY_ID"])
+    //     }, (payload, variables) => {
 
-          let {mutation, commentId, data} = payload?.commentById
+    //       let {mutation, commentId, data} = payload?.commentById
 
-          // console.log("COMMENT_BY_ID : ", mutation, commentId, variables )
-          switch(mutation){
-            case "CREATED":
-            case "UPDATED":
-              return variables?._id == commentId
-            default:
-              return false;
-          }
-        }
-      )
-    },
-    // subConversation: {
+    //       // console.log("COMMENT_BY_ID : ", mutation, commentId, variables )
+    //       switch(mutation){
+    //         case "CREATED":
+    //         case "UPDATED":
+    //           return variables?._id == commentId
+    //         default:
+    //           return false;
+    //       }
+    //     }
+    //   )
+    // },
+    // // subConversation: {
+    // //   resolve: (payload) =>{
+    // //     return payload.conversation
+    // //   },
+    // //   subscribe: withFilter((parent, args, context, info) => {
+    // //       return pubsub.asyncIterator(["CONVERSATION"])
+    // //     }, (payload, variables, context) => {
+    // //       let {mutation, data} = payload.conversation
+          
+    // //       // let {currentUser} = context
+    // //       // if(_.isEmpty(currentUser)){
+    // //       //   return false;
+    // //       // }
+    // //       // console.log("CONVERSATION: ", payload)
+    // //       switch(mutation){
+    // //         case "CREATED":
+    // //         case "UPDATED":
+    // //         case "DELETED":
+    // //           {
+    // //             return _.findIndex(data.members, (o) => o.userId == variables.userId ) > -1
+    // //           }
+    // //         case "CONNECTED":
+    // //         case "DISCONNECTED":{
+    // //           // console.log("CONVERSATION :::: ", mutation, data)
+    // //         }
+    // //       }
+
+    // //       return false;
+          
+    // //     }
+    // //   )
+    // // },
+    // subMessage: {
+    //   resolve: (payload) =>{
+    //     return payload.message
+    //   },
+    //   subscribe: withFilter((parent, args, context, info) => {
+    //       return pubsub.asyncIterator(["MESSAGE"])
+    //     }, async (payload, variables, context) => {
+    //       let {mutation, data} = payload.message
+
+    //       // if(variables.conversationId === data.conversationId &&  variables.userId !== data.senderId) {
+            
+    //       //   let conversation = await Model.Conversation.findById(variables.conversationId);
+
+    //       //   // console.log("MESSAGE ::", variables, data)
+
+    //       //   if(!_.isEmpty(conversation)){
+
+    //       //     // update all message to read
+    //       //     await Message.updateMany({
+    //       //         conversationId: variables.conversationId, 
+    //       //         senderId: { $nin: [ variables.userId ] },
+    //       //         status: 'sent',
+    //       //         reads: { $nin: [ variables.userId ] }
+    //       //       }, 
+    //       //       // {$set: {reads: [ userId ] }}
+    //       //       { $push: {reads: variables.userId } }
+    //       //     )
+
+    //       //     // update conversation  unreadCnt = 0
+    //       //     // conversation = _.omit({...conversation._doc}, ["_id", "__v"])
+          
+    //       //     // conversation = {...conversation, members: _.map(conversation.members, (member)=>member.userId == variables.userId ? {...member, unreadCnt:0} : member) }
+
+    //       //     // let newConversation = await Model.Conversation.findOneAndUpdate({ _id : variables.conversationId }, conversation, { new: true })
+
+    //       //     // pubsub.publish("CONVERSATION", {
+    //       //     //   conversation: {
+    //       //     //     mutation: "UPDATED",
+    //       //     //     data: newConversation,
+    //       //     //   }
+    //       //     // });
+    //       //   }
+    //       // }
+    //       return data.conversationId === variables.conversationId && data.senderId !== variables.userId
+    //     }
+    //   )
+    // },
+    // conversations: {
     //   resolve: (payload) =>{
     //     return payload.conversation
     //   },
     //   subscribe: withFilter((parent, args, context, info) => {
     //       return pubsub.asyncIterator(["CONVERSATION"])
-    //     }, (payload, variables, context) => {
-    //       let {mutation, data} = payload.conversation
-          
-    //       // let {currentUser} = context
-    //       // if(_.isEmpty(currentUser)){
-    //       //   return false;
-    //       // }
-    //       // console.log("CONVERSATION: ", payload)
+    //     }, async (payload, variables, context, info) => {
+    //       let { userId } = variables
+    //       let { mutation, data } = payload.conversation
     //       switch(mutation){
     //         case "CREATED":
     //         case "UPDATED":
-    //         case "DELETED":
-    //           {
-    //             return _.findIndex(data.members, (o) => o.userId == variables.userId ) > -1
-    //           }
-    //         case "CONNECTED":
-    //         case "DISCONNECTED":{
-    //           // console.log("CONVERSATION :::: ", mutation, data)
-    //         }
+    //           return _.find( data?.members, m=> _.isEqual(m.userId.toString(), userId.toString()) ) ? true : false
     //       }
 
     //       return false;
-          
     //     }
     //   )
     // },
-    subMessage: {
-      resolve: (payload) =>{
-        return payload.message
-      },
-      subscribe: withFilter((parent, args, context, info) => {
-          return pubsub.asyncIterator(["MESSAGE"])
-        }, async (payload, variables, context) => {
-          let {mutation, data} = payload.message
-
-          // if(variables.conversationId === data.conversationId &&  variables.userId !== data.senderId) {
-            
-          //   let conversation = await Model.Conversation.findById(variables.conversationId);
-
-          //   // console.log("MESSAGE ::", variables, data)
-
-          //   if(!_.isEmpty(conversation)){
-
-          //     // update all message to read
-          //     await Message.updateMany({
-          //         conversationId: variables.conversationId, 
-          //         senderId: { $nin: [ variables.userId ] },
-          //         status: 'sent',
-          //         reads: { $nin: [ variables.userId ] }
-          //       }, 
-          //       // {$set: {reads: [ userId ] }}
-          //       { $push: {reads: variables.userId } }
-          //     )
-
-          //     // update conversation  unreadCnt = 0
-          //     // conversation = _.omit({...conversation._doc}, ["_id", "__v"])
-          
-          //     // conversation = {...conversation, members: _.map(conversation.members, (member)=>member.userId == variables.userId ? {...member, unreadCnt:0} : member) }
-
-          //     // let newConversation = await Model.Conversation.findOneAndUpdate({ _id : variables.conversationId }, conversation, { new: true })
-
-          //     // pubsub.publish("CONVERSATION", {
-          //     //   conversation: {
-          //     //     mutation: "UPDATED",
-          //     //     data: newConversation,
-          //     //   }
-          //     // });
-          //   }
-          // }
-          return data.conversationId === variables.conversationId && data.senderId !== variables.userId
-        }
-      )
-    },
-    conversations: {
-      resolve: (payload) =>{
-        return payload.conversation
-      },
-      subscribe: withFilter((parent, args, context, info) => {
-          return pubsub.asyncIterator(["CONVERSATION"])
-        }, async (payload, variables, context, info) => {
-          let { userId } = variables
-          let { mutation, data } = payload.conversation
-          switch(mutation){
-            case "CREATED":
-            case "UPDATED":
-              return _.find( data?.members, m=> _.isEqual(m.userId.toString(), userId.toString()) ) ? true : false
-          }
-
-          return false;
-        }
-      )
-    },
     userConnected: {
       resolve: (payload) =>{
         return payload.userConnected
@@ -5738,7 +6224,19 @@ export default {
       subscribe: withFilter((parent, args, context, info) => {
           return pubsub.asyncIterator(["USER_CONNECTED"])
         }, async (payload, variables, context, info) => {
-          console.log("userConnected subscribe")
+          console.log("userConnected subscribe :", payload, variables)
+
+          let { input } = variables
+          let { mutation, data } = payload.userConnected
+          switch(mutation){
+            case "UPDATED_PROFILE":{
+              if(input._id === data._id){
+                return true;
+              }
+              break;
+            }
+          }
+
           return true;
         }
       ),

@@ -27,20 +27,27 @@ interface LockAccount {
 }
 
 interface Current {
-  parentId: string | null;  // Assuming Schema.Types.ObjectId is string
-  username: string;
-  password: string;
-  email: string;
-  tel: string;
-  displayName: string;
-  idCard: string;
-  address: string;
-  packages: 1 | 2 | 3;
-  roles: number[];  // AUTHENTICATED, ADMINISTRATOR enum values would be numbers
-  isActive: 0 | 1;
+  parentId?: string ;  // Assuming Schema.Types.ObjectId is string
+  username?: string;
+  password?: string;
+  email?: string;
+  tel?: string;
+  displayName?: string;
+  idCard?: string;
+  address?: string;
+  packages?: 1 | 2 | 3;
+  roles?: number[];  // AUTHENTICATED, ADMINISTRATOR enum values would be numbers
+  isActive?: 0 | 1;
   avatar?: Avatar;
-  lockAccount: LockAccount;
-  lastAccess: Date;
+  position?: string;
+  positionId?: string;
+  address_delivery?: {
+    name: string;
+    phone: string;
+    address: string;
+  }
+  lockAccount?: LockAccount;
+  lastAccess?: Date;
 }
 
 interface profileType {
@@ -63,14 +70,31 @@ export interface ProductItem {
   current: {
     ownerId: string;
     name: string;
-    detail: string;
-    plan: number[];
     price: string;
-    packages: number[];
-    images: ProductImageType[];
+    price_sell: string;
+    detail: string;
     quantity: number;
-    quantities?: number;
+    price_front: number;
+    product_type: number[];
+    package_front: number[];
+    package_back: number[];
+
+    plan: number[];
+    packages: number[];
+
+
+    price_discount_bm: number;
+    price_discount_bs: number;
+    price_discount_from_children: number;
+    price_discount_from_office: number;
+    all_sale: number;
+    price_delivery: number;
+
+    images: ProductImageType[];
+    
+    quantities: number;
   }
+  owner:any;
   history: [];
   createdAt: string;
   updatedAt: string;
@@ -115,6 +139,7 @@ export interface UserState {
 export interface OrderOwner {
   _id: string;
   current: {
+    displayName: string;
     productId: string[];  // Array of product IDs
     ownerId: string;      // Owner ID
     status: number;       // Status (number type)

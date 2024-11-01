@@ -1,14 +1,15 @@
 import React, { FC, useState, useRef, useEffect } from 'react';
-import { Card, Descriptions, Typography, Button, Input, message, UploadProps, Image as ImagesAntd, Space, Avatar, Spin } from 'antd';
-import { UploadOutlined, LoadingOutlined, PlusOutlined, CopyOutlined, DownloadOutlined, EditOutlined, UserOutlined } from '@ant-design/icons';
+import { Card, Descriptions, Typography, Button, Input, message, Tag, Image as ImagesAntd, Space, Avatar, Spin } from 'antd';
+import { CopyOutlined, DownloadOutlined, EditOutlined, UserOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { useMutation } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import { useNavigate } from 'react-router-dom';
 import QRCode from 'react-qr-code';
+import _ from "lodash"
 
-import { mutationProfile } from "@/apollo/gqlQuery";
+import { query_positions, mutation_profile, mutation_address_delivery } from "@/apollo/gqlQuery";
 import { getHeaders } from "@/utils";
-import { updateProfile } from '@/stores/user.store';
+import { updateProfile, deleteAddressDelivery } from '@/stores/user.store';
 import "@/pages/profile/index.less";
 import handlerError from "@/utils/handlerError"
 import { DefaultRootState } from "@/interface/DefaultRootState"
@@ -19,7 +20,15 @@ const { Paragraph, Text } = Typography;
 
 const { REACT_APP_HOST_GRAPHAL }  = process.env
 
-const ProfilePage: FC = () => {
+interface positionInterface {
+  _id: string;
+  level: number;
+  name: string;
+  percent: number;
+  budget: number;
+}
+
+const ProfilePage: FC = (props) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -29,7 +38,9 @@ const ProfilePage: FC = () => {
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [onUpdateProfile] = useMutation(mutationProfile, {
+  console.log("ProfilePage :", profile)
+
+  const [onProfile] = useMutation(mutation_profile, {
     context: { headers: getHeaders(location) },
     update: (cache, { data: { profile } }) => {
       if (profile.status) {
@@ -45,6 +56,44 @@ const ProfilePage: FC = () => {
       handlerError({}, error)
     }
   });
+
+  const [onAddressDelivery] = useMutation(mutation_address_delivery, {
+    context: { headers: getHeaders(location) },
+    update: (cache, { data: { address_delivery } }, params: any) => {
+      let { status } = address_delivery
+      if(status){
+        let { input } = params?.variables;
+        dispatch(deleteAddressDelivery());
+
+        // setLoading(false); // Reset loading state after success
+        message.success('ลบที่อยู่ เรียบร้อย!');
+        // setIsModalVisible();
+      }
+      
+    },
+    onError: (error) => {
+      // setLoading(false); // Reset loading state on error
+      handlerError(props, error);
+      // setIsModalVisible();
+    },
+  });
+
+  const [positions, setPositions] = useState<positionInterface[]>([]);
+
+  const { loading: loadingPositions, data: dataPositions } = useQuery(query_positions, {
+      context: { headers: getHeaders(location) },
+      fetchPolicy: 'cache-first',
+      nextFetchPolicy: 'network-only'
+  });
+
+  useEffect(() => {
+      if (!loadingPositions && !_.isEmpty(dataPositions?.positions)) {
+          const { status, data } = dataPositions.positions;
+          if (status) {
+              setPositions(data);
+          }
+      }
+  }, [dataPositions, loadingPositions]);
 
   const copyToClipboard = (text: string) => {
     if (navigator.clipboard) {
@@ -138,9 +187,22 @@ const ProfilePage: FC = () => {
     if (file) {
       // setSelectedFile(file); // Set the selected file
       setLoadingUpdateProfile(true)
-      onUpdateProfile({ variables: { input: { file } } })
+      onProfile({ variables: { input: { mode: 'edited', file } } })
     }
   };
+
+  const __ViewPackage = (__package: number) =>{
+    switch(__package){
+      case 1: return 1;
+      case 2: return 8;
+      case 3: return 56;
+    }
+  }
+
+  const __ViewPosition = (positionId: string) =>{
+    let position = _.find(positions, position => position._id === positionId);
+    return position?.name;
+  }
 
   return (
     <div style={{ padding: '3px' }}>
@@ -204,8 +266,40 @@ const ProfilePage: FC = () => {
           </div>
         </div>
         <Descriptions title="User Information" bordered column={1} style={{ marginTop: '20px' }}>
-          <Descriptions.Item label="Phone"><Paragraph className='ant-typography-tel' copyable>{profile?.current?.tel}</Paragraph></Descriptions.Item>
-          <Descriptions.Item label="Address">{ profile?.current?.address !== undefined ? <Paragraph className='ant-typography-tel' copyable>{profile?.current?.address}</Paragraph> : <></>  }</Descriptions.Item>
+          <Descriptions.Item label="เบอร์โทรศัพท์"><Paragraph className='ant-typography-tel' copyable>{profile?.current?.tel}</Paragraph></Descriptions.Item>
+          <Descriptions.Item label="ตำแหน่ง"><Tag color="#2db7f5">{__ViewPosition(profile?.current?.positionId || "")}</Tag></Descriptions.Item>
+          <Descriptions.Item label="Package"><Tag color="#2db7f5">{__ViewPackage(profile?.current?.packages || 0)}</Tag></Descriptions.Item>
+        
+          {/* CloseOutlined 
+          
+          */}
+          <Descriptions.Item label="ที่อยู่จัดส่ง">{ 
+                                              profile?.current?.address_delivery !== undefined 
+                                              ? <>
+                                                  <div style={{ display:'flex' ,flexDirection: "row"}}>
+                                                    <Text>ชื่อ : </Text>
+                                                    <Paragraph className='ant-typography-tel' copyable>{ profile?.current?.address_delivery.name }</Paragraph>
+                                                  </div>
+                                                  <div style={{ display:'flex' ,flexDirection: "row"}}>
+                                                    <Text>เบอร์โทรศัพท์ : </Text>
+                                                    <Paragraph className='ant-typography-tel' copyable>{ profile?.current?.address_delivery.phone}</Paragraph>
+                                                  </div>
+                                                  <div style={{ display:'flex' ,flexDirection: "row"}}>
+                                                    <Text>ที่อยู่ : </Text>
+                                                    <Paragraph className='ant-typography-tel' copyable>{ profile?.current?.address_delivery.address}</Paragraph>
+                                                  </div>
+                                                  <Button 
+                                                    style={{padding: 0}}
+                                                    icon={<DeleteOutlined />} 
+                                                    type="link" 
+                                                    danger
+                                                    onClick={()=>{
+                                                      let input = { mode: "deleted" }
+                                                      onAddressDelivery({ variables: { input } });
+                                                    }} >ลบ</Button>
+                                                </> 
+                                              : <></>  
+                                            }</Descriptions.Item>
           <Descriptions.Item label="QR URL">
             <Input.Group compact>
               <Input style={{ width: 'calc(100% - 32px)' }} value={"http://bestmallu.com/register/" + profile._id} readOnly />
@@ -237,14 +331,14 @@ const ProfilePage: FC = () => {
                 navigate('/administrator/wallet')
               }}>Show Wallet</Button>
           </Descriptions.Item>
-          {/* <Descriptions.Item label="Bills">
+          <Descriptions.Item label="Bills">
             <Button 
               type="primary" 
               style={{ marginRight: '10px' }}
               onClick={()=>{
-                navigate('/administrator/billlist')
-              }}>Show Bills</Button>
-          </Descriptions.Item> */}
+                navigate('/administrator/calcuteplanback')
+              }}>คำนวณผลประโยชน์แผนหลัง</Button>
+          </Descriptions.Item>
 
 {/* 
           {

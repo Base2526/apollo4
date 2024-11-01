@@ -73,7 +73,7 @@ services:
     ports:
       - "1984:4000"
     env_file:
-      - ./env/.env.backend
+      - .env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock  # set can run docker inside ex. run docker backup db(a4_mongo)
       - ./backend/src:/app/src        
@@ -99,15 +99,15 @@ networks:
 # ต้อง add user ก่อนด้วย
 # use admin
 # db.createUser({
-#   user: "admin",
-#   pwd: "Somkid058848391",
-#   roles: [{ role: "root", db: "admin" }]
+#   user: "",
+#   pwd: "",
+#   roles: [{ role: "", db: "" }]
 # })
 
 # db.createUser({
-#   user: "insurance",
-#   pwd: "Somkid058848391",
-#   roles: [{ role: "readWrite", db: "insurance" }]
+#   user: "",
+#   pwd: "",
+#   roles: [{ role: "readWrite", db: "" }]
 # })
 
 

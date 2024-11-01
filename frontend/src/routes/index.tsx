@@ -40,6 +40,7 @@ import HomePage from "@/pages/home";
 import CartPage from "@/pages/cart";
 import OrderPage from "@/pages/administrator/order"
 import OrderFormPage from "@/pages/administrator/order/OrderForm"
+import CheckoutPage from "@/pages/cart/CheckoutPage"
 
 import ProductListPage from "@/pages/administrator/product";
 import ProductPage from "@/pages/administrator/product/ProductForm";
@@ -60,6 +61,8 @@ import CalTreePage from "@/pages/administrator/CalTree"
 import CalTreeHistoryListPage from "@/pages/administrator/CalTreeHistoryList"
 
 import NoticeListPage from "@/pages/administrator/NoticeList"
+
+import CalcutePlanBackPage from "@/pages/administrator/CalcutePlanBackPage"
 
 import WrapperRouteComponent from '@/routes/config';
 
@@ -113,6 +116,10 @@ const routeList: RouteObject[] = [
       {
         path: 'cart',
         element: <WrapperRouteComponent requireAuth={true} element={<CartPage />} titleId="title.dashboard" />,
+      },
+      {
+        path: 'checkout',
+        element: <WrapperRouteComponent requireAuth={true} element={<CheckoutPage />} titleId="title.dashboard" />,
       },
       {
         path: 'purchases',
@@ -229,6 +236,11 @@ const routeList: RouteObject[] = [
       {
         path: 'administrator/products/view',
         element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<ViewProductPage />} titleId="title.insurance" />,
+      },
+
+      {
+        path: 'administrator/calcuteplanback',
+        element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<CalcutePlanBackPage />} titleId="title.insurance" />,
       },
 
       {

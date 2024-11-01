@@ -1,106 +1,122 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Input, Tag, Avatar, Space, Dropdown, Image } from 'antd';
+import { Table, Input, Menu, Button, Space, Dropdown, Image, Avatar, Tag } from 'antd';
 import moment from "moment";
 import { useQuery, useMutation } from "@apollo/client";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import _ from "lodash"
-import { DownOutlined } from '@ant-design/icons';
+import { DownOutlined, UserOutlined } from '@ant-design/icons';
 import { useSelector } from 'react-redux';
 
-import { queryMembers } from "@/apollo/gqlQuery"
-import { getHeaders, isValidUrl } from "@/utils"
+import { queryMembers, query_positions } from "@/apollo/gqlQuery"
+import { getHeaders } from "@/utils"
 
-const { mode, REACT_APP_HOST_GRAPHAL }  = process.env
-
-// import AttackFileField from "../../components/basic/attack-file";
+const { REACT_APP_HOST_GRAPHAL }  = process.env
 
 interface DataType {
-    key: string;
-    displayName: string;
-    email: string;
-    avatar?: string;
-    roles:number[];
-    timestamp: any;
-    user?: any; // Optional
-    filename?: string; // Optional
+    _id: string;
+    current:{
+        displayName: string;
+        email: string;
+    }
 }
 
-const items = [
+interface MenuItem {
+    key: string;
+    label: string;
+}
+
+const menuItems: MenuItem[] = [
     { key: '1', label: 'Edit' },
     { key: '2', label: 'Delete' },
 ];
 
-const columns = (navigate: ReturnType<typeof useNavigate>) => [
+interface positionInterface {
+    _id: string;
+    level: number;
+    name: string;
+    percent: number;
+    budget: number;
+}
+
+const columns = (navigate: ReturnType<typeof useNavigate>, positions: positionInterface[]) => [
     {
         title: 'Avatar',
-        dataIndex: 'avatar',
+        dataIndex: ['current' ,'avatar'],
         render:(avatar: any)=>{
-            return isValidUrl(avatar) 
-                    ? <Image  width={100} src={avatar} /> 
-                    : <Image  width={100} src={`http://${REACT_APP_HOST_GRAPHAL}/` + avatar} /> 
+            return _.isEmpty(avatar) 
+                    ? <Avatar 
+                        className="user-avator" 
+                        shape="square"
+                        size={100} 
+                        icon={<UserOutlined />}/>
+                    : <Image  width={100} src={`http://${REACT_APP_HOST_GRAPHAL}/` + avatar.url} /> 
         }
     },
     {
         title: 'User',
-        dataIndex: 'displayName',
-        sorter: (a: DataType, b: DataType) => a.displayName.localeCompare(b.displayName),
+        dataIndex: ['current', 'displayName'],
+        // sorter: (a: DataType, b: DataType) => a.displayName.localeCompare(b.displayName),
         render: (displayName: string) =>{
             return <>{displayName}</>
         }
     },
     {
         title: 'Email',
-        dataIndex: 'email',
-        sorter: (a: DataType, b: DataType) => a.email.localeCompare(b.email),
-        // render: (path: string) =>{
-        //     let newPath = window.location.protocol +'//'+ window.location.hostname + ':4000/' + path
-        //     return <a href={newPath} target="_blank" rel="noopener noreferrer">{ path }</a>
-        // }
-    },
-    {
-        title: 'Roles',
-        dataIndex: 'roles',
-        render: (roles: number[]) =>{
-            return _.map(roles, role=>{
-                return <Tag color="#2db7f5">{role}</Tag>
-            })
+        dataIndex: ['current', 'email'],
+        sorter: (a: DataType, b: DataType) => a.current.email.localeCompare(b.current.email),
+        render: (email: string) =>{
+            return <>{email}</>
         }
     },
     {
-        title: 'Date',
-        dataIndex: 'timestamp',
-        // sorter: (a: DataType, b: DataType) => a.address.localeCompare(b.address),
-        render: (timestamp: string) =>{
-            return <div>{(moment(new Date(timestamp), 'YYYY-MM-DD HH:mm')).format('MMMM Do YYYY, h:mm:ss a')}</div>
+        title: 'ตำแหน่ง',
+        dataIndex: ['current', 'positionId'],
+        render: (positionId: number) =>{
+            let position = _.find(positions, (p)=>p._id?.toString() === positionId?.toString())
+            return <Tag color="#2db7f5">{position?.name}</Tag>
         }
     },
+    // {
+    //     title: 'Date',
+    //     dataIndex: 'timestamp',
+    //     // sorter: (a: DataType, b: DataType) => a.address.localeCompare(b.address),
+    //     render: (timestamp: string) =>{
+    //         return <div>{(moment(new Date(timestamp), 'YYYY-MM-DD HH:mm')).format('MMMM Do YYYY, h:mm:ss a')}</div>
+    //     }
+    // },
     {
         title: 'Action',
         key: 'action',
         sorter: true,
-        render: (data: any) => {
-            console.log("Action :", data)
-
-            if(data.roles.includes(1)){
-                return  <Space size="middle">
-                            <a onClick={()=>{
-                                navigate("/administrator/userlist/user")
-                            }}>View</a>
-                            
-                            <Dropdown menu={{ items }}>
-                                <a>More <DownOutlined /></a>
-                            </Dropdown>
-                        </Space>
-            }
+        render: (item: any) => {
             return  <Space size="middle">
                         <a onClick={()=>{
-                            navigate("/administrator/userlist/user")
+                            navigate(`/administrator/userlist/user?mode=view&v=${item._id}`, { state: { mode: 'view', _id: item._id } });
                         }}>View</a>
                         <a onClick={()=>{
                             navigate("/administrator/userlist/tree")
                         }}>Tree</a>
-                        <Dropdown menu={{ items }}>
-                            <a>More <DownOutlined /></a>
+                        <Dropdown
+                            overlay={() => (
+                                <Menu
+                                    onClick={(e) => {
+                                        if (e.key === '1') {
+                                            navigate(`/administrator/userlist/user?mode=edited&v=${item._id}`, { state: { mode: 'edited', _id: item._id } });
+                                        } else if (e.key === '2') {
+                                            // onDelete(data);
+                                        }
+                                    }}
+                                >
+                                    {menuItems.map((item) => (
+                                        <Menu.Item key={item.key}>{item.label}</Menu.Item>
+                                    ))}
+                                </Menu>
+                            )}
+                            trigger={['hover']}
+                        >
+                            <Button type="link">
+                                More <DownOutlined />
+                            </Button>
                         </Dropdown>
                     </Space>
         }
@@ -116,63 +132,59 @@ const UserList: React.FC = () => {
     const [files, setFiles] = useState<File[]>([]);
     const { profile } = useSelector((state: any) => state.user);
 
-    // console.log("UserList :", profile.current.roles);
+    const [positions, setPositions] = useState<positionInterface[]>([]);
+
+    const { loading: loadingPositions, data: dataPositions } = useQuery(query_positions, {
+        context: { headers: getHeaders(location) },
+        fetchPolicy: 'cache-first',
+        nextFetchPolicy: 'network-only'
+    });
+
+    useEffect(() => {
+        if (!loadingPositions && !_.isEmpty(dataPositions?.positions)) {
+            const { status, data } = dataPositions.positions;
+            if (status) {
+                setPositions(data);
+            }
+        }
+    }, [dataPositions, loadingPositions]);
 
     const { loading: loadingMembers, 
             data: dataMembers, 
-            error: errorMembers  } =  useQuery(   queryMembers, {
-                                                context: { headers: getHeaders(location) },
-                                                fetchPolicy: 'cache-first', 
-                                                nextFetchPolicy: 'network-only', 
-                                                notifyOnNetworkStatusChange: false,
-                                            });
+            error: errorMembers  } =  useQuery( queryMembers, 
+                                                {
+                                                    context: { headers: getHeaders(location) },
+                                                    fetchPolicy: 'cache-first', 
+                                                    nextFetchPolicy: 'network-only', 
+                                                    notifyOnNetworkStatusChange: false,
+                                                });
 
     useEffect(() => {
         if(!loadingMembers){
             if(!_.isEmpty(dataMembers?.members)){
-
-                console.log("dataMembers?.members :", dataMembers?.members)
-
                 setData([])
                 setFilteredData([])
                 if(dataMembers.members.status){
+                    // console.log("dataMembers.members.data :", dataMembers.members.data)
                     _.map(dataMembers.members.data, (e, key)=>{
-                        
-                        const newItem: DataType = { key, 
-                                                    displayName: e.current.displayName, 
-                                                    email: e.current.email, 
-                                                    avatar: e.current.avatar?.url,  
-                                                    roles: e.current.roles, 
-                                                    timestamp:e.updatedAt}; 
-                        console.log("e :", e, newItem)
-                        setData((prevItems) => {
-                            if (Array.isArray(prevItems)) { // Check if prevItems is an array
-                                return [...prevItems, newItem];
-                            } else {
-                                console.error('prevItems is not an array:', prevItems);
-                                return [newItem]; // Fallback to ensure it is always an array
-                            }
-                        });
-
-                        setFilteredData((prevItems) => {
-                            if (Array.isArray(prevItems)) { // Check if prevItems is an array
-                                return [...prevItems, newItem];
-                            } else {
-                                console.error('prevItems is not an array:', prevItems);
-                                return [newItem]; // Fallback to ensure it is always an array
-                            }
-                        });
+                        setData((prevItems) => Array.isArray(prevItems) ? [...prevItems, e] : [e]);
+                        setFilteredData((prevItems) => Array.isArray(prevItems) ? [...prevItems, e] : [e]);
                     })
                 }
             }
         }
     }, [dataMembers, loadingMembers])
 
+    // useEffect(()=>{
+    //     console.log("filteredData :", filteredData)
+    // }, [filteredData])
+
     const handleSearch = (value: string) => {
         setSearchText(value);
-        const filtered = data?.filter((item) => 
-            item.displayName.toLowerCase().includes(value.toLowerCase()) // ||
-            // item.filename?.toLowerCase().includes(value.toLowerCase()) || false
+        const filtered = data?.filter((item ) => 
+        {
+            return item.current.displayName.toLowerCase().includes(value.toLowerCase())
+        } 
         ) || [];
         setFilteredData(filtered);
     };
@@ -186,7 +198,7 @@ const UserList: React.FC = () => {
                 style={{ marginBottom: 16 }}
             />
             <Table
-                columns={columns(navigate)}
+                columns={columns(navigate, positions)}
                 dataSource={filteredData}
                 pagination={{ pageSize: 50 }}
                 rowKey="key"

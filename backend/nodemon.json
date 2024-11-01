@@ -1,3 +1,6 @@
 {
-    "ignore": ["app/uploads/nodemon_ignored/*"]
-  }
+  "ignore": [
+    "app/uploads/nodemon_ignored/*",
+    "app/uploads/*"
+  ]
+}

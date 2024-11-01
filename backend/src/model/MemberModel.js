@@ -9,6 +9,7 @@ const historySchema = new Schema({
     updatedAt: Date
 });
 
+
 const memberSchema = new Schema({
     current: {
         // parentId: { type: Schema.Types.ObjectId, required:[true, "Parent ID Request is a required field"]  },
@@ -82,7 +83,17 @@ const memberSchema = new Schema({
             enum: ["BM", "BS", "BG", "BD", "BP", "MA", "MB", "MC", "MD", "ME", "MF", "MG", "MH", "MI", "MJ", "MK", "ML", "MM", "MN", "MO", "MP", "MQ", "MR", "MS"],  // Enum values
             default: 'BM',  // Default value
             required: true,
-        } 
+        },
+        positionId: { 
+            type: Schema.Types.ObjectId, 
+            default: mongoose.Types.ObjectId('6721098ce9dccb02aab4cb3e'),
+            required: true,
+        },
+        address_delivery:{
+            name: { type: String },
+            phone: { type: String },
+            address: { type: String },
+        }
     },
     history: [historySchema]
 },
@@ -90,4 +101,10 @@ const memberSchema = new Schema({
     timestamps: true
 })
 
-export default mongoose.model('member', memberSchema,'member')
+// export default mongoose.model('member', memberSchema,'member')
+
+const member = mongoose.model('member', memberSchema,'member')
+export {
+    member,
+    memberSchema
+} 
