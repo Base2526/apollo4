@@ -454,18 +454,37 @@ const modelExists =()=>{
     } else {
       let newOrder = new Model.Order({     
                                         current : { 
+                                          type_plan: 1,
                                           products: [
                                             {
-                                              // productId: new mongoose.Types.ObjectId(),
                                               product: {
+                                                // current:{
+                                                //   ownerId: new mongoose.Types.ObjectId(),
+                                                //   name: 'name',
+                                                // }
                                                 _id: new mongoose.Types.ObjectId(),
+                                                ownerId: new mongoose.Types.ObjectId(),
+                                                name: 'test',
                                               },
+                                              // product: {
+                                              //   _id: new mongoose.Types.ObjectId(),
+                                              // },
                                               quantities: 1
                                             }
                                           ], 
                                           owner: { 
                                             _id: new mongoose.Types.ObjectId(),
                                             positionId: new mongoose.Types.ObjectId(),
+                                            // // current: {
+                                            //   id: new mongoose.Types.ObjectId(),
+                                            //   username: 'test',
+                                            //   password: '1234',
+                                            //   email: 'test@local.local',
+                                            //   tel: '0000000000',
+                                            //   displayName: 'test',
+                                            //   idCard: '0000',
+                                            // // }
+                                           
                                           }, 
                                           status: 1
                                         }

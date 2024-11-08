@@ -142,3 +142,5 @@ export const mutation_bills_xml2js = gql`mutation bills_xml2js($input: JSON) { b
 export const mutation_address_delivery = gql`mutation address_delivery($input: JSON) { address_delivery(input: $input) }`;
 
 export const mutation_calcute_plan_back = gql`mutation calcute_plan_back($input: JSON) { calcute_plan_back(input: $input) }`;
+
+export const mutation_calcute_ov = gql`mutation calcute_ov($input: JSON) { calcute_ov(input: $input) }`;

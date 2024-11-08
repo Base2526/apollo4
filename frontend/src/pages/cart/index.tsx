@@ -7,13 +7,15 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useQuery, useMutation } from '@apollo/client';
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import { DefaultRootState } from '@/interface/DefaultRootState';
-import { removeCart, clearAllCart, updateCartQuantities } from '@/stores/user.store';
+import { removeCart, removeCart_plan_front, removeCart_plan_back, clearAllCart, updateCartQuantities, updateQuantities_front, updateQuantities_back } from '@/stores/user.store';
 import { ProductItem } from "@/interface/user/user";
 import { query_positions, mutation_order } from '@/apollo/gqlQuery';
 import { getHeaders } from '@/utils';
 import handlerError from '@/utils/handlerError';
 
 import AddressModalForm from "@/pages/cart/AddressModalForm"
+
+import { useAppContext } from '@/AppContext';
 
 interface positionInterface {
   _id: string;
@@ -28,18 +30,20 @@ const Cart: React.FC = (props) => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const { carts, profile } = useSelector((state: DefaultRootState) => state.user);
+  const { carts, profile, cart_plan_front, cart_plan_back } = useSelector((state: DefaultRootState) => state.user);
 
   const [isModalVisible, setIsModalVisible]  = useState(false)
 
-  console.log("Cart :", carts, profile)
+  const { homeFilter } = useAppContext();
+
+  console.log("Cart :", profile, cart_plan_front, cart_plan_back )
   const [loading, setLoading] = useState(false);
 
   const [positions, setPositions] = useState<positionInterface[]>([]);
 
   const { loading: loadingPositions, data: dataPositions } = useQuery(query_positions, {
       context: { headers: getHeaders(location) },
-      fetchPolicy: 'cache-first',
+      fetchPolicy: 'no-cache',
       nextFetchPolicy: 'network-only'
   });
 
@@ -71,7 +75,12 @@ const Cart: React.FC = (props) => {
   };
 
   const onDelete = (_id: string) => {
-    dispatch(removeCart(_id));
+    // dispatch(removeCart(_id));
+    dispatch(
+      homeFilter.filter.product_type === 1 
+      ? removeCart_plan_front(_id)
+      : removeCart_plan_back(_id)
+    )
     message.warning('Deleted from cart!');
   };
 
@@ -80,7 +89,13 @@ const Cart: React.FC = (props) => {
       message.warning('Quantity cannot be less than 1');
       return;
     }
-    dispatch(updateCartQuantities({id, quantities}));
+    // dispatch(updateCartQuantities({id, quantities}));
+
+    dispatch(
+      homeFilter.filter.product_type === 1 
+      ? updateQuantities_front({id, quantities})
+      : updateQuantities_back({id, quantities})
+    )
   };
 
   const onCheckout = () => {
@@ -93,42 +108,124 @@ const Cart: React.FC = (props) => {
 
   const sumAllPrice = () =>{
     let sum_price = 0;
-    _.map(carts, (cart)=>{
-      let position = _.find(positions, (p)=>p._id?.toString() === profile.current?.positionId?.toString())
-      switch(position?.name?.toLocaleUpperCase()){
-        case "BM":{
-          sum_price +=((cart.current.quantities * parseFloat(cart.current.price_sell)) * (100-cart.current.price_discount_bm)/100 );
-          break;
-        }
-        // BS, BG, BD, BP, MA, MB, MC, MD, ME, MF, MG, MH, MI, MJ, MK, ML, MM, MN, MO, MP, MQ, MR, MS
-        case "BS":
-        case "BG":
-        case "BD":
-        case "BP":
-        case "MA":
-        case "MB":
-        case "MC":
-        case "MD":
-        case "ME":
-        case "MF":
-        case "MG":
-        case "MH":
-        case "MI":
-        case "MJ":
-        case "MK":
-        case "ML":
-        case "MM":
-        case "MN":
-        case "MO":
-        case "MP":
-        case "MG":
-        case "MR":
-        case "MS":{
-          sum_price +=((cart.current.quantities * parseFloat(cart.current.price_sell)) * (100-(cart.current.price_discount_bs + position.percent ))/100 );
-          break;
-        }
+    // _.map(carts, (cart)=>{
+    //   let position = _.find(positions, (p)=>p._id?.toString() === profile.current?.positionId?.toString())
+    //   switch(position?.name?.toLocaleUpperCase()){
+    //     case "BM":{
+    //       sum_price +=((cart.current.quantities * parseFloat(cart.current.price_sell)) * (100-cart.current.price_discount_bm)/100 );
+    //       break;
+    //     }
+    //     // BS, BG, BD, BP, MA, MB, MC, MD, ME, MF, MG, MH, MI, MJ, MK, ML, MM, MN, MO, MP, MQ, MR, MS
+    //     case "BS":
+    //     case "BG":
+    //     case "BD":
+    //     case "BP":
+    //     case "MA":
+    //     case "MB":
+    //     case "MC":
+    //     case "MD":
+    //     case "ME":
+    //     case "MF":
+    //     case "MG":
+    //     case "MH":
+    //     case "MI":
+    //     case "MJ":
+    //     case "MK":
+    //     case "ML":
+    //     case "MM":
+    //     case "MN":
+    //     case "MO":
+    //     case "MP":
+    //     case "MG":
+    //     case "MR":
+    //     case "MS":{
+    //       sum_price +=((cart.current.quantities * parseFloat(cart.current.price_sell)) * (100-(cart.current.price_discount_bs + position.percent ))/100 );
+    //       break;
+    //     }
+    //   }
+    // })
+
+    switch(homeFilter.filter.product_type){
+      case 1:{
+        _.map(cart_plan_front, (cart)=>{
+          let position = _.find(positions, (p)=>p._id?.toString() === profile.current?.positionId?.toString())
+          switch(position?.name?.toLocaleUpperCase()){
+            case "BM":{
+              sum_price +=((cart.current.quantities * parseFloat(cart.current.price_sell)) * (100-cart.current.price_discount_bm)/100 );
+              break;
+            }
+            // BS, BG, BD, BP, MA, MB, MC, MD, ME, MF, MG, MH, MI, MJ, MK, ML, MM, MN, MO, MP, MQ, MR, MS
+            case "BS":
+            case "BG":
+            case "BD":
+            case "BP":
+            case "MA":
+            case "MB":
+            case "MC":
+            case "MD":
+            case "ME":
+            case "MF":
+            case "MG":
+            case "MH":
+            case "MI":
+            case "MJ":
+            case "MK":
+            case "ML":
+            case "MM":
+            case "MN":
+            case "MO":
+            case "MP":
+            case "MG":
+            case "MR":
+            case "MS":{
+              sum_price +=((cart.current.quantities * parseFloat(cart.current.price_sell)) * (100-(cart.current.price_discount_bs + position.percent ))/100 );
+              break;
+            }
+          }
+        })
+        break;
       }
-    })
+
+      case 2:{
+        _.map(cart_plan_back, (cart)=>{
+          let position = _.find(positions, (p)=>p._id?.toString() === profile.current?.positionId?.toString())
+          switch(position?.name?.toLocaleUpperCase()){
+            case "BM":{
+              sum_price +=((cart.current.quantities * parseFloat(cart.current.price_sell)) * (100-cart.current.price_discount_bm)/100 );
+              break;
+            }
+            // BS, BG, BD, BP, MA, MB, MC, MD, ME, MF, MG, MH, MI, MJ, MK, ML, MM, MN, MO, MP, MQ, MR, MS
+            case "BS":
+            case "BG":
+            case "BD":
+            case "BP":
+            case "MA":
+            case "MB":
+            case "MC":
+            case "MD":
+            case "ME":
+            case "MF":
+            case "MG":
+            case "MH":
+            case "MI":
+            case "MJ":
+            case "MK":
+            case "ML":
+            case "MM":
+            case "MN":
+            case "MO":
+            case "MP":
+            case "MG":
+            case "MR":
+            case "MS":{
+              sum_price +=((cart.current.quantities * parseFloat(cart.current.price_sell)) * (100-(cart.current.price_discount_bs + position.percent ))/100 );
+              break;
+            }
+          }
+        })
+        break;
+      }
+    }
 
     return sum_price;
   }
@@ -137,10 +234,17 @@ const Cart: React.FC = (props) => {
     <Card style={{ marginBottom: '20px' }}>
       <List
         itemLayout="horizontal"
-        dataSource={carts}
+        dataSource={
+          homeFilter.filter.product_type === 1 
+          ? cart_plan_front
+          : cart_plan_back
+        }
         header={
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px' }}>
-            <div style={{ fontSize: 20 }}>{`รายการสินค้า (${carts.length})`}</div>
+            <div style={{ fontSize: 20 }}>{`รายการสินค้า ${ homeFilter.filter.product_type === 1 ? 'แผนหน้า' : 'แผนหลัง'} (${  homeFilter.filter.product_type === 1 
+                                                            ? cart_plan_front.length
+                                                            : cart_plan_back.length
+                                                          })`}</div>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <div style={{ marginRight: 8, fontSize:20 }}>
                 {`ยอดทั้งหมด(หลังหัก % ค่าตำแหน่ง): ${ Math.ceil(sumAllPrice()) } บาท`}
@@ -156,7 +260,7 @@ const Cart: React.FC = (props) => {
                 onClick={onCheckout} 
                 // onClick={()=>{ navigate("/checkout") }}
                 loading={loading}>
-                {`ชำระเงิน (${carts.length})`}
+                {`ชำระเงิน (${homeFilter.filter.product_type === 1 ? cart_plan_front.length : cart_plan_back.length })`}
               </Button>
             </div>
           </div>

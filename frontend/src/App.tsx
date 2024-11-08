@@ -15,11 +15,11 @@ import _ from "lodash"
 import { useTranslation } from 'react-i18next';
 
 import  { DefaultRootState } from '@/interface/DefaultRootState';
-
-import { localeConfig } from './locales';
-import RenderRouter from './routes';
-import { setGlobalState } from './stores/global.store';
-import { userConnected } from "./apollo/gqlQuery"
+import { localeConfig } from '@/locales';
+import RenderRouter from '@/routes';
+import { setGlobalState } from '@/stores/global.store';
+import { userConnected } from "@/apollo/gqlQuery"
+import { updateProfile } from '@/stores/user.store';
 
 const App: FC = () => {
   const { locale, profile } = useSelector((state : DefaultRootState) => state.user);
@@ -35,13 +35,22 @@ const App: FC = () => {
   useSubscription(userConnected,
                   { 
                   variables: { input : {_id : profile?._id} },
-                  skip: !subscriptionState.isSubscribed,
+                  // skip: !subscriptionState.isSubscribed,
                   onSubscriptionData: ({ subscriptionData }) => {
-                    // if (subscriptionData.data) {
-                    //   const newMessage = subscriptionData.data.newMessage;
-                    //   setMessages((prevMessages) => [...prevMessages, newMessage]);
-                    // }
-                    console.log("onSubscriptionData:", subscriptionData);
+                    if (subscriptionData.data) {
+                      // const newMessage = subscriptionData.data.newMessage;
+                      // setMessages((prevMessages) => [...prevMessages, newMessage]);
+
+                      let { mutation, data: profile } = subscriptionData.data.userConnected
+
+                      switch(mutation){
+                        case "UPDATED_PROFILE":{
+                          console.log("mutation :", mutation, profile);
+
+                          dispatch(updateProfile({ profile }));
+                        }
+                      }
+                    }
                   },
                   onError: (err: ApolloError) => {
                     console.error("Subscription error:", err);
@@ -55,21 +64,21 @@ const App: FC = () => {
   //   })
   // }
 
-  useEffect(()=>{
-    console.log("@@@1 :", subscriptionState)
-  }, [subscriptionState])
+  // useEffect(()=>{
+  //   console.log("@@@1 :", subscriptionState)
+  // }, [subscriptionState])
   
-  useEffect(()=>{
-    const profileId = profile?._id ?? ""; // Use empty string if profile?._id is undefined
+  // useEffect(()=>{
+  //   const profileId = profile?._id ?? ""; // Use empty string if profile?._id is undefined
 
-    if (subscriptionState._id !== profileId) {
-      setSubscriptionState({ _id: profileId, isSubscribed: false });
+  //   if (subscriptionState._id !== profileId) {
+  //     setSubscriptionState({ _id: profileId, isSubscribed: false });
   
-      setTimeout(() => {
-        setSubscriptionState({ _id: profileId, isSubscribed: true });
-      }, 0);
-    }
-  }, [profile])
+  //     setTimeout(() => {
+  //       setSubscriptionState({ _id: profileId, isSubscribed: true });
+  //     }, 0);
+  //   }
+  // }, [profile])
 
   const setTheme = (dark = true) => {
     dispatch(

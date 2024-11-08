@@ -3,9 +3,7 @@ import type { Locale, UserState } from '@/interface/user/user';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import _ from "lodash"
 import { createSlice, current } from '@reduxjs/toolkit';
-
 import { getGlobalState } from '@/utils/getGloabal';
-
 import { ProductItem } from "@/interface/user/user"
 
 const initialState: UserState = {
@@ -22,7 +20,10 @@ const initialState: UserState = {
 
   profile:{},
 
-  carts:[]
+  carts:[],
+
+  cart_plan_front: [],  // Array to hold items for the front cart
+  cart_plan_back: []    // Array to hold items for the back cart
 };
 
 const userSlice = createSlice({
@@ -96,9 +97,77 @@ const userSlice = createSlice({
       // Reset the state to initialState by returning it directly
       return initialState;
     },
+
+
+
+    //  add Cart plan front actions
+    add_cart_plan_front: (state, action: PayloadAction<ProductItem>) => {
+      let item = _.cloneDeep(action.payload);
+      if (!state.cart_plan_front.some(existingItem => existingItem._id === item._id)) {
+        item = _.set(item, 'current.quantities', 1);
+        state.cart_plan_front.push(item);
+      }
+    },
+    clearAllCart_plan_front: (state) => {
+      state.cart_plan_front = [];
+    },
+    removeCart_plan_front: (state, action: PayloadAction<string>) => {
+      state.cart_plan_front = state.cart_plan_front.filter(item => item._id !== action.payload);
+    },
+
+    // Cart plan back actions
+    add_cart_plan_back: (state, action: PayloadAction<ProductItem>) => {
+      let item = _.cloneDeep(action.payload);
+      if (!state.cart_plan_back.some(existingItem => existingItem._id === item._id)) {
+        item = _.set(item, 'current.quantities', 1);
+        state.cart_plan_back.push(item);
+      }
+    },
+    // Update quantities in cart_plan_front
+    updateQuantities_front: (state, action: PayloadAction<{ id: string; quantities: number }>) => {
+      const { id, quantities } = action.payload;
+      state.cart_plan_front = state.cart_plan_front.map(item =>
+        item._id === id ? { ...item, current: { ...item.current, quantities } } : item
+      );
+    },
+
+    // Update quantities in cart_plan_back
+    updateQuantities_back: (state, action: PayloadAction<{ id: string; quantities: number }>) => {
+      const { id, quantities } = action.payload;
+      state.cart_plan_back = state.cart_plan_back.map(item =>
+        item._id === id ? { ...item, current: { ...item.current, quantities } } : item
+      );
+    },
+
+    clearAllCart_plan_back: (state) => {
+      state.cart_plan_back = [];
+    },
+    removeCart_plan_back: (state, action: PayloadAction<string>) => {
+      state.cart_plan_back = state.cart_plan_back.filter(item => item._id !== action.payload);
+    },
   },
 });
 
-export const { setUserItem, testSetRamdom, updateProfile, addCart, removeCart, clearAllCart, updateCartQuantities, updateAddressDelivery, deleteAddressDelivery, logout } = userSlice.actions;
+export const {  setUserItem, 
+                testSetRamdom, 
+                updateProfile, 
+                addCart, 
+                removeCart, 
+                clearAllCart, 
+
+                add_cart_plan_front,
+                clearAllCart_plan_front,
+                removeCart_plan_front,
+                updateQuantities_front,
+
+                add_cart_plan_back,
+                clearAllCart_plan_back,
+                removeCart_plan_back,
+                updateQuantities_back,
+
+                updateCartQuantities, 
+                updateAddressDelivery,
+                deleteAddressDelivery, 
+                logout } = userSlice.actions;
 
 export default userSlice.reducer;

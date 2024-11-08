@@ -31,3 +31,33 @@ export const init_position = [  {"_id":"6721098ce9dccb02aab4cb3e","level":0,"nam
                                 {"_id":"6721098ce9dccb02aab4cb53","level":21,"name":"MQ","percent":9.5,"budget":0 },
                                 {"_id":"6721098ce9dccb02aab4cb54","level":22,"name":"MR","percent":9.8,"budget":0 },
                                 {"_id":"6721098ce9dccb02aab4cb55","level":23,"name":"MS","percent":10,"budget":0 }]
+
+
+/*
+const ids: string[] = [
+  "6721098ce9dccb02aab4cb3e",
+  "6721098ce9dccb02aab4cb3f",
+  "6721098ce9dccb02aab4cb40",
+  "6721098ce9dccb02aab4cb41",
+  "6721098ce9dccb02aab4cb42",
+  "6721098ce9dccb02aab4cb43",
+  "6721098ce9dccb02aab4cb44",
+  "6721098ce9dccb02aab4cb45",
+  "6721098ce9dccb02aab4cb46",
+  "6721098ce9dccb02aab4cb47",
+  "6721098ce9dccb02aab4cb48",
+  "6721098ce9dccb02aab4cb49",
+  "6721098ce9dccb02aab4cb4a",
+  "6721098ce9dccb02aab4cb4b",
+  "6721098ce9dccb02aab4cb4c",
+  "6721098ce9dccb02aab4cb4d",
+  "6721098ce9dccb02aab4cb4e",
+  "6721098ce9dccb02aab4cb4f",
+  "6721098ce9dccb02aab4cb50",
+  "6721098ce9dccb02aab4cb51",
+  "6721098ce9dccb02aab4cb52",
+  "6721098ce9dccb02aab4cb53",
+  "6721098ce9dccb02aab4cb54",
+  "6721098ce9dccb02aab4cb55"
+];
+*/                   

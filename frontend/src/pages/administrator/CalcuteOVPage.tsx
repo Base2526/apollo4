@@ -10,7 +10,7 @@ import {  UsergroupAddOutlined,
   NodeExpandOutlined, 
   NodeCollapseOutlined } from '@ant-design/icons';
 
-import { queryMembers, mutation_calcute_plan_back } from "@/apollo/gqlQuery";
+import { queryMembers, mutation_calcute_ov } from "@/apollo/gqlQuery";
 import { getHeaders } from "@/utils";
 
 import handlerError from '@/utils/handlerError';
@@ -163,8 +163,7 @@ const flattenTreeUnique = (
   return result;
 };
 
-
-const CalcutePlanBackPage: React.FC = (props) => {
+const CalcuteOVPage: React.FC = (props) => {
   const [startYear, setStartYear] = useState<number>(2024);
   const [endYear, setEndYear] = useState<number>(2027);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
@@ -177,24 +176,24 @@ const CalcutePlanBackPage: React.FC = (props) => {
   const [data, setData] = useState<DataNode[]>([]);
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
 
-  const [onCalcutePlanBack] = useMutation(mutation_calcute_plan_back, {
+  const [onCalcuteOV] = useMutation(mutation_calcute_ov, {
     context: { headers: getHeaders(location) },
-    update: (cache, { data: { calcute_plan_back } }) => {
-      console.log("calcute_plan_back :", calcute_plan_back);
+    update: (cache, { data: { calcute_ov } }) => {
+      console.log("calcute_ov :", calcute_ov);
 
-      let { status, data} = calcute_plan_back;
+      let { status, data} = calcute_ov;
       if(status){
         // setData(data)
         // const result = flattenTreeUnique(data);
 
-        console.log("data :", data)
+        // console.log("data :", data)
         // console.log("output 2 :", JSON.stringify(result, null, 2))
       }
 
       setLoading(false)
     },
     onCompleted(data) {
-      // console.log("calcute_plan_back onCompleted :", data);
+      // console.log("calcute_ov onCompleted :", data);
       // let { status } = data.profile
       // if(status){
       //   message.success('Update profile success!');
@@ -203,7 +202,7 @@ const CalcutePlanBackPage: React.FC = (props) => {
       setLoading(false);
     },
     onError(error) {
-      console.log("calcute_plan_back onError :", error);
+      console.log("calcute_ov onError :", error);
 
       setLoading(false);
       handlerError(props, error)
@@ -246,24 +245,8 @@ const CalcutePlanBackPage: React.FC = (props) => {
   };
 
   const handleSubmit = () => {
-    if (!selectedMonth) {
-      message.warning('Please select a month.');
-      return;
-    }
-
-    const selectedRange = monthRanges.find((range) => range.month === selectedMonth);
-    if (selectedRange) {
-      const { startDate, endDate } = selectedRange;
-      
-      // Display or use the start and end dates as needed
-      console.log(`Selected start date: ${startDate}`);
-      console.log(`Selected end date: ${endDate}`);
-
-      setLoading(true)
-      onCalcutePlanBack({ variables: { input: { startDate, endDate,  userId: selectedUser } } });
-    
-    }
-    // message.success(`Selected month: ${selectedMonth}, Year range: ${startYear}-${endYear}, User: ${selectedUser}`);
+    setLoading(true)
+    onCalcuteOV({ variables: { input: { userId: selectedUser } } });
   };
 
   const onSelect = (selectedKeys: React.Key[], info: any) => {
@@ -320,7 +303,7 @@ const CalcutePlanBackPage: React.FC = (props) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <Select 
+      {/* <Select 
         placeholder="Select month" 
         style={{ width: 200 }} 
         onChange={(value) => setSelectedMonth(value)}
@@ -330,7 +313,7 @@ const CalcutePlanBackPage: React.FC = (props) => {
             {range.month}
           </Option>
         ))}
-      </Select>
+      </Select> */}
 
       { 
       users && 
@@ -350,7 +333,7 @@ const CalcutePlanBackPage: React.FC = (props) => {
       <Button 
         type="primary" 
         style={{ width: 200 }} 
-        disabled={!selectedMonth || !selectedUser} 
+        disabled={!selectedUser} 
         onClick={handleSubmit}
         loading={loading}>
         คำนวณรายได้
@@ -369,4 +352,4 @@ const CalcutePlanBackPage: React.FC = (props) => {
   );
 };
 
-export default CalcutePlanBackPage;
+export default CalcuteOVPage;

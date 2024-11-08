@@ -8,7 +8,7 @@ import _ from 'lodash';
 import { DownOutlined } from '@ant-design/icons';
 import { useSelector } from 'react-redux';
 
-import { guery_purchases, mutation_order } from '@/apollo/gqlQuery';
+import { guery_purchases, query_positions } from '@/apollo/gqlQuery';
 import { getHeaders } from '@/utils';
 import handlerError from '@/utils/handlerError';
 
@@ -16,9 +16,17 @@ import PurchaseAll from "@/pages/cart/PurchaseAll";
 import PurchaseComplete from "@/pages/cart/PurchaseComplete";
 import PurchaseCancel from "@/pages/cart/PurchaseCancel";
 
-import { OrderItem, OrderProductDetail } from "@/interface/user/user"
+import { OrderItem, OrderProductDetail, PositionInterface } from "@/interface/user/user"
 
 const { TabPane } = Tabs;
+
+// interface positionInterface {
+//   _id: string;
+//   level: number;
+//   name: string;
+//   percent: number;
+//   budget: number;
+// }
 
 const Purchase: React.FC = (props) => {
   const navigate = useNavigate();
@@ -27,10 +35,26 @@ const Purchase: React.FC = (props) => {
 
   const [filteredData, setFilteredData] = useState<OrderItem[]>();
   const [data, setData] = useState<OrderItem[]>();
+  const [positions, setPositions] = useState<PositionInterface[]>([]);
+
+  const { loading: loadingPositions, data: dataPositions } = useQuery(query_positions, {
+    context: { headers: getHeaders(location) },
+    fetchPolicy: 'cache-first',
+    nextFetchPolicy: 'network-only'
+  });
+
+  useEffect(() => {
+    if (!loadingPositions && !_.isEmpty(dataPositions?.positions)) {
+        const { status, data } = dataPositions.positions;
+        if (status) {
+            setPositions(data);
+        }
+    }
+  }, [dataPositions, loadingPositions]);
 
   const { loading: loadingPurchases, data: dataPurchases, error: errorPurchases, refetch: refetchPurchases } = useQuery(guery_purchases, {
     context: { headers: getHeaders(location) },
-    fetchPolicy: 'cache-first',
+    fetchPolicy: 'no-cache',
     nextFetchPolicy: 'network-only',
     notifyOnNetworkStatusChange: false,
   });
@@ -44,6 +68,8 @@ const Purchase: React.FC = (props) => {
       setData([]);
       setFilteredData([]);
       if (dataPurchases.purchases.status) {
+
+        console.log("Purchase :", dataPurchases.purchases.data)
         _.map(dataPurchases.purchases.data, (e, key) => {
           setData((prevItems) => Array.isArray(prevItems) ? [...prevItems, e] : [e]);
           setFilteredData((prevItems) => Array.isArray(prevItems) ? [...prevItems, e] : [e]);
@@ -61,7 +87,7 @@ const Purchase: React.FC = (props) => {
     <Tabs defaultActiveKey={`${defaultActive}`} onChange={handleTabChange}>
       <TabPane tab="ทั้งหมด" key="1">
         {/* Show Skeleton while loading */}
-        {loadingPurchases ? <Skeleton active /> : <PurchaseAll purchaseData={data} refetch={refetchPurchases}/>}
+        {loadingPurchases ? <Skeleton active /> : <PurchaseAll purchaseData={data} positions={positions} refetch={refetchPurchases}/>}
       </TabPane>
       <TabPane tab="สำเร็จแล้ว" key="2">
         {loadingPurchases ? <Skeleton active /> : <PurchaseComplete purchaseData={data}/>}

@@ -896,6 +896,8 @@ export default gql`
     address_delivery(input:JSON): JSON
 
     calcute_plan_back(input:JSON): JSON
+
+    calcute_ov(input:JSON): JSON
   }
 
   type Subscription {

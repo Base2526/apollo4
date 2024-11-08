@@ -1761,13 +1761,13 @@ export default {
       let role = Utils.checkRole(current_user)
       if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
+      console.log("products :", current_user.current.packages)
+
       if( role === Constants.ADMINISTRATOR ){
         let products = await Model.Product.aggregate([
                                                       {
                                                         $addFields: {
-                                                          ownerId: "$current.ownerId",  // Bring the nested field to the top level
-                                                          // editerId: "$current.editer",   // Bring editerId to the top level
-                                                          // productId: "$current.productIds.productId"
+                                                          ownerId: "$current.ownerId",
                                                         }
                                                       },
                                                       {
@@ -1793,19 +1793,37 @@ export default {
       }
 
       let products = await Model.Product.aggregate([
+                                                    { $addFields: { ownerId: "$current.ownerId" } },
                                                     {
-                                                      $addFields: {
-                                                        ownerId: "$current.ownerId"
+                                                      // $match: {
+                                                      //   $or: [
+                                                      //     { 'current.package_front': { $in: [current_user.current.packages] } },
+                                                      //     { 'current.package_back': { $in: [current_user.current.packages] } }
+                                                      //   ]
+                                                      // }
+                                                      $match: {
+                                                        $or: [
+                                                            {
+                                                                // Case: product_type contains 1
+                                                                'current.product_type': 1,
+                                                                'current.package_front': { $in: [current_user.current.packages] }
+                                                            },
+                                                            {
+                                                                // Case: product_type contains 2
+                                                                'current.product_type': 2,
+                                                                'current.package_back': { $in: [current_user.current.packages] }
+                                                            },
+                                                            {
+                                                                // Case: product_type contains both 1 and 2
+                                                                'current.product_type': { $all: [1, 2] },
+                                                                $or: [
+                                                                    { 'current.package_front': { $in: [current_user.current.packages] } },
+                                                                    { 'current.package_back': { $in: [current_user.current.packages] } }
+                                                                ]
+                                                            }
+                                                        ]
                                                       }
                                                     },
-                                                    // {
-                                                    //   $match: {
-                                                    //     $or: [
-                                                    //       { 'current.package_front': { $in: [current_user.current.packages] } },
-                                                    //       { 'current.package_back': { $in: [current_user.current.packages] } }
-                                                    //     ]
-                                                    //   }
-                                                    // },
                                                     {
                                                       $lookup: {
                                                         localField: "ownerId",
@@ -2019,17 +2037,17 @@ export default {
       let role = Utils.checkRole(current_user)
       if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
         let purchases = await Model.Order.aggregate([
-                                                  // {
-                                                  //   $match: {
-                                                  //     "current.ownerId": current_user._id  // Replace xxxxx with the actual OwnerId value you're looking for
-                                                  //   }
-                                                  // },
                                                   {
-                                                    $addFields: {
-                                                      // ownerId: "$current.ownerId",  // Bring the nested field to the top level
-                                                      productId: "$current.productIds.productId"
+                                                    $match: {
+                                                      "current.owner._id": current_user._id  // Replace xxxxx with the actual OwnerId value you're looking for
                                                     }
                                                   },
+                                                  // {
+                                                  //   $addFields: {
+                                                  //     // ownerId: "$current.ownerId",  // Bring the nested field to the top level
+                                                  //     productId: "$current.productIds.productId"
+                                                  //   }
+                                                  // },
                                                   /*{
                                                     $lookup: {
                                                       localField: "ownerId",
@@ -2045,14 +2063,14 @@ export default {
                                                     }
                                                   },*/
                                                   // Lookup to fetch the product details from the "Product" collection based on productIds array
-                                                  {
-                                                    $lookup: {
-                                                      from: "product", // the collection you're referencing (Product collection)
-                                                      localField: "productId", // field in the Orders collection (array of ObjectId)
-                                                      foreignField: "_id", // field in the Product collection
-                                                      as: "productDetails" // field to store the resulting product details
-                                                    }
-                                                  },
+                                                  // {
+                                                  //   $lookup: {
+                                                  //     from: "product", // the collection you're referencing (Product collection)
+                                                  //     localField: "productId", // field in the Orders collection (array of ObjectId)
+                                                  //     foreignField: "_id", // field in the Product collection
+                                                  //     as: "productDetails" // field to store the resulting product details
+                                                  //   }
+                                                  // },
                                                 ]);                                      
       return {
         status: true,
@@ -5441,33 +5459,13 @@ export default {
       if( role !==Constants.ADMINISTRATOR &&
           role !==Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
           
-      // console.log("order : ", input)
+      console.log("order : ", input)
 
       switch(input.mode){
         case 'added':{
           const session = await mongoose.startSession();
           session.startTransaction();
           try {
-            /*
-            const promises =  _.map(input.productIds, async (vi) => {
-                                let { productId, quantities } = vi;
-                                const document = await Model.Product.findOne({ _id: mongoose.Types.ObjectId(productId) });
-                          
-                                if (document) {
-                                  if (quantities > document.current.quantity) {
-                                    throw new AppError(Constants.ERROR, "Quantity not enough");
-                                  }
-                                  await Model.Product.updateOne(
-                                    { _id: mongoose.Types.ObjectId(productId) },
-                                    { $inc: { 'current.quantity': -quantities } },
-                                    { session }
-                                  );
-                                }
-                              });
-        
-            // Wait for all promises to resolve
-            await Promise.all(promises);
-            */
             const promises = _.map(input.products, async (vi) => {
               let { productId, quantities } = vi;
             
@@ -5488,17 +5486,7 @@ export default {
                   { session }
                 );
             
-                let newProduct = {
-                  _id: product._id,
-                  price: product.current.price,
-                  price_sell: product.current.price_sell,
-                  price_discount_bm: product.current.price_discount_bm,
-                  price_discount_bs: product.current.price_discount_bs,
-                  price_discount_from_children: product.current.price_discount_from_children,
-                  price_discount_from_office: product.current.price_discount_from_office,
-                  all_sale: product.current.all_sale,
-                  price_delivery: product.current.price_delivery,
-                }
+                let newProduct =  { _id: product._id, ...product.current }
 
                 // Return the product and quantities
                 return { product: newProduct, quantities };
@@ -5514,16 +5502,12 @@ export default {
             // Filter out null results (if any documents were not found)
             const validResults = results.filter(result => result !== null);
 
-            let current  = { products: validResults, 
-                             owner: { 
-                                      _id: current_user._id,  
-                                      positionId: current_user.current.positionId 
-                                    } ,
-                             status: 1 }
+            let current  = {  type_plan: input.type_plan,
+                              products: validResults, 
+                              owner: { _id: current_user._id, positionId: current_user.current.positionId },
+                              status: 1 }
 
             await Model.Order.insertMany([{ current }], { session });
-
-            // throw new AppError(Constants.ERROR, "error")
   
             // Commit the transaction
             await session.commitTransaction();
@@ -5536,22 +5520,21 @@ export default {
             session.endSession();
             console.log("finally @@@@@@@1 :")
           } 
+
           break;
         }
-
         case 'edited':{
           const session = await mongoose.startSession();
           session.startTransaction();
           try {
-
-            // cancel, complete order
+            // 2: cancel, 3: complete order
             switch( input.type ){
               case 2:
               case 3:{
                 let promises = []; 
-                if(!_.isEmpty(input.attachFile)){
-                  for (let i = 0; i < input.attachFile.length; i++) {
-                    const { createReadStream, filename, encoding, mimetype } = (await input.attachFile[i]).file //await input.files[i];
+                if(!_.isEmpty(input.images)){
+                  for (let i = 0; i < input.images.length; i++) {
+                    const { createReadStream, filename, encoding, mimetype } = (await input.images[i]).file //await input.files[i];
           
                     const stream = createReadStream();
                     const assetUniqName = Utils.fileRenamer(filename);
@@ -5579,9 +5562,8 @@ export default {
                   }
                 }
                 let attachFile = await Promise.all(promises);
-                console.log("save images :", attachFile)
                 
-                let history = await Model.Order.findOne({ _id: mongoose.Types.ObjectId(input._id) })
+                let history = await Model.Order.findOne({ _id: mongoose.Types.ObjectId(input._id) }).session(session);
     
                 const filter = { _id: input._id }
                 const update = {
@@ -5595,37 +5577,28 @@ export default {
                 };
                 await Model.Order.updateOne( filter , update, { session });
 
+                // products, positions, profile
                 if(input.type === 2){
                   // เช็ดยอดเพือปรับตำแหน่ง
- 
-                  const owner = await Model.Member.findById(history.current.ownerId).session(session);
-                  const orderProducts =  history.current.products
-                  const ids = orderProducts.map(item => mongoose.Types.ObjectId(item.productId));
-                   
-                  const productsData = await Model.Product.find({ _id: { $in: ids } })
+                  let { owner, products } = history.current                  
+                  let positions = await Model.Position.find({});
+                  // let ownerN    = await Model.Member.findById(owner._id).session(session);
 
-                  let sumPrice =  _.sumBy(productsData, (prod)=>{
-                    let quant = _.find(orderProducts, (value)=>value.productId.toString() === prod._id.toString())
-                    return (quant.quantities * prod.current.price_sell)  * (100-5)/100
-                  })
+                  let sumPrice =  Math.ceil(Utils.summaryPriceDiscount(products, positions, owner.positionId) + Utils.___tax_at_pay5(products, positions, owner.positionId) + Utils.summaryDelivery(products))
+                  console.log( "เช็ดยอดเพือปรับตำแหน่ง :", sumPrice, owner)
 
-                  /*
-                  {"_id":"6721098ce9dccb02aab4cb3e","level":0,"name":"BM","percent":0,"budget":0 },
-                  {"_id":"6721098ce9dccb02aab4cb3f","level":1,"name":"BS","percent":0,"budget":5000 },
-                  {"_id":"6721098ce9dccb02aab4cb40","level":2,"name":"BG","percent":0.5,"budget":10000 },
-                  {"_id":"6721098ce9dccb02aab4cb41","level":3,"name":"BD","percent":1,"budget":50000 },
-                  {"_id":"6721098ce9dccb02aab4cb42","level":4,"name":"BP","percent":2,"budget":200000 },
-                  */
-   
+                  let is_publish = false;
                   if(sumPrice >= 5000 && sumPrice <= 9999){
                     // BS
                     const codes = ['6721098ce9dccb02aab4cb3f', '6721098ce9dccb02aab4cb40', '6721098ce9dccb02aab4cb41', '6721098ce9dccb02aab4cb42'];
-                    const check_includes =  _.includes(codes, owner.current.positionId)
+                    const check_includes =  _.includes(codes, owner.positionId.toString())
 
                     if(!check_includes){
+                      is_publish = true;
+
                       await Model.Member.updateOne(
                         { _id: owner._id },
-                        {  "current.positionId": "6721098ce9dccb02aab4cb3f" },
+                        {  "current.positionId": mongoose.Types.ObjectId("6721098ce9dccb02aab4cb3f") },
                         { session }
                       );
                     }
@@ -5634,12 +5607,14 @@ export default {
                   }else if(sumPrice >= 10000 && sumPrice <= 49999){
                     // BG 
                     const codes = ['6721098ce9dccb02aab4cb40', '6721098ce9dccb02aab4cb41', '6721098ce9dccb02aab4cb42'];
-                    const check_includes =  _.includes(codes, owner.current.positionId)
+                    const check_includes =  _.includes(codes, owner.positionId.toString())
 
                     if(!check_includes){
+                      is_publish = true;
+
                       await Model.Member.updateOne(
                         { _id: owner._id },
-                        { "current.positionId": "6721098ce9dccb02aab4cb40" },
+                        { "current.positionId": mongoose.Types.ObjectId("6721098ce9dccb02aab4cb40") },
                         { session }
                       );
                     }
@@ -5648,49 +5623,49 @@ export default {
                   }else if(sumPrice >= 50000 && sumPrice <= 199999){
                     // BD
                     const codes = ['6721098ce9dccb02aab4cb41', '6721098ce9dccb02aab4cb42'];
-                    const check_includes =  _.includes(codes, owner.current.positionId)
+                    const check_includes =  _.includes(codes, owner.positionId.toString())
 
                     if(!check_includes){
+                      is_publish = true;
+
                       await Model.Member.updateOne(
                         { _id: owner._id },
-                        { "current.position": "6721098ce9dccb02aab4cb41" },
+                        { "current.positionId": mongoose.Types.ObjectId("6721098ce9dccb02aab4cb41") },
                         { session }
                       );
                     }
-                    
                     console.log("@@@@@: BD")
                   }else if(sumPrice >= 200000){
                     // BP
                     const codes = ['6721098ce9dccb02aab4cb42'];
-                    const check_includes =  _.includes(codes, owner.current.positionId)
+                    const check_includes =  _.includes(codes, owner.positionId.toString())
 
                     if(!check_includes){
+                      is_publish = true;
+
                       await Model.Member.updateOne(
                         { _id: owner._id },
-                        { "current.position": "6721098ce9dccb02aab4cb42" },
+                        { "current.positionId": mongoose.Types.ObjectId("6721098ce9dccb02aab4cb42") },
                         { session }
                       );
                     }
-
                     console.log("@@@@@: BP")
+                  }
+
+                  if(is_publish){
+                    const updatedProfile = await Model.Member.findById(history.current.owner._id).session(session); // Attach session to the query
+                    console.log("@@@@@: ", updatedProfile, history.current.owner._id)
+                    pubsub.publish("USER_CONNECTED", {
+                      userConnected: {
+                        mutation: "UPDATED_PROFILE",
+                        data: updatedProfile,
+                      }
+                    });
                   }
                 }
 
                 // Commit the transaction
                 await session.commitTransaction();
-
-                // pubsub.publish('USER_CONNECTED', { userConnected: 'A user connected' });
-
-                const updatedProfile = await Model.Member.findById(history.current.ownerId).session(session); // Attach session to the query
-                console.log("@@@@@: ", updatedProfile)
-                pubsub.publish("USER_CONNECTED", {
-                  userConnected: {
-                    mutation: "UPDATED_PROFILE",
-                    data: updatedProfile,
-                  }
-                });
-
-                // throw new AppError(Constants.ERROR)
 
                 break;
               }
@@ -5945,18 +5920,300 @@ export default {
       const session = await mongoose.startSession();
       session.startTransaction()
       try{
-
-        let node_uid = await Model.Node.findOne({'current.ownerId':  mongoose.Types.ObjectId(input.userId)})
+        // จะได้ Node แรก ของ owerId คนนี้
+        let node_uid = await Model.Node.findOne({ 
+                                                  'current.ownerId':  mongoose.Types.ObjectId(input.userId),
+                                                  'current.isParent': true 
+                                                })   
 
         console.log("calcute_plan_back input:", input, node_uid)
         if(node_uid){
-          let result_calculate_plan_back =  await Utils.calculate_plan_back(node_uid._id, input.startDate, input.endDate)
+          // let calculate_plan_back =  await Utils.calculate_plan_back( node_uid._id )
+          // let result = calculate_plan_back.filter(i=>i.ownerId.toString() !== input.userId.toString() )
 
-          console.log("result_calculate_plan_back :", result_calculate_plan_back)
+          // let ids     = _.map(result, i=>mongoose.Types.ObjectId( i.ownerId))
+
+          let owner   = await Model.Member.findById(input.userId);
+          const process = async(parentId = null, level = 1, limitLevel=1) => {
+            const nodes = await Model.Node.find({ 'current.parentNodeId': parentId });
+            return await Promise.all(nodes.map(async (node) => {
+              let nextLevel = level + 1;
+              if (nextLevel >= limitLevel) {
+                // Do not build children if the max level is reached
+                return {
+                    title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
+                    key: node._id.toString(),
+                    node,
+                    ownerId: node.current.ownerId,
+                    owner: await Model.Member.findById(node.current.ownerId),
+                    level: nextLevel,
+                    children: null, // No children if max level is reached
+                };
+              } else {
+                // Continue building the tree recursively if max level is not reached
+                let children = await process( node._id, nextLevel, limitLevel );
+                return {
+                  title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
+                  key: node._id.toString(),
+                  node,
+                  ownerId: node.current.ownerId,
+                  owner: await Model.Member.findById(node.current.ownerId),
+                  level: nextLevel,
+                  children: children.length ? children : null,
+                };
+              }
+            }));
+          }
+
+          const flattenTreeUnique = (nodes) => {
+            const result = [];
+            const ownerIdSet = new Set(); // To track unique ownerIds as strings
+            const traverse = (nodes) => {
+              nodes.forEach((node) => {
+                // Convert ownerId to a string for Set comparison
+                const ownerIdStr = node.ownerId.toString();
+                if (!ownerIdSet.has(ownerIdStr)) {
+                    ownerIdSet.add(ownerIdStr);
+                    result.push({ key: node.key, ownerId: node.ownerId });
+                }
+                if (node.children) {
+                  traverse(node.children);
+                }
+              });
+            };
+          
+            traverse(nodes);
+            return result;
+          };
+
+          // แสดงโครงสร้างเพือให้ง่ายกับการ ตรวจสอบ
+          // Function to recursively extract key structure 
+          // Get only field key to display
+          // Example console.log(`Resulting tree structure:`, JSON.stringify(getKeyStructure(processValue), null, 2));
+          const getKeyStructure = (nodes) => {
+            return nodes.map(node => {
+                const result = { key: node.key };
+                if (node.children) {
+                    result.children = getKeyStructure(node.children);
+                }
+                return result;
+            });
+          };
+
+          // Check Member ที่เราต้องการเช็ดตำแหน่งอะไร
+          switch(owner.current.positionId.toString()){
+            // กรณี owner มีตำแหน่ง BM
+            case "6721098ce9dccb02aab4cb3e":{
+              // Fast start ค่าแนะนำ ตำแหน่ง BM แนะนำ BM ลูกติดตัวเท่านั้น
+              /*
+              ขั้นตอน 
+              1. ต้องหาลูกติดตัวทั้งหมด
+              2. เมือเราได้ลูกติดตัวทั้งหมด (จากข้อ 1) 
+                 เราต้อง query table Order where 'current.owner._id' and 'current.owner.positionId' === 'BM' and period time ที่เราต้องการ
+                 โดย จะมีการเก็บ current.owner.positionId เป็นตำแหน่งขณะที่ ลูกติดตัวคนนั้น ทำการซื้อ
+              3. เราต้องคำนวณยอดการซื้อ/ขายของแต่ละ order เพือจะได้ คำนวณค่าผู้แนะนํา
+              */
+              ///////////  1. ต้องหาลูกติดตัวทั้งหมด  ////////////
+              // เราจะหาลูกติดตัว limitLevel =  package + 1;
+              let limitLevel = owner.current.packages + 1;
+
+              const level = 1;
+              let processValue =  await process(node_uid._id, level, limitLevel)
+
+              // เป็นการ id ทั้งหมด ที่ไม่ซํ้า
+              let flatten = flattenTreeUnique(processValue)
+              
+              // ตอนดึงโครงสร้างมาจะได้ลูกทั้งหมด + ownerid เราต้อง filter ownerId ออก
+              let ids     = _.map(flatten.filter(i=>i.ownerId.toString() !== input.userId.toString() ), i=>mongoose.Types.ObjectId( i.ownerId))
+
+              let displayNames = await Utils.getDisplayNamesByIds(ids)
+              console.log(`Step 1. (@@@@ BM) Name: ${ owner.current.displayName  }, มีลูกติดตัวทั้งหมด(${ displayNames.length }): ${ displayNames }`)
+
+              ///////////  1. ต้องหาลูกติดตัวทั้งหมด  ////////////
+
+
+              ////////////////
+              // 2. เมือเราได้ลูกติดตัวทั้งหมด (จากข้อ 1) 
+              //    เราต้อง query table Order where 'current.owner._id' and 'current.owner.positionId' === 'BM' 
+              //                                                       and period time  and current.type_plan = 'แผลหลัง' and current.status = 2(complete) ที่เราต้องการ
+              //    โดย จะมีการเก็บ current.owner.positionId เป็นตำแหน่งขณะที่ ลูกติดตัวคนนั้น ทำการซื้อ
+              ///////////////
+
+              let orders  = await Model.Order.aggregate([ { $match: { 
+                                                                    'current.owner._id': { $in: ids },
+                                                                    'current.owner.positionId': owner.current.positionId,
+                                                                    'current.type_plan': 2,
+                                                                    'current.status': 2,
+                                                                    'updatedAt': {
+                                                                      $gte: new Date(input.startDate),
+                                                                      $lte: new Date(input.endDate)
+                                                                    }
+                                                                  } 
+                                                          } ]);     
+
+              if(orders.length == 0){
+                console.log(`Step 2. ไม่มีลูกทีมทำการซื้อในช่วงเวลา ${ input.startDate } to ${ input.endDate } `)
+              }else{
+                console.log(`Step 2. id orders ทั้งหมดที่ทำการซื้อในช่วงเวลา ${ input.startDate } to ${ input.endDate } `)
+              
+                let positions = await Model.Position.find({});
+  
+                _.map(orders, async(order)=>{
+                  let displayNames = await Utils.getDisplayNamesByIds([order.current.owner._id])
+                  let positionName = await Utils.getPositionNameById(order.current.owner.positionId)
+  
+  
+                  let { owner: ownerOrder, products } = order.current        
+
+                  let summaryPriceDiscount = Utils.summaryPriceDiscount(products, positions, ownerOrder.positionId);
+                  let tax_at_pay5 =  Utils.___tax_at_pay5(products, positions, ownerOrder.positionId);
+                  let summaryDelivery = Utils.summaryDelivery(products);
+                  console.log(`summaryPriceDiscount: ${ summaryPriceDiscount }, tax_at_pay5: ${ tax_at_pay5 }, summaryDelivery: ${summaryDelivery}`)
+                  let sumPrice =  Math.ceil(summaryPriceDiscount + tax_at_pay5 + summaryDelivery)
+     
+                  
+                  console.log(`Order id ${ order._id }, Seller name : ${ displayNames }(${ positionName }), ยอดรวมทั้งหมด : ${ sumPrice }, ยอดค่าคอมที่ได้(5%) :${ sumPrice - (sumPrice * ((100 - 5) / 100)) }`)
+                })
+              }
+              
+
+              ////////////////
+              // 2. เมือเราได้ลูกติดตัวทั้งหมด (จากข้อ 1) 
+              //    เราต้อง query table Order where 'current.owner._id' and 'current.owner.positionId' === 'BM' and period time ที่เราต้องการ
+              //    โดย จะมีการเก็บ current.owner.positionId เป็นตำแหน่งขณะที่ ลูกติดตัวคนนั้น ทำการซื้อ
+              ///////////////
+              
+        
+              console.log("@@@@ BM")
+              break;
+            }
+            // กรณี owner มีตำแหน่ง BS
+            case "6721098ce9dccb02aab4cb3f":{
+              /*
+              ขั้นตอน 
+              1. ต้องหาลูก upder เราทั้งหมด
+              2. เมือเราได้ลูกลูก upder เราทั้งหมด (จากข้อ 1) 
+                 เราต้อง query table Order where 'current.owner._id ' and 'current.owner.positionId' === 'BM' and period time ที่เราต้องการ
+                 โดย จะมีการเก็บ current.owner.positionId เป็นตำแหน่งขณะที่ ลูกติดตัวคนนั้น ทำการซื้อ
+              3. เราต้องคำนวณยอดการซื้อ/ขายของแต่ละ order เพือจะได้ คำนวณค่าผู้แนะนํา
+              */
+
+              ///////////  1. ต้องหาลูก upder เราทั้งหมด  ////////////
+              // เราจะหาลูกติดตัว limitLevel =  package + 1;
+              let limitLevel = 10000;
+
+              const level = 1;
+              let processValue =  await process(node_uid._id, level, limitLevel)
+
+              // เป็นการ id ทั้งหมด ที่ไม่ซํ้า
+              let flatten = flattenTreeUnique(processValue)
+              
+              // ตอนดึงโครงสร้างมาจะได้ลูกทั้งหมด + ownerid เราต้อง filter ownerId ออก
+              let ids     = _.map(flatten.filter(i=>i.ownerId.toString() !== input.userId.toString() ), i=>mongoose.Types.ObjectId( i.ownerId ))
+
+              let displayNames = await Utils.getDisplayNamesByIds(ids)
+              console.log(`Step 1.(@@@@ BS) Name: ${ owner.current.displayName  }, มีลูกทีมทั้งหมด(${ displayNames.length }): ${ displayNames }`)
+
+              ///////////  1. ต้องหาลูก upder เราทั้งหมด  ////////////
+
+
+              ///////////
+              // 2. เมือเราได้ลูกลูก upder เราทั้งหมด (จากข้อ 1) 
+              // เราต้อง query table Order where 'current.owner._id ' and 'current.owner.positionId' === 'BM' and period time ที่เราต้องการ
+              // โดย จะมีการเก็บ current.owner.positionId เป็นตำแหน่งขณะที่ ลูกติดตัวคนนั้น ทำการซื้อ
+              ///////////
+
+
+              let orders  = await Model.Order.aggregate([ { $match: { 
+                                                                    'current.owner._id': { $in: ids },
+                                                                    'current.owner.positionId': {  $nin: [ mongoose.Types.ObjectId("6721098ce9dccb02aab4cb3e") ] }, // จะไม่รอบ BM นอกนั้นเอาหมด
+                                                                    'current.type_plan': 2,
+                                                                    'current.status': 2,
+                                                                    'updatedAt': {
+                                                                      $gte: new Date(input.startDate),
+                                                                      $lte: new Date(input.endDate)
+                                                                    }
+                                                                  } 
+                                                          } ]);     
+
+              if(orders.length == 0){
+                console.log(`Step 2. ไม่มีลูกทีมทำการซื้อในช่วงเวลา ${ input.startDate } to ${ input.endDate } `)
+              }else{
+                console.log(`Step 2. id orders ทั้งหมดที่ทำการซื้อในช่วงเวลา ${ input.startDate } to ${ input.endDate } `)
+              
+                let positions = await Model.Position.find({});
+  
+                _.map(orders, async(order)=>{
+                  let displayNames = await Utils.getDisplayNamesByIds([order.current.owner._id])
+                  let positionName = await Utils.getPositionNameById(order.current.owner.positionId)
+  
+  
+                  let { owner: ownerOrder, products } = order.current                  
+                  // let ownerN    = await Model.Member.findById(owner._id);
+
+                  let summaryPriceDiscount = Utils.summaryPriceDiscount(products, positions, ownerOrder.positionId);
+                  let tax_at_pay5 =  Utils.___tax_at_pay5(products, positions, ownerOrder.positionId);
+                  let summaryDelivery = Utils.summaryDelivery(products);
+                  console.log(`summaryPriceDiscount: ${ summaryPriceDiscount }, tax_at_pay5: ${ tax_at_pay5 }, summaryDelivery: ${summaryDelivery}`)
+                  let sumPrice =  Math.ceil(summaryPriceDiscount + tax_at_pay5 + summaryDelivery)
+     
+                  
+                  console.log(`Order id ${ order._id }, Seller name : ${ displayNames }(${ positionName }), ยอดรวมทั้งหมด : ${ sumPrice }, ยอดค่าคอมที่ได้(5%) :${ sumPrice - (sumPrice * ((100 - 5) / 100)) }`)
+                })
+              }
+
+              ///////////
+              // 2. เมือเราได้ลูกลูก upder เราทั้งหมด (จากข้อ 1) 
+              // เราต้อง query table Order where 'current.owner._id ' and 'current.owner.positionId' === 'BM' and period time ที่เราต้องการ
+              // โดย จะมีการเก็บ current.owner.positionId เป็นตำแหน่งขณะที่ ลูกติดตัวคนนั้น ทำการซื้อ
+              ///////////
+
+              console.log("@@@@ BS")
+              break;
+            }
+            // BG
+            case "6721098ce9dccb02aab4cb40":{
+              console.log("@@@@ BG")
+              break;
+            }
+            // BD
+            case "6721098ce9dccb02aab4cb41":{
+              console.log("@@@@ BD")
+              break;
+            }
+            // BP
+            case "6721098ce9dccb02aab4cb42":{
+              console.log("@@@@ BP")
+              break;
+            }
+
+            /*
+            {"_id":"6721098ce9dccb02aab4cb43","level":5,"name":"MA","percent":3,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb44","level":6,"name":"MB","percent":4,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb45","level":7,"name":"MC","percent":5,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb46","level":8,"name":"MD","percent":5.5,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb47","level":9,"name":"ME","percent":6,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb48","level":10,"name":"MF","percent":6.5,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb49","level":11,"name":"MG","percent":7,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb4a","level":12,"name":"MH","percent":7.3,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb4b","level":13,"name":"MI","percent":7.5,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb4c","level":14,"name":"MJ","percent":7.8,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb4d","level":15,"name":"MK","percent":8,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb4e","level":16,"name":"ML","percent":8.3,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb4f","level":17,"name":"MM","percent":8.5,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb50","level":18,"name":"MN","percent":8.8,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb51","level":19,"name":"MO","percent":9,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb52","level":20,"name":"MP","percent":9.3,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb53","level":21,"name":"MQ","percent":9.5,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb54","level":22,"name":"MR","percent":9.8,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb55","level":23,"name":"MS","percent":10,"budget":0 }]
+            */
+          }
+
 
           return {
             status: true,
-            data: result_calculate_plan_back,
+            // data: result,
             executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
           }   
         }
@@ -5964,6 +6221,322 @@ export default {
         // await session.commitTransaction();
         return {
           status: true,
+          executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+        }      
+      } catch(error){
+        await session.abortTransaction();
+        console.log(`init #error ${error}`)
+
+        throw new AppError(Constants.ERROR, error)
+      }finally {
+        session.endSession();
+      }  
+    },
+
+    async calcute_ov(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+      let { input } = args
+      
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.ADMINISTRATOR && 
+          role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+      const session = await mongoose.startSession();
+      session.startTransaction()
+      try{
+        
+        // จะได้ Node แรก ของ owerId คนนี้
+        let node_uid = await Model.Node.findOne({ 
+                                                  'current.ownerId':  mongoose.Types.ObjectId(input.userId),
+                                                  'current.isParent': true 
+                                                })   
+
+        console.log("calcute_plan_back input:", input, node_uid)
+        if(node_uid){
+          let owner   = await Model.Member.findById(input.userId);
+          const process = async(parentId = null, level = 1, limitLevel=1) => {
+            const nodes = await Model.Node.find({ 'current.parentNodeId': parentId });
+            return await Promise.all(nodes.map(async (node) => {
+              let nextLevel = level + 1;
+              if (nextLevel >= limitLevel) {
+                // Do not build children if the max level is reached
+                return {
+                    title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
+                    key: node._id.toString(),
+                    node,
+                    ownerId: node.current.ownerId,
+                    owner: await Model.Member.findById(node.current.ownerId),
+                    level: nextLevel,
+                    children: null, // No children if max level is reached
+                };
+              } else {
+                // Continue building the tree recursively if max level is not reached
+                let children = await process( node._id, nextLevel, limitLevel );
+                return {
+                  title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
+                  key: node._id.toString(),
+                  node,
+                  ownerId: node.current.ownerId,
+                  owner: await Model.Member.findById(node.current.ownerId),
+                  level: nextLevel,
+                  children: children.length ? children : null,
+                };
+              }
+            }));
+          }
+
+          const flattenTreeUnique = (nodes) => {
+            const result = [];
+            const ownerIdSet = new Set(); // To track unique ownerIds as strings
+            const traverse = (nodes) => {
+              nodes.forEach((node) => {
+                // Convert ownerId to a string for Set comparison
+                const ownerIdStr = node.ownerId.toString();
+                if (!ownerIdSet.has(ownerIdStr)) {
+                    ownerIdSet.add(ownerIdStr);
+                    result.push({ key: node.key, ownerId: node.ownerId });
+                }
+                if (node.children) {
+                  traverse(node.children);
+                }
+              });
+            };
+          
+            traverse(nodes);
+            return result;
+          };
+
+          // แสดงโครงสร้างเพือให้ง่ายกับการ ตรวจสอบ
+          // Function to recursively extract key structure 
+          // Get only field key to display
+          // Example console.log(`Resulting tree structure:`, JSON.stringify(getKeyStructure(processValue), null, 2));
+          const getKeyStructure = (nodes) => {
+            return nodes.map(node => {
+                const result = { key: node.key };
+                if (node.children) {
+                    result.children = getKeyStructure(node.children);
+                }
+                return result;
+            });
+          };
+
+           // Check Member ที่เราต้องการเช็ดตำแหน่งอะไร
+           switch(owner.current.positionId.toString()){
+            // กรณี owner มีตำแหน่ง BM
+            case "6721098ce9dccb02aab4cb3e":{
+              // Fast start ค่าแนะนำ ตำแหน่ง BM แนะนำ BM ลูกติดตัวเท่านั้น
+              /*
+              ขั้นตอน 
+              1. ต้องหาลูกติดตัวทั้งหมด
+              2. เมือเราได้ลูกติดตัวทั้งหมด (จากข้อ 1) 
+                 เราต้อง query table Order where 'current.owner._id' and 'current.owner.positionId' === 'BM' and period time ที่เราต้องการ
+                 โดย จะมีการเก็บ current.owner.positionId เป็นตำแหน่งขณะที่ ลูกติดตัวคนนั้น ทำการซื้อ
+              3. เราต้องคำนวณยอดการซื้อ/ขายของแต่ละ order เพือจะได้ คำนวณค่าผู้แนะนํา
+              */
+              ///////////  1. ต้องหาลูกติดตัวทั้งหมด  ////////////
+              // เราจะหาลูกติดตัว limitLevel =  package + 1;
+              let limitLevel = 1000000;
+
+              const level = 1;
+              let processValue =  await process(node_uid._id, level, limitLevel)
+
+              // เป็นการ id ทั้งหมด ที่ไม่ซํ้า
+              let flatten = flattenTreeUnique(processValue)
+              
+              // ตอนดึงโครงสร้างมาจะได้ลูกทั้งหมด + ownerid เราต้อง filter ownerId ออก
+              let ids     = _.map(flatten.filter(i=>i.ownerId.toString() !== input.userId.toString() ), i=>mongoose.Types.ObjectId( i.ownerId))
+
+              let displayNames = await Utils.getDisplayNamesByIds(ids)
+              console.log(`Step 1. (@@@@ BM) Name: ${ owner.current.displayName  }, มีลูกติดตัวทั้งหมด(${ displayNames.length }): ${ displayNames }`)
+
+              ///////////  1. ต้องหาลูกติดตัวทั้งหมด  ////////////
+
+
+              ////////////////
+              // 2. เมือเราได้ลูกติดตัวทั้งหมด (จากข้อ 1) 
+              //    เราต้อง query table Order where 'current.owner._id' and 'current.owner.positionId' === 'BM' 
+              //                                                       and period time  and current.type_plan = 'แผลหลัง' and current.status = 2(complete) ที่เราต้องการ
+              //    โดย จะมีการเก็บ current.owner.positionId เป็นตำแหน่งขณะที่ ลูกติดตัวคนนั้น ทำการซื้อ
+              ///////////////
+
+              let positionIds = ['6721098ce9dccb02aab4cb3e']
+              let orders  = await Model.Order.aggregate([ { $match: { 
+                                                                    'current.owner._id': { $in: ids },
+                                                                    'current.owner.positionId': owner.current.positionId,
+                                                                    'current.type_plan': 2,
+                                                                    'current.status': 2,
+                                                                    'updatedAt': {
+                                                                      $gte: new Date(input.startDate),
+                                                                      $lte: new Date(input.endDate)
+                                                                    }
+                                                                  } 
+                                                          } ]);     
+
+              if(orders.length == 0){
+                console.log(`Step 2. ไม่มีลูกทีมทำการซื้อในช่วงเวลา ${ input.startDate } to ${ input.endDate } `)
+              }else{
+                console.log(`Step 2. id orders ทั้งหมดที่ทำการซื้อในช่วงเวลา ${ input.startDate } to ${ input.endDate } `)
+              
+                // let positions = await Model.Position.find({});
+  
+                // _.map(orders, async(order)=>{
+                //   let displayNames = await Utils.getDisplayNamesByIds([order.current.owner._id])
+                //   let positionName = await Utils.getPositionNameById(order.current.owner.positionId)
+  
+  
+                //   let { owner: ownerOrder, products } = order.current        
+
+                //   let summaryPriceDiscount = Utils.summaryPriceDiscount(products, positions, ownerOrder.positionId);
+                //   let tax_at_pay5 =  Utils.___tax_at_pay5(products, positions, ownerOrder.positionId);
+                //   let summaryDelivery = Utils.summaryDelivery(products);
+                //   console.log(`summaryPriceDiscount: ${ summaryPriceDiscount }, tax_at_pay5: ${ tax_at_pay5 }, summaryDelivery: ${summaryDelivery}`)
+                //   let sumPrice =  Math.ceil(summaryPriceDiscount + tax_at_pay5 + summaryDelivery)
+     
+                  
+                //   console.log(`Order id ${ order._id }, Seller name : ${ displayNames }(${ positionName }), ยอดรวมทั้งหมด : ${ sumPrice }, ยอดค่าคอมที่ได้(5%) :${ sumPrice - (sumPrice * ((100 - 5) / 100)) }`)
+                // })
+              }
+              
+
+              ////////////////
+              // 2. เมือเราได้ลูกติดตัวทั้งหมด (จากข้อ 1) 
+              //    เราต้อง query table Order where 'current.owner._id' and 'current.owner.positionId' === 'BM' and period time ที่เราต้องการ
+              //    โดย จะมีการเก็บ current.owner.positionId เป็นตำแหน่งขณะที่ ลูกติดตัวคนนั้น ทำการซื้อ
+              ///////////////
+              
+        
+              console.log("@@@@ BM")
+              break;
+            }
+            // กรณี owner มีตำแหน่ง BS
+            case "6721098ce9dccb02aab4cb3f":{
+              /*
+              ขั้นตอน 
+              1. ต้องหาลูก upder เราทั้งหมด
+              2. เมือเราได้ลูกลูก upder เราทั้งหมด (จากข้อ 1) 
+                 เราต้อง query table Order where 'current.owner._id ' and 'current.owner.positionId' === 'BM' and period time ที่เราต้องการ
+                 โดย จะมีการเก็บ current.owner.positionId เป็นตำแหน่งขณะที่ ลูกติดตัวคนนั้น ทำการซื้อ
+              3. เราต้องคำนวณยอดการซื้อ/ขายของแต่ละ order เพือจะได้ คำนวณค่าผู้แนะนํา
+              */
+
+              ///////////  1. ต้องหาลูก upder เราทั้งหมด  ////////////
+              // เราจะหาลูกติดตัว limitLevel =  package + 1;
+              let limitLevel = 1000000;
+
+              const level = 1;
+              let processValue =  await process(node_uid._id, level, limitLevel)
+
+              // เป็นการ id ทั้งหมด ที่ไม่ซํ้า
+              let flatten = flattenTreeUnique(processValue)
+              
+              // ตอนดึงโครงสร้างมาจะได้ลูกทั้งหมด + ownerid เราต้อง filter ownerId ออก
+              let ids     = _.map(flatten.filter(i=>i.ownerId.toString() !== input.userId.toString() ), i=>mongoose.Types.ObjectId( i.ownerId ))
+
+              let displayNames = await Utils.getDisplayNamesByIds(ids)
+              console.log(`Step 1.(@@@@ BS) Name: ${ owner.current.displayName  }, มีลูกทีมทั้งหมด(${ displayNames.length }): ${ displayNames }`)
+              ///////////  1. ต้องหาลูก upder เราทั้งหมด  ////////////
+
+
+              ///////////
+              // 2. เมือเราได้ลูกลูก upder เราทั้งหมด (จากข้อ 1) 
+              // เราต้อง query table Order where 'current.owner._id ' and 'current.owner.positionId' === 'BM' and period time ที่เราต้องการ
+              // โดย จะมีการเก็บ current.owner.positionId เป็นตำแหน่งขณะที่ ลูกติดตัวคนนั้น ทำการซื้อ
+              ///////////
+              let orders  = await Model.Order.aggregate([ { $match: { 
+                                                                    'current.owner._id': { $in: ids },
+                                                                    'current.owner.positionId': {  $nin: [ mongoose.Types.ObjectId("6721098ce9dccb02aab4cb3e") ] }, // จะไม่รอบ BM นอกนั้นเอาหมด
+                                                                    'current.type_plan': 2,
+                                                                    'current.status': 2,
+                                                                    'updatedAt': {
+                                                                      $gte: new Date(input.startDate),
+                                                                      $lte: new Date(input.endDate)
+                                                                    }
+                                                                  } 
+                                                          } ]);     
+
+              if(orders.length == 0){
+                console.log(`Step 2. ไม่มีลูกทีมทำการซื้อในช่วงเวลา ${ input.startDate } to ${ input.endDate } `)
+              }else{
+                console.log(`Step 2. id orders ทั้งหมดที่ทำการซื้อในช่วงเวลา ${ input.startDate } to ${ input.endDate } `)
+              
+                let positions = await Model.Position.find({});
+  
+                _.map(orders, async(order)=>{
+                  let displayNames = await Utils.getDisplayNamesByIds([order.current.owner._id])
+                  let positionName = await Utils.getPositionNameById(order.current.owner.positionId)
+  
+  
+                  let { owner: ownerOrder, products } = order.current                  
+                  // let ownerN    = await Model.Member.findById(owner._id);
+
+                  let summaryPriceDiscount = Utils.summaryPriceDiscount(products, positions, ownerOrder.positionId);
+                  let tax_at_pay5 =  Utils.___tax_at_pay5(products, positions, ownerOrder.positionId);
+                  let summaryDelivery = Utils.summaryDelivery(products);
+                  console.log(`summaryPriceDiscount: ${ summaryPriceDiscount }, tax_at_pay5: ${ tax_at_pay5 }, summaryDelivery: ${summaryDelivery}`)
+                  let sumPrice =  Math.ceil(summaryPriceDiscount + tax_at_pay5 + summaryDelivery)
+     
+                  
+                  console.log(`Order id ${ order._id }, Seller name : ${ displayNames }(${ positionName }), ยอดรวมทั้งหมด : ${ sumPrice }, ยอดค่าคอมที่ได้(5%) :${ sumPrice - (sumPrice * ((100 - 5) / 100)) }`)
+                })
+              }
+
+              ///////////
+              // 2. เมือเราได้ลูกลูก upder เราทั้งหมด (จากข้อ 1) 
+              // เราต้อง query table Order where 'current.owner._id ' and 'current.owner.positionId' === 'BM' and period time ที่เราต้องการ
+              // โดย จะมีการเก็บ current.owner.positionId เป็นตำแหน่งขณะที่ ลูกติดตัวคนนั้น ทำการซื้อ
+              ///////////
+
+              console.log("@@@@ BS")
+              break;
+            }
+            // BG
+            case "6721098ce9dccb02aab4cb40":{
+              console.log("@@@@ BG")
+              break;
+            }
+            // BD
+            case "6721098ce9dccb02aab4cb41":{
+              console.log("@@@@ BD")
+              break;
+            }
+            // BP
+            case "6721098ce9dccb02aab4cb42":{
+              console.log("@@@@ BP")
+              break;
+            }
+
+            /*
+            {"_id":"6721098ce9dccb02aab4cb43","level":5,"name":"MA","percent":3,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb44","level":6,"name":"MB","percent":4,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb45","level":7,"name":"MC","percent":5,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb46","level":8,"name":"MD","percent":5.5,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb47","level":9,"name":"ME","percent":6,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb48","level":10,"name":"MF","percent":6.5,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb49","level":11,"name":"MG","percent":7,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb4a","level":12,"name":"MH","percent":7.3,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb4b","level":13,"name":"MI","percent":7.5,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb4c","level":14,"name":"MJ","percent":7.8,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb4d","level":15,"name":"MK","percent":8,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb4e","level":16,"name":"ML","percent":8.3,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb4f","level":17,"name":"MM","percent":8.5,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb50","level":18,"name":"MN","percent":8.8,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb51","level":19,"name":"MO","percent":9,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb52","level":20,"name":"MP","percent":9.3,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb53","level":21,"name":"MQ","percent":9.5,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb54","level":22,"name":"MR","percent":9.8,"budget":0 },
+            {"_id":"6721098ce9dccb02aab4cb55","level":23,"name":"MS","percent":10,"budget":0 }]
+            */
+          }
+
+
+        }
+
+        // await session.commitTransaction();
+        return {
+          status: true,
+          input,
           executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
         }      
       } catch(error){
@@ -6224,20 +6797,22 @@ export default {
       subscribe: withFilter((parent, args, context, info) => {
           return pubsub.asyncIterator(["USER_CONNECTED"])
         }, async (payload, variables, context, info) => {
-          console.log("userConnected subscribe :", payload, variables)
-
+          
           let { input } = variables
           let { mutation, data } = payload.userConnected
+
+          console.log("@@@1 userConnected subscribe :", payload, variables)
+
           switch(mutation){
             case "UPDATED_PROFILE":{
-              if(input._id === data._id){
+              if(input._id.toString() === data._id.toString()){
                 return true;
               }
               break;
             }
           }
 
-          return true;
+          return false;
         }
       ),
       onDisconnect: () => {

@@ -13,15 +13,20 @@ import { store, persistor } from '@/stores';
 import client from '@/apollo/ConfigureApolloClient';
 import i18n from "@/i18n"
 
+import { AppProvider } from '@/AppContext';
+
 const container = document.getElementById('root'); // Get the root element
 
 if (container) {
   const root = createRoot(container!); // Create a root
-  root.render(<Provider store={store}>
+  root.render(
+  <Provider store={store}>
     <I18nextProvider i18n={i18n}>
       <PersistGate loading={<p>Loading...</p>} persistor={persistor}>
         <ApolloProvider client={client}>
-          <App />
+          <AppProvider>
+            <App />
+          </AppProvider>
         </ApolloProvider>
       </PersistGate>
     </I18nextProvider>

@@ -9,7 +9,6 @@ const historySchema = new Schema({
     updatedAt: Date
 });
 
-
 const memberSchema = new Schema({
     current: {
         // parentId: { type: Schema.Types.ObjectId, required:[true, "Parent ID Request is a required field"]  },

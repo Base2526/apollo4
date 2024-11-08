@@ -19,9 +19,14 @@ const productSchema = new Schema({
         images: { type: [file], default: [] }, 
         quantity: { type: Number , default: 0 },
         price_front: { type: Number , default: 0 },
-        package_front: { type: [Number], enum: [1,2,3], default: [] }, 
-        package_back: { type: [Number], enum: [1,2,3], default: [] }, 
-        product_type: { type: [Number], default: [] }, 
+
+        product_type: { type: [Number], enum: [1,2], default: [] },     // 1: แผนหน้า, 2: แผนหลัง
+        option_front: { type: [Number], enum: [1,2], default: [] },     // 1: เอกสิทธิพิเศษ, 2: Power ship
+        package_front: { type: [Number], enum: [1,2,3], default: [] },  // 1: 1, 2: 8, 3: 56
+        option_back: { type: [Number], enum: [1,2], default: [] },      // 1: เอกสิทธิพิเศษ, 2: Power ship
+        package_back: { type: [Number], enum: [1,2,3], default: [] },   // 1: 1, 2: 8, 3: 56
+        
+
         price_discount_bm:  { type: Number , default: 0 },
         price_discount_bs:  { type: Number , default: 0 },
         price_discount_from_children:  { type: Number , default: 0 },
@@ -29,6 +34,9 @@ const productSchema = new Schema({
         all_sale:  { type: Number , default: 0 },
 
         price_delivery: { type: Number , default: 0 },
+
+        // 01/11/24  0: none, 1: Include, 2: Exclude
+        vat: { type: Number, enum: [0,1,2] , default: 0 },
     },
     history: [historySchema]
 },

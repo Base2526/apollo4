@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Checkbox, Button, InputNumber, Row, Col, } from 'antd';
+import { Form, Input, Checkbox, Button, InputNumber, Row, Col, Radio, message } from 'antd';
 import { RcFile } from 'antd/es/upload/interface';
 import { useQuery, useMutation } from "@apollo/client";
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -12,7 +12,7 @@ import AttackFileField from "@/components/basic/attack-file"
 
 const { TextArea } = Input;
 
-interface FormValues {
+interface ProductFormValues {
   name: string;
   price: number;
   price_sell: number;
@@ -20,9 +20,13 @@ interface FormValues {
   images: RcFile[],
   quantity: number;
   price_front: number;
-  package_front: number[],
-  package_back: number[],
+
   product_type: number[],
+  option_front: number[],
+  package_front: number[],
+  option_back: number[]
+  package_back: number[],
+  
   price_discount_bm: number;
   price_discount_bs: number;
   price_discount_from_children: number;
@@ -30,6 +34,8 @@ interface FormValues {
   all_sale: number;
 
   price_delivery: number;
+
+  vat: 0 | 1 | 2; // Added VAT type
 }
 
 const defaultValues = {
@@ -40,9 +46,13 @@ const defaultValues = {
   images: [],
   quantity: 0,
   price_front: 0,
-  package_front: [],
-  package_back: [],
+
   product_type: [],
+  option_front: [],
+  package_front: [],
+  option_back: [],
+  package_back: [],
+
   price_discount_bm: 0,
   price_discount_bs: 0,
   price_discount_from_children: 0,
@@ -50,6 +60,8 @@ const defaultValues = {
   all_sale: 0,
 
   price_delivery: 0,
+
+  vat: 0, // Default to 'none'
 };
 
 const ProductForm: React.FC = (props) => {
@@ -58,7 +70,7 @@ const ProductForm: React.FC = (props) => {
   const { mode, _id } = location.state || {}; // Retrieve the state
 
   const [form] = Form.useForm();
-  const [fileList, setFileList] = useState<RcFile[]>([]);
+  // const [fileList, setFileList] = useState<RcFile[]>([]);
   const [images, setImages] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);  // Added loading state
 
@@ -77,8 +89,20 @@ const ProductForm: React.FC = (props) => {
 
   const [onProduct] = useMutation(mutation_product, {
     context: { headers: getHeaders(location) },
-    update: (cache, { data: { product } }) => {
-      console.log("product:", product);
+    update: (cache, { data: { product } }, params: any) => {
+      // console.log("product:", product);
+      let { status } = product
+      if(status){
+        let { input } = params?.variables;
+        switch(input.mode){
+          case 'added':{
+            message.success('เพิ่มสินค้าใหม่ เรียบร้อย!');
+          }
+          case 'edited':{
+            message.success('แก้ไขสินค้า เรียบร้อย!');
+          }
+        }
+      }
     },
     onCompleted: (data) => {
       setLoading(false);  // Set loading to false when mutation completes
@@ -121,9 +145,13 @@ const ProductForm: React.FC = (props) => {
             images: product.current.images,
             quantity: product.current.quantity,
             price_front: product.current.price_front,
-            package_front: product.current.package_front,
-            package_back: product.current.package_back,
+
             product_type: product.current.product_type,
+            option_front: product.current.option_front,
+            package_front: product.current.package_front,
+            option_back: product.current.option_back,
+            package_back: product.current.package_back,
+            
             price_discount_bm: product.current.price_discount_bm,
             price_discount_bs: product.current.price_discount_bs,
             price_discount_from_children: product.current.price_discount_from_children,
@@ -131,9 +159,15 @@ const ProductForm: React.FC = (props) => {
             all_sale: product.current.all_sale,
 
             price_delivery: product.current.all_sale,
+
+            vat: product.current.vat,
           });
 
           setImages(product.current.images);
+
+
+          _.includes(product.current.product_type, 1) ? setIsPackageFrontChecked(true) : ""
+          _.includes(product.current.product_type, 2) ? setIsPackageBackChecked(true) : ""
         }
       }
     }
@@ -145,8 +179,7 @@ const ProductForm: React.FC = (props) => {
     }
   }, [mode, refetchProduct]);
 
-  const onFinish = (input: FormValues) => {
-
+  const onFinish = (input: ProductFormValues) => {
     console.log("onFinish :", input)
 
     if (mode === 'added') {
@@ -158,24 +191,24 @@ const ProductForm: React.FC = (props) => {
     }
   };
 
-/*
-{label="ชื่อสินค้า" name="name"}
-{label="ราคา (บาท)" name="price"}
-{label="ราคาขาย (บาท)" name="price_sell"}
-{label="รายละเอียด" name="detail"}
-{label="ไฟล์แนบ" name="images"}
-{label="จำนวนสินค้าทั้งหมด" name="quantity"}
-{label="ส่วนลดหน้าร้าน %" name="price_front"}
-{label="ประเภทสินค้า" name="product_type"}
-{name="package_front"}
-{name="package_back"}
-{label="ส่วนลดเฉพาะตำแหน่ง BM (ไม่เกิม 5%)" name="price_discount_bm"}
-{label="ส่วนลดมาตรฐาน BS (%)" name="price_discount_bs"}
-{label="ส่วนลดค่าแนะนำจาการซื้อ/ขายชของลูกทีม ติดตัวเท่านั้น" name="price_discount_from_children"}
-{label="ส่วนลดค่าสำนักงาน (%)" name="price_discount_from_office"}
-{label="All Sale (%)" name="all_sale"}
-*/
-
+  /*
+  {label="ชื่อสินค้า" name="name"}
+  {label="ราคา (บาท)" name="price"}
+  {label="ราคาขาย (บาท)" name="price_sell"}
+  {label="รายละเอียด" name="detail"}
+  {label="ไฟล์แนบ" name="images"}
+  {label="จำนวนสินค้าทั้งหมด" name="quantity"}
+  {label="ส่วนลดหน้าร้าน %" name="price_front"}
+  {label="ประเภทสินค้า" name="product_type"}
+  {name="package_front"}
+  {name="package_back"}
+  {label="ส่วนลดเฉพาะตำแหน่ง BM (ไม่เกิม 5%)" name="price_discount_bm"}
+  {label="ส่วนลดมาตรฐาน BS (%)" name="price_discount_bs"}
+  {label="ส่วนลดค่าแนะนำจาการซื้อ/ขายชของลูกทีม ติดตัวเท่านั้น" name="price_discount_from_children"}
+  {label="ส่วนลดค่าสำนักงาน (%)" name="price_discount_from_office"}
+  {label="All Sale (%)" name="all_sale"}
+  */
+ 
   return (
     <Form
       form={form}
@@ -250,19 +283,25 @@ const ProductForm: React.FC = (props) => {
           },
         ]}>
         <Checkbox.Group>
-          {/* Row for 'เอกสิทธิพิเศษ' */}
-          <Row>
-            <Col>
-              <Checkbox value={1}>เอกสิทธิพิเศษ</Checkbox>
-            </Col>
-          </Row>
-
           {/* Row for 'แผนหน้า' */}
           <Row>
-            <Col>
-              <Checkbox  value={2} onChange={handlePackageFrontChange}>แผนหน้า</Checkbox>
+            <Col span={8}>
+              <Checkbox  value={1} onChange={handlePackageFrontChange}>แผนหน้า</Checkbox>
             </Col>
             <Col>
+              <Form.Item
+                name="option_front"
+                rules={[
+                  {
+                    required: isPackageFrontChecked,
+                    message: 'กรุณาเลือกตัวเลือกสำหรับแผนหน้า!',
+                  },
+                ]}>
+                <Checkbox.Group disabled={!isPackageFrontChecked}>
+                  <Checkbox value={1}>เอกสิทธิพิเศษ</Checkbox>
+                  <Checkbox value={2}>Power ship</Checkbox>
+                </Checkbox.Group>
+              </Form.Item>
               <Form.Item
                 name="package_front"
                 rules={[
@@ -282,10 +321,23 @@ const ProductForm: React.FC = (props) => {
 
           {/* Row for 'แผนหลัง' */}
           <Row>
-            <Col>
-              <Checkbox  value={3} onChange={handlePackageBackChange}>แผนหลัง</Checkbox>
+            <Col span={8}>
+              <Checkbox  value={2} onChange={handlePackageBackChange}>แผนหลัง</Checkbox>
             </Col>
             <Col>
+              <Form.Item
+                name="option_back"
+                rules={[
+                  {
+                    required: isPackageBackChecked,
+                    message: 'กรุณาเลือกตัวเลือกสำหรับแผนหลัง!',
+                  },
+                ]}>
+                <Checkbox.Group disabled={!isPackageBackChecked}>
+                  <Checkbox value={1}>เอกสิทธิพิเศษ</Checkbox>
+                  <Checkbox value={2}>Power ship</Checkbox>
+                </Checkbox.Group>
+              </Form.Item>
               <Form.Item
                 name="package_back"
                 rules={[
@@ -300,13 +352,6 @@ const ProductForm: React.FC = (props) => {
                   <Checkbox value={3}>56</Checkbox>
                 </Checkbox.Group>
               </Form.Item>
-            </Col>
-          </Row>
-
-          {/* Row for 'Power ship' */}
-          <Row>
-            <Col>
-              <Checkbox value={4}>Power ship</Checkbox>
             </Col>
           </Row>
         </Checkbox.Group>
@@ -355,9 +400,24 @@ const ProductForm: React.FC = (props) => {
         help="หมายเหตุ: ค่าจัดส่ง">
         <InputNumber min={0} />
       </Form.Item>
+
+      {/* VAT Selection */}
+      <Form.Item
+        label="VAT"
+        name="vat"
+        rules={[{ required: true, message: 'Please select a VAT option!' }]}
+        help="หมายเหตุ: การเลือกประเภท VAT"
+      >
+        <Radio.Group>
+          <Radio value={0}>None vat</Radio>
+          <Radio value={1}>Include</Radio>
+          <Radio value={2}>Exclude</Radio>
+        </Radio.Group>
+      </Form.Item>
+
       <Form.Item>
         <Button type="primary" htmlType="submit" loading={loading}>
-          สร้าง
+          { mode === 'edited' ? "แก้ไข" : "สร้าง"}
         </Button>
       </Form.Item>
     </Form>

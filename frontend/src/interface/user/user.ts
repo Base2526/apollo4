@@ -26,6 +26,14 @@ interface LockAccount {
   date: Date;
 }
 
+export interface PositionInterface {
+  _id: string;
+  level: number;
+  name: string;
+  percent: number;
+  budget: number;
+}
+
 interface Current {
   parentId?: string ;  // Assuming Schema.Types.ObjectId is string
   username?: string;
@@ -50,7 +58,7 @@ interface Current {
   lastAccess?: Date;
 }
 
-interface profileType {
+export interface ProfileType {
   _id?: string;
   current?: Current;
   history?: History[]; // Assuming `historySchema` has been defined elsewhere as `History`
@@ -64,36 +72,35 @@ export interface ProductImageType{
   encoding: string;
 }
 
+export interface ProductCurrentItem{
+  ownerId: string;
+  name: string;
+  price: string;
+  price_sell: string;
+  detail: string;
+  quantity: number;
+  price_front: number;
+  product_type: number[];
+  option_front: number[];
+  package_front: number[];
+  option_back: number[];
+  package_back: number[];
+  plan: number[];
+  packages: number[];
+  price_discount_bm: number;
+  price_discount_bs: number;
+  price_discount_from_children: number;
+  price_discount_from_office: number;
+  all_sale: number;
+  price_delivery: number;
+  images: ProductImageType[];
+  quantities: number;
+  vat: number;
+}
 export interface ProductItem {
   _isDEV: boolean;
   _id: string;
-  current: {
-    ownerId: string;
-    name: string;
-    price: string;
-    price_sell: string;
-    detail: string;
-    quantity: number;
-    price_front: number;
-    product_type: number[];
-    package_front: number[];
-    package_back: number[];
-
-    plan: number[];
-    packages: number[];
-
-
-    price_discount_bm: number;
-    price_discount_bs: number;
-    price_discount_from_children: number;
-    price_discount_from_office: number;
-    all_sale: number;
-    price_delivery: number;
-
-    images: ProductImageType[];
-    
-    quantities: number;
-  }
+  current: ProductCurrentItem;
   owner:any;
   history: [];
   createdAt: string;
@@ -130,10 +137,13 @@ export interface UserState {
   ramdom: number;
 
   /* for profile */
-  profile: profileType;
+  profile: ProfileType;
 
   /* for cart */
   carts: ProductItem[];
+
+  cart_plan_front: ProductItem[],  // Array to hold items for the front cart
+  cart_plan_back: ProductItem[]    // Array to hold items for the back cart
 }
 
 export interface OrderOwner {
@@ -174,7 +184,7 @@ export interface OrderItem {
     message?: string;
     attachFile?: any[];
   };
-  editer: profileType;
+  editer: ProfileType;
   history: any[];
   ownerId: string;
   productDetails: OrderProductDetail[];

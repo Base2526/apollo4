@@ -2114,115 +2114,194 @@ export const calculateAmount = async(nodeId, currentPeriod) => {
 
 ///////////////// calcute_plan_back
 
-async function calculatePB(parentId = null, level = 1, startPeriod, endPeriod) {
-    const nodes = await Model.Node.find({ 'current.parentNodeId': parentId });
+export const calculate_plan_back = async( nodeId ) =>{
     
-    return await Promise.all(nodes.map(async (node) => {
+    const process = async(parentId = null, level = 1) => {
+        const nodes = await Model.Node.find({ 'current.parentNodeId': parentId });
+        return await Promise.all(nodes.map(async (node) => {
+            let nextLevel = level + 1;
 
-        /*
-        เช็ดว่า node นี้มีการจ่าเงินใน period นี้หรือเปล่า
-        - ถ้าอยู่จะนําเอาไปคำนวณเงิน 
-        */
-        /*
-        find range period for now()
-        */
-        // const currentPeriod = await Model.Period.findOne({
-        //     start: { $lte: timePeriod }, // Start date should be less than or equal to now
-        //     end: { $gte: timePeriod }    // End date should be greater than or equal to now
-        // });
-
-        /** ยอดเสมือนจ่ายจริงแต่ละ period 
-         *  จะเช็ดเฉพาะ node ที่ถูกสร้างใน period นี้
-         * **/
-        // console.log("จะเช็ดเฉพาะ node ที่ถูกสร้างใน period นี้ : ", node.createdAt)
-        // Check if createdAt is within the range
-        if (node.createdAt >= startPeriod && node.createdAt <= endPeriod) {
-            // console.log(`createdAt is within the specified period = ${ node }`);
-            node = {...node._doc, inVisulPeriod: true}
-        }else{
-            node = {...node._doc, inVisulPeriod: false}
-        }
-
-        /** ยอดเสมือนจ่ายจริงแต่ละ period **/
-
-
-        /** ยอดจ่ายจริงแต่ละ period **/
-        /**
-         หา order ที่อยู่ใน period  
-        */
-        const query = {
-            'current.ownerId': node.current.ownerId,
-            'current.status': 2,
-            updatedAt: {
-                $gte: startPeriod,
-                $lte: endPeriod
-            }
-        };
-
-        const order = await Model.Order.findOne(query);
-        if(order !== null){
-            node = {...node, inRealPeriod: true}
-        }else{
-            node = {...node, inRealPeriod: false}
-        }
-        /** ยอดจ่ายจริงแต่ละ period **/
-
-        /*
-        เช็ดว่า node นี้มีการจ่าเงินใน period นี้หรือเปล่า
-        */
-
-        // const level = await calculateNodeLevel(node._id);
-
-        const nextLevel = level + 1;
-        
-        // Check if current level exceeds maxLevel
-        if (nextLevel >= 6) {
-            // Do not build children if the max level is reached
-            return {
-                title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
-                key: node._id.toString(),
-                node,
-                owner: await Model.Member.findById(node.current.ownerId),
-                level: nextLevel,
-                children: null, // No children if max level is reached
-            };
-        } else {
             // Continue building the tree recursively if max level is not reached
-            const children = await calculatePB(node._id, nextLevel, startPeriod, endPeriod);
+            let children = await process( node._id, nextLevel );
             return {
                 title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
                 key: node._id.toString(),
                 node,
+                ownerId: node.current.ownerId,
                 owner: await Model.Member.findById(node.current.ownerId),
                 level: nextLevel,
                 children: children.length ? children : null,
             };
-        }
-    }));
-}
+        }));
+    }
 
-export const calculate_plan_back = async(nodeId, startDate, endDate) =>{
-    console.log("calculate_plan_back :", nodeId, startDate, endDate)
+    const flattenTreeUnique = (nodes) => {
+        const result = [];
+        const ownerIdSet = new Set(); // To track unique ownerIds as strings
+        const traverse = (nodes) => {
+          nodes.forEach((node) => {
+            // Convert ownerId to a string for Set comparison
+            const ownerIdStr = node.ownerId.toString();
+            if (!ownerIdSet.has(ownerIdStr)) {
+                ownerIdSet.add(ownerIdStr);
+                result.push({ key: node.key, ownerId: node.ownerId });
+            }
+            if (node.children) {
+              traverse(node.children);
+            }
+          });
+        };
+      
+        traverse(nodes);
+        return result;
+    };
 
     const level = 1;
-
-    let startPeriod = startDate;
-    let endPeriod = endDate;
-
     const node = await Model.Node.findById(nodeId);
     if(node){
-        const trees = await calculatePB(nodeId, level, startPeriod, endPeriod)
-        const owner = await Model.Member.findById(node.current.ownerId)
-        return [{
-                    title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId} ,ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: 1, isParent: ${node.current.isParent}`,
-                    key: node._id.toString(),
-                    node,
-                    owner,
-                    level,
-                    children: trees
-                }]
+        let processValue =  await process(nodeId, level)
+        return flattenTreeUnique(processValue);
     }
 
     return []
 }
 ///////////////// calcute_plan_back
+
+
+
+////////////// ____ /////////////////
+
+const tax = 7;
+
+// ส่วนลดตำแหน่งสมาชิก
+// เราต้องเช็ดว่า user เป็นตำแหน่งอะไร มีอยู่ 2 กรณี
+// 1. BM เราจะดึง % field price_discount_bm เพือเอาไปใช้ในการคำนวณ
+// 2. สูงกว่า BM เริ่มตั้งแต่ BS โดยเราจะดึง % field price_discount_bs + position.percent เพือเอาไปใช้ในการคำนวณ
+// หลักการคำนวณ = (ราคาขาย *  จำนวนซื้อ) * ( % ทีได้จากข้อ 2  / 100 )
+export const ___discount_position_for_member = ( positions, positionId, value) =>{
+    let percent_discount = 0;
+  
+    let position = _.find(positions, (p)=>p._id?.toString() === positionId?.toString())
+    switch(position?.name?.toLocaleUpperCase()){
+      case "BM":{
+        percent_discount = value.price_discount_bm;
+        break;
+      }
+      // BS, BG, BD, BP, MA, MB, MC, MD, ME, MF, MG, MH, MI, MJ, MK, ML, MM, MN, MO, MP, MQ, MR, MS
+      case "BS":
+      case "BG":
+      case "BD":
+      case "BP":
+      case "MA":
+      case "MB":
+      case "MC":
+      case "MD":
+      case "ME":
+      case "MF":
+      case "MG":
+      case "MH":
+      case "MI":
+      case "MJ":
+      case "MK":
+      case "ML":
+      case "MM":
+      case "MN":
+      case "MO":
+      case "MP":
+      case "MG":
+      case "MR":
+      case "MS":{
+        percent_discount = value.price_discount_bs + position.percent;
+        break;
+      }
+    }
+  
+    return  ( parseInt(value.price_sell) * value.quantities ) * (percent_discount/100)
+}
+
+export const summaryDelivery = (products) =>{
+    return _.sumBy(products, (item) => item.product.price_delivery )
+}
+
+export const summaryPriceDiscount = (products, positions, positionId) =>{
+    let sum_price = 0;
+    // let positions = await Model.Position.find({});
+    _.map(products, (cart, index)=>{
+        let { quantities, product } = cart
+
+        let newProduct = {...product, quantities}
+        switch(product.vat){
+        // None
+        case 0:{
+            let discount_position_for_member = ___discount_position_for_member(positions, positionId, newProduct);
+            let price = (parseInt(product.price_sell)  * quantities) - discount_position_for_member;
+            sum_price += price;              
+            break;
+        }
+
+        // Include
+        case 1:{
+            let discount_position_for_member = ___discount_position_for_member(positions, positionId, newProduct);
+            let price  =  (parseInt(product.price_sell)  * quantities) - discount_position_for_member;
+            sum_price += price;
+            break;
+        }
+
+        // Exclude
+        case 2:{
+            let discount_position_for_member = ___discount_position_for_member(positions, positionId, newProduct);
+            let price  =  ((parseInt(product.price_sell)  * quantities) + (parseInt(product.price_sell)  * quantities) * (tax/100)) - discount_position_for_member;
+            sum_price += price;
+            break;
+        }
+        }
+    })
+
+    return sum_price;
+}
+
+export const ___tax_at_pay5 = (products, positions, positionId) =>{
+    let ___summary_discount = 0;
+
+    _.map(products, ( cart )=>{
+        let { quantities, product } = cart
+        let newProduct = {...product, quantities}
+
+        let price  = ___discount_position_for_member(positions, positionId, newProduct)
+        ___summary_discount += price
+    })
+
+    return ___summary_discount * 5/100;
+}
+
+////////////// ____ /////////////////
+
+
+
+// Function to get displayNames by array of IDs
+export const  getDisplayNamesByIds = async(idsArray) => {
+    try {
+        // Find members where their `_id` is in the provided `idsArray`
+        const members = await Model.Member.find(
+            { _id: { $in: idsArray } },
+            { 'current.displayName': 1 } // Project only the `displayName` field in the result
+        );
+
+        // Map the result to get an array of display names
+        const displayNames = members.map(m => m.current.displayName);
+        return displayNames;
+    } catch (error) {
+        console.error("Error fetching display names:", error);
+        throw error;
+    }
+}
+
+export const  getPositionNameById = async(_id) => {
+    try {
+        let position = await Model.Position.findById(_id);
+        return position.name;
+    } catch (error) {
+        console.error("Error fetching display names:", error);
+        throw error;
+    }
+}
