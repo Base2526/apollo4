@@ -343,14 +343,14 @@ const ProfilePage: FC = (props) => {
                   }}>คำนวณผลประโยชน์แผนหลัง</Button>
               </Descriptions.Item>
 
-              <Descriptions.Item label="คำนวณค่าบริหารทีม OV">
+              {/* <Descriptions.Item label="คำนวณค่าบริหารทีม OV">
                 <Button 
                   type="primary" 
                   style={{ marginRight: '10px' }}
                   onClick={()=>{
                     navigate('/administrator/calcute_ov')
                   }}>คำนวณค่าบริหารทีม OV</Button>
-              </Descriptions.Item>
+              </Descriptions.Item> */}
             </>
           }
           

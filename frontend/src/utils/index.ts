@@ -78,6 +78,18 @@ export const checkRole = (user: any) => {
   return Constants.ANONYMOUS;
 };
 
+
+export const getPositionId = (positionIds: any) =>{
+  if (positionIds.length === 0) return null;
+
+  // Find the position with the highest version
+  const latestPosition = positionIds.reduce((latest: any, current: any) => {
+    return current.version > latest.version ? current : latest;
+  });
+
+  return latestPosition.positionId;
+}
+
 // ส่วนลดตำแหน่งสมาชิก
 // เราต้องเช็ดว่า user เป็นตำแหน่งอะไร มีอยู่ 2 กรณี
 // 1. BM เราจะดึง % field price_discount_bm เพือเอาไปใช้ในการคำนวณ

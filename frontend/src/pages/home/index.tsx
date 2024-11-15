@@ -232,7 +232,6 @@ const ProductList: React.FC = (props) => {
                   navigate(`/view?v=${item._id}`, { state: { _id: item._id } });
                 }}
                 onAddToCart={()=>{
-                  // dispatch(addCart(item));
                   dispatch( homeFilter.filter.product_type === 1 
                             ? add_cart_plan_front(item) 
                             : add_cart_plan_back(item)
@@ -240,7 +239,6 @@ const ProductList: React.FC = (props) => {
                   message.success('Add to cart!');
                 }}
                 onDeleteForCart={()=>{
-                  // dispatch(removeCart(item._id));
                   dispatch( homeFilter.filter.product_type === 1 
                             ? removeCart_plan_front(item._id) 
                             : removeCart_plan_back(item._id)

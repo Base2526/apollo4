@@ -49,11 +49,18 @@ interface Current {
   avatar?: Avatar;
   position?: string;
   positionId?: string;
+  positionIds: [
+    {
+      version: number,
+      positionId: string,
+      updatedAt: string
+    }
+  ];
   address_delivery?: {
     name: string;
     phone: string;
     address: string;
-  }
+  };
   lockAccount?: LockAccount;
   lastAccess?: Date;
 }

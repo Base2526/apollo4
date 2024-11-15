@@ -82,6 +82,13 @@ interface OwnerCurrent {
   isActive: number;
   position: string;
   positionId: string;
+  positionIds: [
+    {
+      version: number,
+      positionId: string,
+      updatedAt: string
+    }
+  ];
   username: string;
   idCard: string;
   email: string;
