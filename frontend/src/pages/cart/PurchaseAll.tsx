@@ -52,7 +52,7 @@ const columns = ( navigate: ReturnType<typeof useNavigate>,
               // console.log("treeData Products :", detail)
 
               return{
-                title: `${index+1} : ${product.name}(${ ___vat(product.vat) }) - ฿${product.price_sell} x ${ quantities }, ส่วนลดตำแหน่ง (${ ___price_discount_bm_or_bs(positions, profile, product) }%), ค่าจัดส่ง (${ product.price_delivery })`,
+                title: `${index+1} : ${product.name}(${ ___vat(product.vat) }) - ฿${product.price_sell} x ${ quantities }, ส่วนลดตำแหน่ง (${ ___price_discount_bm_or_bs(positions, profile.current.positionIds, product) }%), ค่าจัดส่ง (${ product.price_delivery })`,
                 key: detail._id
               }
             })}
@@ -81,7 +81,7 @@ const columns = ( navigate: ReturnType<typeof useNavigate>,
           switch(product.vat){
             // None
             case 0:{
-              let discount_position_for_member = ___discount_position_for_member(positions, profile.current?.positionId || "", newProduct);
+              let discount_position_for_member = ___discount_position_for_member(positions, profile.current.positionIds, newProduct);
               let price = (parseInt(product.price_sell)  * quantities) - discount_position_for_member;
               sum_price += price;              
               break;
@@ -89,7 +89,7 @@ const columns = ( navigate: ReturnType<typeof useNavigate>,
 
             // Include
             case 1:{
-              let discount_position_for_member = ___discount_position_for_member(positions, profile.current?.positionId || "", newProduct);
+              let discount_position_for_member = ___discount_position_for_member(positions, profile.current.positionIds, newProduct);
               let price  =  (parseInt(product.price_sell)  * quantities) - discount_position_for_member;
               sum_price += price;
               break;
@@ -97,7 +97,7 @@ const columns = ( navigate: ReturnType<typeof useNavigate>,
 
             // Exclude
             case 2:{
-              let discount_position_for_member = ___discount_position_for_member(positions, profile.current?.positionId || "", newProduct);
+              let discount_position_for_member = ___discount_position_for_member(positions, profile.current.positionIds, newProduct);
               let price  =  ((parseInt(product.price_sell)  * quantities) + (parseInt(product.price_sell)  * quantities) * (tax/100)) - discount_position_for_member;
               sum_price += price;
               break;
@@ -115,7 +115,7 @@ const columns = ( navigate: ReturnType<typeof useNavigate>,
           let { quantities, product } = cart
           let newProduct = {...product, quantities}
 
-          let price  = ___discount_position_for_member(positions, profile.current?.positionId || "", newProduct)
+          let price  = ___discount_position_for_member(positions, profile.current.positionIds, newProduct)
           ___summary_discount += price
         })
 

@@ -1578,13 +1578,13 @@ export default {
       if( role !== Constants.ADMINISTRATOR && role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
       let members =  await Model.Member.aggregate([
-                                                    {
-                                                      $addFields: {
-                                                        'current.positionId': {
-                                                          $ifNull: ['$current.positionId', mongoose.Types.ObjectId('6721098ce9dccb02aab4cb3e')]
-                                                        }
-                                                      }
-                                                    },
+                                                    // {
+                                                    //   $addFields: {
+                                                    //     'current.positionId': {
+                                                    //       $ifNull: ['$current.positionId', mongoose.Types.ObjectId('6721098ce9dccb02aab4cb3e')]
+                                                    //     }
+                                                    //   }
+                                                    // },
                                                     {
                                                       $lookup: {
                                                         localField: "_id",
@@ -5030,6 +5030,53 @@ export default {
           break;
         }
       }
+      return {
+        status: true,
+        // data: user,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      } 
+    },
+    async profile_update_position(parent, args, context, info) {
+      let start = Date.now()
+      let { input } = args
+      let { req } = context
+
+      console.log("@1 profile_update_position :", input)
+
+      let { current_user } =  await Utils.checkAuth(req);
+
+      let { _id, positionId } = input
+
+      const session = await mongoose.startSession();
+      session.startTransaction();
+      try {
+        const currentMember   = await Model.Member.findById(_id).session(session);
+        const latestVersion = currentMember?.current.positionIds.reduce((max, pos) => Math.max(max, pos.version), 0) || 0;
+        // Prepare the new positionId entry with incremented version
+        const newPositionId = {
+          version: latestVersion + 1,
+          positionId: mongoose.Types.ObjectId(positionId),  // Update with appropriate ID if necessary
+          updatedAt: new Date(),
+        };
+
+        await Model.Member.updateOne(
+                          { _id  },
+                          {
+                            $set: { 'history': Utils.createRevision(currentMember) },
+                            $push: { 'current.positionIds': newPositionId },
+                          },
+                          { session }
+                        );
+        await session.commitTransaction();
+      }catch(error){
+        console.log("error @@@@@@@1 :", error)
+        await session.abortTransaction();
+    
+        throw new AppError(Constants.ERROR, error)
+      }finally {
+        session.endSession();
+        console.log("finally @@@@@@@1 :")
+      }  
 
       return {
         status: true,
@@ -5506,9 +5553,11 @@ export default {
             // Filter out null results (if any documents were not found)
             const validResults = results.filter(result => result !== null);
 
+            let positionId = Utils.getPositionId(current_user.current.positionIds)
+
             let current  = {  type_plan: input.type_plan,
                               products: validResults, 
-                              owner: { _id: current_user._id, positionId: current_user.current.positionId },
+                              owner: { _id: current_user._id, positionId },
                               status: 1 }
 
             await Model.Order.insertMany([{ current }], { session });
@@ -5533,7 +5582,7 @@ export default {
           try {
             // 2: cancel, 3: complete order
             switch( input.type ){
-              case 2:
+              
               case 3:{
                 let promises = []; 
                 if(!_.isEmpty(input.images)){
@@ -5585,10 +5634,10 @@ export default {
                 if(input.type === 2){
                   // เช็ดยอดเพือปรับตำแหน่ง
                   let { owner, products } = history.current                  
-                  let positions = await Model.Position.find({});
+                  // let positions = await Model.Position.find({});
                   // let ownerN    = await Model.Member.findById(owner._id).session(session);
 
-                  let sumPrice =  Math.ceil(Utils.summaryPriceDiscount(products, owner.positionId) + Utils.___tax_at_pay5(products, positions, owner.positionId) + Utils.summaryDelivery(products))
+                  let sumPrice = Utils.summaryPriceDiscount(products, owner.positionId);//  Math.ceil(Utils.summaryPriceDiscount(products, owner.positionId) + Utils.___tax_at_pay5(products, positions, owner.positionId) + Utils.summaryDelivery(products))
                   console.log( "เช็ดยอดเพือปรับตำแหน่ง :", sumPrice, owner)
 
                   let is_publish = false;
@@ -5600,9 +5649,22 @@ export default {
                     if(!check_includes){
                       is_publish = true;
 
+                      const currentMember   = await Model.Member.findById(owner._id).session(session);
+                      const latestVersion = currentMember?.current.positionIds.reduce((max, pos) => Math.max(max, pos.version), 0) || 0;
+
+                      // Prepare the new positionId entry with incremented version
+                      const newPositionId = {
+                        version: latestVersion + 1,
+                        positionId: mongoose.Types.ObjectId('6721098ce9dccb02aab4cb3f'),  // Update with appropriate ID if necessary
+                        updatedAt: new Date(),
+                      };
+
                       await Model.Member.updateOne(
                         { _id: owner._id },
-                        {  "current.positionId": mongoose.Types.ObjectId("6721098ce9dccb02aab4cb3f") },
+                        // {  "current.positionId": mongoose.Types.ObjectId("6721098ce9dccb02aab4cb3f") },
+                        {
+                          $push: { 'current.positionIds': newPositionId },
+                        },
                         { session }
                       );
                     }
@@ -5616,9 +5678,22 @@ export default {
                     if(!check_includes){
                       is_publish = true;
 
+                      const currentMember   = await Model.Member.findById(owner._id).session(session);
+                      const latestVersion = currentMember?.current.positionIds.reduce((max, pos) => Math.max(max, pos.version), 0) || 0;
+
+                      // Prepare the new positionId entry with incremented version
+                      const newPositionId = {
+                        version: latestVersion + 1,
+                        positionId: mongoose.Types.ObjectId('6721098ce9dccb02aab4cb40'),  // Update with appropriate ID if necessary
+                        updatedAt: new Date(),
+                      };
+
                       await Model.Member.updateOne(
                         { _id: owner._id },
-                        { "current.positionId": mongoose.Types.ObjectId("6721098ce9dccb02aab4cb40") },
+                        // { "current.positionId": mongoose.Types.ObjectId("6721098ce9dccb02aab4cb40") },
+                        {
+                          $push: { 'current.positionIds': newPositionId },
+                        },
                         { session }
                       );
                     }
@@ -5632,9 +5707,22 @@ export default {
                     if(!check_includes){
                       is_publish = true;
 
+                      const currentMember   = await Model.Member.findById(owner._id).session(session);
+                      const latestVersion = currentMember?.current.positionIds.reduce((max, pos) => Math.max(max, pos.version), 0) || 0;
+
+                      // Prepare the new positionId entry with incremented version
+                      const newPositionId = {
+                        version: latestVersion + 1,
+                        positionId: mongoose.Types.ObjectId('6721098ce9dccb02aab4cb41'),  // Update with appropriate ID if necessary
+                        updatedAt: new Date(),
+                      };
+
                       await Model.Member.updateOne(
                         { _id: owner._id },
-                        { "current.positionId": mongoose.Types.ObjectId("6721098ce9dccb02aab4cb41") },
+                        // { "current.positionId": mongoose.Types.ObjectId("6721098ce9dccb02aab4cb41") },
+                        {
+                          $push: { 'current.positionIds': newPositionId },
+                        },
                         { session }
                       );
                     }
@@ -5647,9 +5735,22 @@ export default {
                     if(!check_includes){
                       is_publish = true;
 
+                      const currentMember   = await Model.Member.findById(owner._id).session(session);
+                      const latestVersion = currentMember?.current.positionIds.reduce((max, pos) => Math.max(max, pos.version), 0) || 0;
+
+                      // Prepare the new positionId entry with incremented version
+                      const newPositionId = {
+                        version: latestVersion + 1,
+                        positionId: mongoose.Types.ObjectId('6721098ce9dccb02aab4cb41'),  // Update with appropriate ID if necessary
+                        updatedAt: new Date(),
+                      };
+
                       await Model.Member.updateOne(
                         { _id: owner._id },
-                        { "current.positionId": mongoose.Types.ObjectId("6721098ce9dccb02aab4cb42") },
+                        // { "current.positionId": mongoose.Types.ObjectId("6721098ce9dccb02aab4cb42") },
+                        {
+                          $push: { 'current.positionIds': newPositionId },
+                        },
                         { session }
                       );
                     }
@@ -5673,6 +5774,7 @@ export default {
 
                 break;
               }
+              case 2:
               case 4:{
                 let history = await Model.Order.findOne({ _id: mongoose.Types.ObjectId(input._id) })
                 const filter = { _id: input._id }
@@ -5938,9 +6040,9 @@ export default {
           switch(owner.current.positionId.toString()){
             // กรณี owner มีตำแหน่ง BM
             case "6721098ce9dccb02aab4cb3e":{
-              // console.log(`@@@@@ Fast start (2) - start`);
-              // await Utils.calculate_fast_start(input);
-              // console.log(`@@@@@ Fast start (2) - end`);
+              console.log(`@@@@@ Fast start (2) - start`);
+              await Utils.calculate_fast_start(input);
+              console.log(`@@@@@ Fast start (2) - end`);
 
               console.log("@@@@ BM");
               break;
@@ -5967,13 +6069,13 @@ export default {
             }
           }
 
-          // console.log(`@@@@@ ค่าแนะนํา (3) - start`);
-          // await Utils.calculate_suggester(input);
-          // console.log(`@@@@@ ค่าแนะนํา (3) - end`);
+          console.log(`@@@@@ ค่าแนะนํา (3) - start`);
+          await Utils.calculate_suggester(input);
+          console.log(`@@@@@ ค่าแนะนํา (3) - end`);
 
-          console.log(`@@@@@ ค่า OV (4) - start`);
+          
           await Utils.calculate_ov(input);
-          console.log(`@@@@@ ค่า OV (4) - end`);
+          
 
           return {
             status: true,

@@ -35,23 +35,23 @@ const columns = (navigate: ReturnType<typeof useNavigate>, onDelete: (item: Orde
     dataIndex: '_id',
     render: (_id: string) => <Paragraph copyable>{_id}</Paragraph>
   },
-  {
-    title: 'Products',
-    dataIndex: 'productDetails',
-    render: (values: OrderProductDetail[]) => {
-        // console.log("values :", values)
-      return (
-        <Tree
-          treeData={values.map((detail, index) => ({
-            title: `${index+1} : ${detail.current.name} - $${detail.current.price}`,
-            key: detail._id,
-            // You can add more properties here if needed
-          }))}
-          defaultExpandAll
-        />
-      );
-    }
-  },
+  // {
+  //   title: 'Products',
+  //   dataIndex: 'productDetails',
+  //   render: (values: OrderProductDetail[]) => {
+  //       // console.log("values :", values)
+  //     return (
+  //       <Tree
+  //         treeData={values.map((detail, index) => ({
+  //           title: `${index+1} : ${detail.current.name} - $${detail.current.price}`,
+  //           key: detail._id,
+  //           // You can add more properties here if needed
+  //         }))}
+  //         defaultExpandAll
+  //       />
+  //     );
+  //   }
+  // },
   {
     title: 'Total',
     dataIndex: 'productDetails',

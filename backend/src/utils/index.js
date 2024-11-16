@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import _ from "lodash";
+import _, { result } from "lodash";
 import deepdash from "deepdash";
 deepdash(_);
 import mongoose from 'mongoose';
@@ -17,7 +17,8 @@ import logger from "./logger";
 
 import { generatePeriodsFromDates } from "./generatePeriods";
 
-import { getPercentById, findPositionIds_levelLess, positionLevelLessAndEqual, positionLevelMoreThan } from "./positionsCache";
+import { getPercentById, getPositionById, positionLevelMoreThan } from "./positionsCache";
+import order from '../model/OrderModel';
 
 export const loggerError = async(req, message) =>{
    let { current_user } = await checkAuth(req);
@@ -1929,6 +1930,17 @@ export const ___calculateTree = async () => {
     }
 }
 
+export const getPositionId = (positionIds) =>{
+    if (positionIds.length === 0) return null;
+  
+    // Find the position with the highest version
+    const latestPosition = positionIds.reduce((latest, current) => {
+      return current.version > latest.version ? current : latest;
+    });
+  
+    return latestPosition.positionId;
+}
+
 /*
 คำนวณรายได้ของแต่ละ node
 
@@ -2269,6 +2281,7 @@ export const ___price_before_vat = (product, tax) =>{
 }
 
 export const summaryPriceDiscount = (products, positionId) =>{
+    let is_debug = false;
     let sum_price = 0;
     // let positions = await Model.Position.find({});
     _.map(products, (cart)=>{
@@ -2284,7 +2297,7 @@ export const summaryPriceDiscount = (products, positionId) =>{
                 // sum_price += price;      
 
                 let price = (parseInt(product.price_sell)  * quantities) - ___discount_position_for_member(positionId, newProduct);                         
-                console.log("None :",  price)
+                is_debug && console.log("None :",  price)
                 sum_price += price           
                 break;
             }
@@ -2296,7 +2309,7 @@ export const summaryPriceDiscount = (products, positionId) =>{
                 // sum_price += price;
 
                 let price  = (parseInt(product.price_sell)  * quantities) - ___discount_position_for_member_inclue_vat(___price_before_vat(newProduct, tax), positionId, newProduct);                  
-                console.log("Include :", price)
+                is_debug && console.log("Include :", price)
                 sum_price += price
                 break;
             }
@@ -2308,7 +2321,7 @@ export const summaryPriceDiscount = (products, positionId) =>{
                 // sum_price += price;
 
                 let price  = ((parseInt(product.price_sell)  * quantities) + (parseInt(product.price_sell)  * quantities) * (tax/100)) - ___discount_position_for_member(positionId, newProduct);
-                console.log("Exclude :", price)
+                is_debug && console.log("Exclude :", price)
                 sum_price += price
                 break;
             }
@@ -2452,11 +2465,6 @@ export const  getPositionNameById = async(_id) => {
 }
 
 export const calculate_fast_start = async(input)=>{
-    // let calculate_plan_back =  await Utils.calculate_plan_back( node_uid._id )
-    // let result = calculate_plan_back.filter(i=>i.ownerId.toString() !== input.userId.toString() )
-
-    // let ids     = _.map(result, i=>mongoose.Types.ObjectId( i.ownerId))
-
     let owner   = await Model.Member.findById(input.userId);
     const process = async(parentId = null, level = 1, limitLevel=1) => {
         const nodes = await Model.Node.find({ 'current.parentNodeId': parentId });
@@ -2489,27 +2497,6 @@ export const calculate_fast_start = async(input)=>{
         }));
     }
 
-    const flattenTreeUnique = (nodes) => {
-        const result = [];
-        const ownerIdSet = new Set(); // To track unique ownerIds as strings
-        const traverse = (nodes) => {
-            nodes.forEach((node) => {
-            // Convert ownerId to a string for Set comparison
-            const ownerIdStr = node.ownerId.toString();
-            if (!ownerIdSet.has(ownerIdStr)) {
-                ownerIdSet.add(ownerIdStr);
-                result.push({ key: node.key, ownerId: node.ownerId });
-            }
-            if (node.children) {
-                traverse(node.children);
-            }
-            });
-        };
-        
-        traverse(nodes);
-        return result;
-    };
-
     // // แสดงโครงสร้างเพือให้ง่ายกับการ ตรวจสอบ
     // // Function to recursively extract key structure 
     // // Get only field key to display
@@ -2525,31 +2512,10 @@ export const calculate_fast_start = async(input)=>{
     // };
 
     const suggester_childrens = async( owner ) =>{
-        /*
-        ///////////  1. ต้องหาลูกติดตัวทั้งหมด  ////////////
-        // เราจะหาลูกติดตัว limitLevel =  package + 1;
-        let limitLevel = owner.current.packages + 1;
-
-        const level = 1;
-        let processValue =  await process(nodeId, level, limitLevel)
-
-        // เป็นการ id ทั้งหมด ที่ไม่ซํ้า
-        let flatten = flattenTreeUnique(processValue)
-        
-        // ตอนดึงโครงสร้างมาจะได้ลูกทั้งหมด + ownerid เราต้อง filter ownerId ออก
-        let ids     = _.map(flatten.filter(i=>i.ownerId.toString() !== owner._id.toString() ), i=>mongoose.Types.ObjectId( i.ownerId))
-
-        // let displayNames = await Utils.getDisplayNamesByIds(ids)
-        // console.log(`Step 1. (@@@@ BM) Name: ${ owner.current.displayName  }, มีลูกติดตัวทั้งหมด(${ displayNames.length }): ${ displayNames }`)
-        */
-
         // เราสามารถ ดึง parentId เอาไปใช้งานได้เลย เพราะเราจะดึงคนที่เราแนะนำมาคำนวณ
         const parents = await Model.Member.find({ 'current.parentId': owner._id });
-
         let ids = _.map(parents, '_id')
-
         return ids
-        ///////////  1. ต้องหาลูกติดตัวทั้งหมด  //////////// 
     }
 
     // @@@@@ Fast start ค่าแนะนำ ตำแหน่ง BM แนะนำ BM ลูกติดตัวเท่านั้น
@@ -2590,7 +2556,7 @@ export const calculate_fast_start = async(input)=>{
     ///////////////
     let orders  = await Model.Order.aggregate([ { $match: { 
                                                         'current.owner._id': { $in: ids },
-                                                        'current.owner.positionId': owner.current.positionId,
+                                                        'current.owner.positionId':  getPositionId(owner.current.positionIds) /*owner.current.positionId*/ ,
                                                         'current.type_plan': 2,
                                                         'current.status': 2,
                                                         'updatedAt': {
@@ -2604,22 +2570,6 @@ export const calculate_fast_start = async(input)=>{
         console.log(`Step 2. (@@@@ BM) ไม่มีลูกทีมทำการซื้อในช่วงเวลา ${ input.startDate } to ${ input.endDate } `)
     }else{
         console.log(`Step 2. (@@@@ BM) id orders ทั้งหมดที่ทำการซื้อในช่วงเวลา ${ input.startDate } to ${ input.endDate } `)
-        
-        // let positions = await Model.Position.find({});
-
-        // _.map(orders, async(order)=>{
-        //   let displayNames = await Utils.getDisplayNamesByIds([order.current.owner._id])
-        //   let positionName = await Utils.getPositionNameById(order.current.owner.positionId)
-
-
-        //   let { owner: ownerOrder, products } = order.current        
-
-        //   console.log(`ID - ${order._id}`)
-        //   let summaryPriceDiscount = Utils.summaryPriceDiscount(products, ownerOrder.positionId);
-        //   let summaryFastStart = Utils.summaryFastStart(products, ownerOrder.positionId);
-        
-        //   console.log(`Order id ${ order._id }, Seller name : ${ displayNames }(${ positionName }), ยอดรวมทั้งหมด : ${ summaryPriceDiscount }, ยอด FastStart ที่ได้ : ${ summaryFastStart }`)
-        // })
 
         await Promise.all(
             _.map(orders, async (order) => {
@@ -2696,27 +2646,6 @@ export const calculate_suggester = async(input) =>{
             }
         }));
     }
-
-    const flattenTreeUnique = (nodes) => {
-        const result = [];
-        const ownerIdSet = new Set(); // To track unique ownerIds as strings
-        const traverse = (nodes) => {
-            nodes.forEach((node) => {
-            // Convert ownerId to a string for Set comparison
-            const ownerIdStr = node.ownerId.toString();
-            if (!ownerIdSet.has(ownerIdStr)) {
-                ownerIdSet.add(ownerIdStr);
-                result.push({ key: node.key, ownerId: node.ownerId });
-            }
-            if (node.children) {
-                traverse(node.children);
-            }
-            });
-        };
-        
-        traverse(nodes);
-        return result;
-    };
 
     // แสดงโครงสร้างเพือให้ง่ายกับการ ตรวจสอบ
     // Function to recursively extract key structure 
@@ -2796,20 +2725,6 @@ export const calculate_suggester = async(input) =>{
     if(orders.length == 0){
         console.log(`Step 2. (@@@@@ ค่าแนะนํา (3)) ไม่มีลูกทีมทำการซื้อในช่วงเวลา ${ input.startDate } to ${ input.endDate } `)
     }else{
-        // // console.log(`Step 2. id orders ทั้งหมดที่ทำการซื้อในช่วงเวลา ${ input.startDate } to ${ input.endDate } --- ${ ordersWithoutBM }  `)
-        //  _.map(ordersWithoutBM, async(order)=>{
-        //   let displayNames = await Utils.getDisplayNamesByIds([order.current.owner._id])
-        //   let positionName = await Utils.getPositionNameById(order.current.owner.positionId)
-
-
-        //   let { owner: ownerOrder, products } = order.current        
-
-        //   console.log(`ID - ${order._id}`)
-        //   let summaryPriceDiscount = Utils.summaryPriceDiscount(products, ownerOrder.positionId);
-        //   let summaryFastStart = Utils.summarySuggester(products, ownerOrder.positionId);
-        
-        //   console.log(`Order id ${ order._id }, Seller name : ${ displayNames }(${ positionName }), ยอดรวมทั้งหมด : ${ summaryPriceDiscount }, ยอด ค่าแนะนํา ที่ได้ : ${ summaryFastStart }`)
-        // })
 
         // Collect all promises in an array
         const promises = _.map(orders, async (order) => {
@@ -2884,56 +2799,6 @@ export const calculate_ov = async(input) =>{
         return result;
     };
 
-    // function reduceStructure(node) {
-    //     if (!node.children) return node;
-    //     // Merge children with the same ownerId
-    //     const mergedChildren = [];
-    //     node.children.forEach(child => {
-    //         const existing = mergedChildren.find(c => c.ownerId === child.ownerId);
-    //         if (existing) {
-    //             existing.children = (existing.children || []).concat(child.children || []);
-    //         } else {
-    //             mergedChildren.push(reduceStructure(child));
-    //         }
-    //     });
-    //     node.children = mergedChildren.map(reduceStructure);
-    //     return node;
-    // }
-
-    function reduceStructure(data) {
-        let result = [];
-        
-        function processNode(node) {
-          // Push the ownerId of the current node
-          result.push(node.ownerId);
-          
-          // If there are children, process them recursively
-          if (node.children && Array.isArray(node.children)) {
-            node.children.forEach(child => processNode(child));
-          }
-        }
-      
-        // Process each top-level node
-        data.forEach(node => processNode(node));
-        
-        // Remove duplicate ownerIds
-        return [...new Set(result)];
-      }
-
-    // แสดงโครงสร้างเพือให้ง่ายกับการ ตรวจสอบ
-    // Function to recursively extract key structure 
-    // Get only field key to display
-    // Example console.log(`Resulting tree structure:`, JSON.stringify(getKeyStructure(processValue), null, 2));
-    const getKeyStructure = (nodes) => {
-        return nodes.map(node => {
-            const result = { ownerId: node.ownerId };
-            if (node.children) {
-                result.children = getKeyStructure(node.children);
-            }
-            return result;
-        });
-    };
-
     const near_childrens = async(owner, nodeId) =>{
         ///////////  1. ต้องหาลูกติดตัวทั้งหมด  ////////////
         // เราจะหาลูกติดตัว limitLevel =  package + 1;
@@ -2968,17 +2833,94 @@ export const calculate_ov = async(input) =>{
     let displayNames  = await getDisplayNamesByIds(ids)
     console.log(`Step 1. ( @@@@@ ค่า OV (4) ) Name: ${ owner.current.displayName  }, มีลูกติดตัวทั้งหมด(${ displayNames.length }): ${ displayNames }`)
     
-     // จะได้ค่าตำแหน่งทีสุดกว่าตำแหน่งของ owner
-     let position_more_than = positionLevelMoreThan( owner.current.positionId.toString() )
+    //  จะได้ค่าตำแหน่งทีสุดกว่าตำแหน่งของ owner
+    //  let position_more_than = positionLevelMoreThan( getPositionId(owner.current.positionIds) /*owner.current.positionId.toString()*/  )
     //  console.log("position_more_than :", position_more_than, owner.current.positionId, owner_child.current.positionId)
     
-    _.map(ids, async(id, index)=>{
-        /*
-                          Node(แม่)
-           owner_child-1            owner_child-2   ...
-        child-1 child-2 child-3    child-1 child-2  ...
-        */ 
+    console.log(`@@@@@ ค่า OV (4) - start`); 
+    _.map(ids, async( id )=>{
 
+        //                 Node(แม่)
+        //    owner_child-1            owner_child-2    ...
+        // child-1 child-2 child-3    child-1 child-2   ...
+
+        const calculate = async (owner_child, nodes, processedOrderIds = new Set()) => {
+            const is_debug = false;
+            const results = []; // To store the { orderId, sumPrice } for each order
+        
+            let owner_child_position = getPositionById(getPositionId(owner_child.current.positionIds).toString())
+        
+            // Use Promise.all to process nodes concurrently
+            const nodePromises = nodes.map(async (node) => {
+                // let owner_child_node  = await Model.Member.findById(node.current.ownerId);
+        
+                // ต้องดึง order ทั้งหมดที่อยู่ใน period นั้นมาทั้งหมดก่อน 
+                // เพราะจะมีกรณี >1 order ถูกซื้อเข้ามาใน period เดียวกันแล้วมีการ update ตำแหน่ง(position) auto ด้วย
+                let orders = await Model.Order.aggregate([
+                    { $match: 
+                        { 
+                            'current.owner._id': node.ownerId,
+                            'current.type_plan': 2,
+                            'current.status': 2,
+                            'updatedAt': {
+                                $gte: new Date(input.startDate),
+                                $lte: new Date(input.endDate)
+                            }
+                        }
+                    }
+                ]); 
+        
+                if (!_.isEmpty(orders)) {
+                    // เราจะได้ order ที่อาจ ซืัอตอน (ตำแหน่ง)positionId ไดๆ เราต้องตรวจสอบทั้งหมด 
+                    // เราจะ recerice เฉพาะตำแหน่งที่ตํ่ากว่า หรือ เท่ากับ
+                    for (const order of orders) {
+        
+                        // Ensure order._id is processed only once by converting it to a string
+                        const orderIdString = order._id.toString();
+        
+                        // Skip duplicate orders based on _id
+                        if (processedOrderIds.has(orderIdString)) {
+                            continue;
+                        }
+        
+                        // Mark this order as processed
+                        processedOrderIds.add(orderIdString);
+        
+                        let { owner, products } = order.current;
+        
+                        // เป็นการ ดึง position ล่าสุดมาเช็ด
+                        let child_position = getPositionById(owner.positionId.toString())
+        
+                        if (owner_child_position.level >= child_position.level) {
+                            let sumPrice = summaryPriceDiscount(products, owner.positionId);
+                            is_debug && console.log(`>>>>> Level : ${ await getDisplayNamesByIds([order.current.owner._id]) } : ${ order._id } ${owner_child_position.level} >= ${ child_position.level }, Sum price : ${ sumPrice } `);
+        
+                            // Push the result into the results array
+                            results.push({ orderId: order._id, ownerId: owner._id, sumPrice });
+        
+                            // Recursively calculate for child nodes
+                            if (node.children) {
+                                const childResults = await calculate(owner_child, node.children, processedOrderIds);
+                                results.push(...childResults); // Merge child results
+                            }
+                        } else {
+                            is_debug && console.log(`>>>> Level @@@@@@@@@@@@@@ ${ owner_child_position.level } - ${ child_position.level }`);
+                        }
+                    }
+                } else {
+                    // Recur for child nodes if no orders are found
+                    if (node.children) {
+                        const childResults = await calculate(owner_child, node.children, processedOrderIds);
+                        results.push(...childResults);
+                    }
+                }
+            });
+        
+            // Wait for all node promises to complete concurrently
+            await Promise.all(nodePromises);
+        
+            return results;
+        };
 
         let owner_child   = await Model.Member.findById(id);
 
@@ -2997,134 +2939,18 @@ export const calculate_ov = async(input) =>{
         // จะได้ Node ทีอยู่ใต้ มาทั้งหมด
         let processValue = await process(node._id, level, limitLevel)
 
-        // const filterStructure = (nodes) => {
-        //     return nodes.map( async node => {
-
-        //         let owner_child_node  = await Model.Member.findById(node.ownerId);
-
-        //         let check = _.includes(less_equal, owner_child_node.current.positionId.toString());
-
-        //         if(check){
-        //             const result = { ownerId: node.ownerId };
-        //             if (node.children) {
-        //                 result.children = filterStructure(node.children);
-        //             }
-        //             return result;
-        //         }
-
-        //         return null;
-        //     });
-        // };
-        // 
-
-        // Function to calculate the total sum of 'total' values recursively
-        const calculate = async (nodes) => {
-            // let sum = node.total;  // Start with the current node's total
+        const results = await calculate(owner_child, processValue);
+        for (const result of results) {
+            const parent_percent = getPercentById( getPositionId(owner.current.positionIds).toString() );
+            const child_percent  = getPercentById( getPositionId(owner_child.current.positionIds).toString() );
             
-            // // If the node has children, recursively add their totals
-            // if (node.children) {
-            //     for (const child of node.children) {
-            //         sum += calculate(child);
-            //     }
-            // }
-            // return sum;
-            // let ownerIds: string[] = [];
-
-            for (const node of nodes) {
-                // let owner_child_node  = await Model.Member.findById(node.current.ownerId);
-
-                // ต้องดึง order ทั้งหมดที่อยู่ใน period นั้นมาทั้งหมดก่อน 
-                // เพราะจะมีกรณี >1 order ถูกซื้อเข้ามาใน period เดียวกันแล้วมีการ update ตำแหน่ง(position) auto ด้วย
-                let orders  = await Model.Order.aggregate([ { $match: 
-                                                                    { 
-                                                                        'current.owner._id': node.current.ownerId,
-                                                                        // 'current.owner.positionId': { $in: position_more_than },
-                                                                        'current.type_plan': 2,
-                                                                        'current.status': 2,
-                                                                        'updatedAt': {
-                                                                            $gte: new Date(input.startDate),
-                                                                            $lte: new Date(input.endDate)
-                                                                        }
-                                                                    } 
-                                                            } 
-                                                          ]); 
-
-                if( orders ){
-                    // เราจะได้ order ที่อาจ ซืัอตอน (ตำแหน่ง)positionId ไดๆ เราต้องตรวจสอบทั้งหมด 
-                    // เราจะ recerice เฉพาะตำแหน่งที่ตํ่ากว่า หรือ เท่ากับ
-
-                }
-                
-                /*
-                if(!_.isEmpty(orders)){
-                    continue;
-                }
-                
-                const result = { ownerId: node.ownerId };
-                if (node.children) {
-                    result.children = filterStructure(node.children);
-                }
-                return result;
-                */
-
-                // let check = _.includes(less_equal, owner_child_node.current.positionId.toString());
-
-                // 
-                // // Add the current node's ownerId
-                // ownerIds.push(node.ownerId);
-            
-                // // If the node has children, recursively collect ownerIds from them
-                // if (node.children) {
-                //     ownerIds = ownerIds.concat(calculate(node.children));
-                // }
+            if(parent_percent > child_percent){
+                console.log(`Parent name: ${ await getDisplayNamesByIds([owner._id]) }, Child name(ติดตัว): ${ await getDisplayNamesByIds([owner_child._id]) } ,  Child name(ทีซื้อ): ${ await getDisplayNamesByIds([result.ownerId]) }, parent_percent: ${ parent_percent } - ${ child_percent }, รายได้ที่ได้ : ${ ((parent_percent - child_percent) * result.sumPrice) / 100 } ,Final Results:`, result);
+            }else{
+                console.log(`Parent name: ${ await getDisplayNamesByIds([owner._id]) }, Child name(ติดตัว): ${ await getDisplayNamesByIds([owner_child._id]) } ,  Child name(ทีซื้อ): ${ await getDisplayNamesByIds([result.ownerId]) }, parent_percent: ${ parent_percent } - ${ child_percent }, ไม่มีรายได้ที่ได้,Final Results:`, result);
             }
-          
-            // return ownerIds;
         }
-
-        if(index === 1 || index === 4){
-            console.log(`@1 index - ${ index }( calculate_ov ) Resulting tree structure:`, JSON.stringify(getKeyStructure(processValue), null, 2));
-            console.log(`@2 index - ${ index }( calculate_ov ) Resulting tree structure:`, JSON.stringify(flattenTreeUnique(getKeyStructure(processValue)), null, 2));    
-        }
-        
-        // // เป็นการ id ทั้งหมด ที่ไม่ซํ้า
-        // let ___flatten = flattenTreeUnique(processValue)
-
-        // // console.log(`@1 Resulting tree structure:`, JSON.stringify(processValue, null, 2));
-        // console.log(`@2 Resulting tree structure:`, JSON.stringify(getKeyStructure(processValue), null, 2));
-        
-        // // ตอนดึงโครงสร้างมาจะได้ลูกทั้งหมด + ownerid เราต้อง filter ownerId ออก
-        // let ___ids     = _.map(___flatten, i=>mongoose.Types.ObjectId( i.ownerId ))
-
-        // let ___ower_name = await getDisplayNamesByIds([ owner_child._id ])
-        // console.log(`(@@@@@ ค่า OV (4)) ____@@@@@ เจ้าของ ${ ___ower_name  }, ประกอบด้วย เจ้าของ + ลูก(${ ___ids.length }) : ${ await getDisplayNamesByIds(___ids) } - ID : ${ ___ids }`)
-
-        // เราต้อง ดึง order ออกมาตาม period โดยมีเงือนใขว่า positionId ต้องน้อยกว่า OWNER หลัก
-
-        /*
-            จะดึง order ทั้งหมดของ ลูกติดตัวที่มี position ตั้งแต่ bs ขึ้นไป
-        */ 
-        // let ___positionIds  = findPositionIds_levelLess( owner.current.positionId.toString() );
-        // // console.log(`position : findIds_levelLess :${ owner.current.positionId.toString() }, ---- ${ ___positionIds }`)
-
-        // let orders  =  await Model.Order.aggregate([ {   
-        //                                                 $match: { 
-        //                                                             'current.owner._id': { $in: ___ids },
-        //                                                             // 'current.owner.positionId': { $in: ___positionIds },
-        //                                                             'current.type_plan': 2,
-        //                                                             'current.status': 2,
-        //                                                             'updatedAt': {
-        //                                                             $gte: new Date(input.startDate),
-        //                                                             $lte: new Date(input.endDate)
-        //                                                             }
-        //                                                         }
-        //                                                 } 
-        //                                             ]);    
-        // if(orders.length == 0){
-        //     // console.log(`==============> Step 2. ${ ___ower_name } ไม่มีลูกทีมทำการซื้อในช่วงเวลา ${ input.startDate } to ${ input.endDate } `)
-        // }else{
-        //     console.log(`( @@@@@ ค่า OV (4) ) ==============> Step 2. ${ ___ower_name }, ___positionIds: ${ ___positionIds }, orders : ${ orders }  ---- ${ input.startDate } to ${ input.endDate } `)
-        // }
     })
+    console.log(`@@@@@ ค่า OV (4) - end`);
 }
 ////////////// ____ /////////////////

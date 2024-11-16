@@ -83,7 +83,11 @@ function isPositionsCached() {
  * @returns {Object|null} The position object or null if not found.
  */
 const getPositionById = (id) => {
-    return cache.get(id);
+  const positions = getPositions(); // Retrieve the positions array from the cache
+  if (!positions) {
+    return null; // Cache might be empty
+  }
+  return positions.find(position => position._id === id) || null;
 };
 
 /**
@@ -92,8 +96,8 @@ const getPositionById = (id) => {
  * @returns {number|null} The percent value or null if position not found.
  */
 const getPercentById = (id) => {
-    const position = getPositionById(id);
-    return position ? position.percent : null;
+  const position = getPositionById(id);
+  return position ? position.percent : null;
 };
 
 /*
@@ -135,6 +139,7 @@ const positionLevelMoreThan = (targetId)=>{
   }
 } 
 
+
 module.exports = {
     findPositionIds_levelLess,
     positionLevelLessAndEqual,
@@ -142,6 +147,7 @@ module.exports = {
     getPositions,
     updatePositions,
     isPositionsCached,
+    getPositionById,
     getPercentById,
     savePositionsIfNotExists
 };

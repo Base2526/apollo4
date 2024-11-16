@@ -2,9 +2,9 @@ import type { Role } from '@/interface/user/login';
 import type { Locale, UserState } from '@/interface/user/user';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import _ from "lodash"
-import { createSlice, current } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import { getGlobalState } from '@/utils/getGloabal';
-import { ProductItem } from "@/interface/user/user"
+import { ProductItem, Current } from "@/interface/user/user"
 
 const initialState: UserState = {
   ...getGlobalState(),
@@ -18,7 +18,15 @@ const initialState: UserState = {
 
   ramdom: 0,
 
-  profile:{},
+  profile:{
+    current: {
+      positionIds: [{
+        version: 0,
+        positionId: '',
+        updatedAt: ''
+      }]
+    }
+  },
 
   carts:[],
 

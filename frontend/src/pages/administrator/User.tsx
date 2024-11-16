@@ -5,8 +5,8 @@ import { useLocation } from 'react-router-dom';
 import _ from "lodash";
 import { EditOutlined, UserOutlined } from '@ant-design/icons';
 
-import { mutation_profile, query_positions, query_member } from "@/apollo/gqlQuery";
-import { getHeaders } from "@/utils";
+import { mutation_profile, query_positions, query_member, mutation_profile_update_position } from "@/apollo/gqlQuery";
+import { getHeaders, getPositionId } from "@/utils";
 import handlerError from '@/utils/handlerError';
 
 interface positionInterface {
@@ -41,7 +41,7 @@ const User: React.FC = (props) => {
   const [positions, setPositions] = useState<positionInterface[]>([]);
   const [image, setImage] = useState<File | any>();
 
-  const [onProfile, resultProfile] = useMutation(mutation_profile, {
+  const [ onProfile ] = useMutation(mutation_profile, {
     context: { headers: getHeaders(location) },
     update: (cache, { data: { profile } }) => {
       console.log("update :", profile);
@@ -51,6 +51,28 @@ const User: React.FC = (props) => {
       let { status } = data.profile
       if(status){
         message.success('Update profile success!');
+      }
+
+      setLoading(false);
+    },
+    onError(error) {
+      console.log("onError :", error);
+
+      setLoading(false);
+      handlerError(props, error)
+    }
+  });
+
+  const [ onProfileUpdatePosition ] = useMutation(mutation_profile_update_position, {
+    context: { headers: getHeaders(location) },
+    update: (cache, { data: { profile_update_position } }) => {
+      console.log("profile_update_position :", profile_update_position);
+    },
+    onCompleted(data) {
+      console.log("onCompleted :", data);
+      let { status } = data.profile_update_position
+      if(status){
+        message.success('Update profile_update_position success!');
       }
 
       setLoading(false);
@@ -101,7 +123,7 @@ const User: React.FC = (props) => {
         form.setFieldsValue({
           displayName: data.current.displayName,
           email: data.current.email,
-          positionId: data.current.positionId
+          positionId: getPositionId(data.current.positionIds) 
         });
 
         data.current.avatar ? setImage(data.current.avatar) : ""
@@ -196,7 +218,16 @@ const User: React.FC = (props) => {
         label="ตำแหน่ง"
         name="positionId"
         rules={[{ required: true, message: 'กรุณาเลือกตำแหน่ง' }]}>
-        <Select loading={loadingPositions} placeholder="เลือกตำแหน่ง">
+        <Select 
+          loading={loadingPositions} 
+          placeholder="เลือกตำแหน่ง"
+          onChange={(positionId: string)=>{
+            // 
+            console.log(`เลือกตำแหน่ง : ${ positionId }`)
+
+            setLoading(true);
+            onProfileUpdatePosition({ variables: { input: { _id, positionId } } });
+          }}>
           {positions.map((position) => (
             <Select.Option key={position._id} value={position._id}>
               { position.level + 1} : {position.name}

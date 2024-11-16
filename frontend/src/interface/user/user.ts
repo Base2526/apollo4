@@ -34,7 +34,7 @@ export interface PositionInterface {
   budget: number;
 }
 
-interface Current {
+export interface Current {
   parentId?: string ;  // Assuming Schema.Types.ObjectId is string
   username?: string;
   password?: string;
@@ -67,7 +67,7 @@ interface Current {
 
 export interface ProfileType {
   _id?: string;
-  current?: Current;
+  current: Current;
   history?: History[]; // Assuming `historySchema` has been defined elsewhere as `History`
 }
 

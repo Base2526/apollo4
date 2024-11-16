@@ -78,8 +78,7 @@ export const checkRole = (user: any) => {
   return Constants.ANONYMOUS;
 };
 
-
-export const getPositionId = (positionIds: any) =>{
+export const getPositionId = (positionIds: any[]) =>{
   if (positionIds.length === 0) return null;
 
   // Find the position with the highest version
@@ -95,8 +94,10 @@ export const getPositionId = (positionIds: any) =>{
 // 1. BM เราจะดึง % field price_discount_bm เพือเอาไปใช้ในการคำนวณ
 // 2. สูงกว่า BM เริ่มตั้งแต่ BS โดยเราจะดึง % field price_discount_bs + position.percent เพือเอาไปใช้ในการคำนวณ
 // หลักการคำนวณ = (ราคาขาย *  จำนวนซื้อ) * ( % ทีได้จากข้อ 2  / 100 )
-export const ___discount_position_for_member = ( positions: PositionInterface[], positionId: string,  value : ProductCurrentItem) =>{
+export const ___discount_position_for_member = ( positions: PositionInterface[], positionIds: any[],  value : ProductCurrentItem) =>{
   let percent_discount = 0;
+
+  let positionId = getPositionId(positionIds);
 
   let position = _.find(positions, (p)=>p._id?.toString() === positionId )
   switch(position?.name?.toLocaleUpperCase()){
@@ -136,8 +137,10 @@ export const ___discount_position_for_member = ( positions: PositionInterface[],
   return  (( parseInt(value.price_sell) * value.quantities ) * (percent_discount/100))
 }
 
-export const ___discount_position_for_member_inclue_vat = ( price: number, positions: PositionInterface[], positionId: string,  value : ProductCurrentItem) =>{
+export const ___discount_position_for_member_inclue_vat = ( price: number, positions: PositionInterface[], positionIds: any[],  value : ProductCurrentItem) =>{
   let percent_discount = 0;
+
+  let positionId = getPositionId(positionIds);
 
   let position = _.find(positions, (p)=>p._id?.toString() === positionId)
   switch(position?.name?.toLocaleUpperCase()){
@@ -178,8 +181,10 @@ export const ___discount_position_for_member_inclue_vat = ( price: number, posit
 }
 
 // % ส่วนของตำแหน่ง BM หรือ BS
-export const ___price_discount_bm_or_bs = (positions: PositionInterface[], profile: ProfileType, value : ProductCurrentItem) =>{
-  let position = _.find(positions, (p)=>p._id?.toString() === profile.current?.positionId?.toString())
+export const ___price_discount_bm_or_bs = (positions: PositionInterface[], positionIds: any[] /*profile: ProfileType*/ , value : ProductCurrentItem) =>{
+  let positionId = getPositionId(positionIds);
+  
+  let position = _.find(positions, (p)=>p._id?.toString() === positionId.toString())
 
   switch(position?.name?.toLocaleUpperCase()){
     case "BM":{

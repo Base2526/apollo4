@@ -10,7 +10,7 @@ import { DefaultRootState } from '@/interface/DefaultRootState';
 import { removeCart_plan_front, removeCart_plan_back, updateQuantities_front, updateQuantities_back } from '@/stores/user.store';
 import { ProductItem, PositionInterface } from "@/interface/user/user";
 import { query_positions } from '@/apollo/gqlQuery';
-import { getHeaders } from '@/utils';
+import { getHeaders, getPositionId } from '@/utils';
 import handlerError from '@/utils/handlerError';
 import AddressModalForm from "@/pages/cart/AddressModalForm"
 import { useAppContext } from '@/AppContext';
@@ -96,7 +96,8 @@ const Cart: React.FC = (props) => {
     let sum_price = 0;
 
     _.map(homeFilter.filter.product_type  === 1 ? cart_plan_front :cart_plan_back , (cart)=>{
-      let position = _.find(positions, (p)=>p._id?.toString() === profile.current?.positionId?.toString())
+      let positionId = getPositionId(profile.current.positionIds)
+      let position = _.find(positions, (p)=>p._id?.toString() === positionId.toString())
       switch(position?.name?.toLocaleUpperCase()){
         case "BM":{
           sum_price +=((cart.current.quantities * parseFloat(cart.current.price_sell)) * (100-cart.current.price_discount_bm)/100 );

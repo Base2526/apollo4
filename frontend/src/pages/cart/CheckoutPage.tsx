@@ -16,6 +16,7 @@ import { useAppContext } from '@/AppContext';
 import { PositionInterface } from "@/interface/user/user"
 
 import { getHeaders, 
+        getPositionId,
         ___discount_position_for_member, 
         ___discount_position_for_member_inclue_vat, 
         ___price_discount_bm_or_bs, 
@@ -86,27 +87,34 @@ const CheckoutPage: React.FC = (props) => {
 
   const onCheckout = () => {
     setLoading(true);
-    switch(homeFilter.filter.product_type){
-      case 1:{
-        const products =  _.map(cart_plan_front, item => ({
-                            productId: item._id,
-                            quantities: item.current.quantities
-                          }));
+    // switch(homeFilter.filter.product_type){
+    //   case 1:{
+    //     const products =  _.map(cart_plan_front, item => ({
+    //                         productId: item._id,
+    //                         quantities: item.current.quantities
+    //                       }));
                       
-        onOrder({ variables: { input: { mode: 'added', type_plan: 1, products } } });
-        break;
-      }
+    //     onOrder({ variables: { input: { mode: 'added', type_plan: 1, products } } });
+    //     break;
+    //   }
 
-      case 2:{
-        const products =  _.map(cart_plan_back, item => ({
-                            productId: item._id,
-                            quantities: item.current.quantities
-                          }));
+    //   case 2:{
+    //     const products =  _.map(cart_plan_back, item => ({
+    //                         productId: item._id,
+    //                         quantities: item.current.quantities
+    //                       }));
     
-        onOrder({ variables: { input: { mode: 'added', type_plan: 2, products } } });
-        break;
-      }
-    }
+    //     onOrder({ variables: { input: { mode: 'added', type_plan: 2, products } } });
+    //     break;
+    //   }
+    // }
+
+    const products =  _.map(homeFilter.filter.product_type === 1 
+                            ? cart_plan_front 
+                            : cart_plan_back, 
+                            item => ({ productId: item._id, quantities: item.current.quantities }));
+
+    onOrder({ variables: { input: { mode: 'added', type_plan: homeFilter.filter.product_type, products } } });
   };
 
   const ___tax_at_pay5 = () =>{
@@ -121,21 +129,21 @@ const CheckoutPage: React.FC = (props) => {
       switch(vat){
         // None
         case 0:{
-          let price  = ___discount_position_for_member(positions, profile.current?.positionId || "", cart.current)
+          let price  = ___discount_position_for_member(positions, profile.current.positionIds, cart.current)
           ___summary_discount += price              
           break;
         }
 
         // Include
         case 1:{
-          let price  = ___discount_position_for_member_inclue_vat(___price_before_vat(cart.current, homeFilter.tax), positions, profile.current?.positionId || "", cart.current)
+          let price  = ___discount_position_for_member_inclue_vat(___price_before_vat(cart.current, homeFilter.tax), positions, profile.current.positionIds, cart.current)
           ___summary_discount += price
           break;
         }
 
         // Exclude
         case 2:{
-          let price  = ___discount_position_for_member(positions, profile.current?.positionId || "", cart.current);
+          let price  = ___discount_position_for_member(positions, profile.current.positionIds, cart.current);
           ___summary_discount += price
           break;
         }
@@ -145,7 +153,8 @@ const CheckoutPage: React.FC = (props) => {
   }
 
   const ___discount_position_name = () =>{
-    let position = _.find(positions, (p)=>p._id?.toString() === profile.current?.positionId?.toString())
+    let positionId = getPositionId(profile.current.positionIds)
+    let position = _.find(positions, (p)=>p._id?.toString() === positionId.toString())
     return <Col span={2} style={{ textAlign: 'right' }}>
                 <Text style={{color: 'gray'}}>{`ส่วนลดเฉพาะตำแหน่ง ${ position?.name?.toLocaleUpperCase() }`}</Text>
               </Col>
@@ -162,7 +171,7 @@ const CheckoutPage: React.FC = (props) => {
       switch(vat){
         // None
         case 0:{
-          let price = (parseInt(cart.current.price_sell)  * cart.current.quantities) - ___discount_position_for_member(positions, profile.current?.positionId || "", cart.current);                         
+          let price = (parseInt(cart.current.price_sell)  * cart.current.quantities); // (parseInt(cart.current.price_sell)  * cart.current.quantities) - ___discount_position_for_member(positions, profile.current.positionIds, cart.current);                         
           console.log("None :", price)
           sum_price += price              
           break;
@@ -170,7 +179,7 @@ const CheckoutPage: React.FC = (props) => {
 
         // Include
         case 1:{
-          let price  = (parseInt(cart.current.price_sell)  * cart.current.quantities) - ___discount_position_for_member_inclue_vat(___price_before_vat(cart.current, homeFilter.tax), positions, profile.current?.positionId || "", cart.current);                  
+          let price  = ___price_before_vat(cart.current, homeFilter.tax); //(parseInt(cart.current.price_sell)  * cart.current.quantities) - ___discount_position_for_member_inclue_vat(___price_before_vat(cart.current, homeFilter.tax), positions, profile.current.positionIds, cart.current);                  
           console.log("Include :", price)
           sum_price += price
           break;
@@ -178,7 +187,7 @@ const CheckoutPage: React.FC = (props) => {
 
         // Exclude
         case 2:{
-          let price  = ((parseInt(cart.current.price_sell)  * cart.current.quantities) + (parseInt(cart.current.price_sell)  * cart.current.quantities) * (homeFilter.tax/100)) - ___discount_position_for_member(positions, profile.current?.positionId || "", cart.current);
+          let price  = (parseInt(cart.current.price_sell)  * cart.current.quantities);// ((parseInt(cart.current.price_sell)  * cart.current.quantities) + (parseInt(cart.current.price_sell)  * cart.current.quantities) * (homeFilter.tax/100)) - ___discount_position_for_member(positions, profile.current.positionIds, cart.current);
           console.log("Exclude :", price)
           sum_price += price
           break;
@@ -252,7 +261,7 @@ const CheckoutPage: React.FC = (props) => {
                                 <br />
                               </Col>
                               <Col span={2} style={{ textAlign: 'right' }}>
-                                <Text>{ ___price_discount_bm_or_bs(positions, profile, cart.current) } %</Text>
+                                <Text>{ ___price_discount_bm_or_bs(positions, profile.current.positionIds, cart.current) } %</Text>
                               </Col> 
                               {/* ราคาต่อหน่วย */}
                               <Col span={2} style={{ textAlign: 'right' }}>
@@ -264,11 +273,11 @@ const CheckoutPage: React.FC = (props) => {
                               </Col>
                               {/* ส่วนลดตำแหน่งสมาชิก */}
                               <Col span={2} style={{ textAlign: 'right' }}>
-                                <Text>฿{ ___discount_position_for_member(positions, profile.current?.positionId || "", cart.current).toFixed(2) }</Text>
+                                <Text>฿{ ___discount_position_for_member(positions, profile.current.positionIds, cart.current).toFixed(2) }</Text>
                               </Col>
                               {/* ราคาหักส่วนลด */}
                               <Col span={2} style={{ textAlign: 'right' }}>
-                                <Text>฿{ ((parseInt(cart.current.price_sell)  * cart.current.quantities) - ___discount_position_for_member(positions, profile.current?.positionId || "", cart.current)).toFixed(2) }</Text>
+                                <Text>฿{ ((parseInt(cart.current.price_sell)  * cart.current.quantities) - ___discount_position_for_member(positions, profile.current?.positionIds, cart.current)).toFixed(2) }</Text>
                               </Col>
                             </Row>
                             <Row justify="space-between" align="middle">
@@ -355,11 +364,11 @@ const CheckoutPage: React.FC = (props) => {
                               </Col>
                               {/* ส่วนลดตำแหน่งสมาชิก */}
                               <Col span={2} style={{ textAlign: 'right' }}>
-                                <Text>฿{  ___discount_position_for_member_inclue_vat(___price_before_vat(cart.current, homeFilter.tax), positions, profile.current?.positionId || "", cart.current).toFixed(2)  }</Text>
+                                <Text>฿{ ___discount_position_for_member_inclue_vat(___price_before_vat(cart.current, homeFilter.tax), positions, profile.current.positionIds, cart.current).toFixed(2) }</Text>
                               </Col>
                               {/* ราคาหักส่วนลด */}
                               <Col span={2} style={{ textAlign: 'right' }}>
-                                <Text>฿{ ((parseInt(cart.current.price_sell)  * cart.current.quantities) - ___discount_position_for_member_inclue_vat(___price_before_vat(cart.current, homeFilter.tax), positions, profile.current?.positionId || "", cart.current)).toFixed(2) }</Text>
+                                <Text>฿{ ((parseInt(cart.current.price_sell)  * cart.current.quantities) - ___discount_position_for_member_inclue_vat(___price_before_vat(cart.current, homeFilter.tax), positions, profile.current.positionIds, cart.current)).toFixed(2) }</Text>
                               </Col>
                             </Row>
                             <Row justify="space-between" align="middle">
@@ -432,7 +441,7 @@ const CheckoutPage: React.FC = (props) => {
                                 <br />
                               </Col>
                               <Col span={2} style={{ textAlign: 'right' }}>
-                                <Text>{ ___price_discount_bm_or_bs(positions, profile, cart.current) } %</Text>
+                                <Text>{ ___price_discount_bm_or_bs(positions, profile.current.positionIds, cart.current) } %</Text>
                               </Col> 
                               {/* ราคาต่อหน่วย */}
                               <Col span={2} style={{ textAlign: 'right' }}>
@@ -449,11 +458,11 @@ const CheckoutPage: React.FC = (props) => {
                               </Col>
                               {/* ส่วนลดตำแหน่งสมาชิก */}
                               <Col span={2} style={{ textAlign: 'right' }}>
-                                <Text>฿{ ___discount_position_for_member(positions, profile.current?.positionId || "", cart.current).toFixed(2) }</Text>
+                                <Text>฿{ ___discount_position_for_member(positions, profile.current?.positionIds, cart.current).toFixed(2) }</Text>
                               </Col>                
                               {/* ราคาหักส่วนลด */}
                               <Col span={2} style={{ textAlign: 'right' }}>
-                                <Text>฿{ (((parseInt(cart.current.price_sell)  * cart.current.quantities) + (parseInt(cart.current.price_sell)  * cart.current.quantities) * (homeFilter.tax/100)) - ___discount_position_for_member(positions, profile.current?.positionId || "", cart.current)).toFixed(2)  }</Text>
+                                <Text>฿{ (((parseInt(cart.current.price_sell)  * cart.current.quantities) + (parseInt(cart.current.price_sell)  * cart.current.quantities) * (homeFilter.tax/100)) - ___discount_position_for_member(positions, profile.current.positionIds, cart.current)).toFixed(2)  }</Text>
                               </Col>
                             </Row>
                             <Row justify="space-between" align="middle">

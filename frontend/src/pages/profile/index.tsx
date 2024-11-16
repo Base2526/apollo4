@@ -199,7 +199,10 @@ const ProfilePage: FC = (props) => {
     }
   }
 
-  const __ViewPosition = (positionId: string) =>{
+  const __ViewPosition = (positionIds: any[]) =>{
+    
+    let positionId = utils.getPositionId(profile.current.positionIds)
+
     let position = _.find(positions, position => position._id === positionId);
     return position?.name;
   }
@@ -267,8 +270,8 @@ const ProfilePage: FC = (props) => {
         </div>
         <Descriptions title="User Information" bordered column={1} style={{ marginTop: '20px' }}>
           <Descriptions.Item label="เบอร์โทรศัพท์"><Paragraph className='ant-typography-tel' copyable>{profile?.current?.tel}</Paragraph></Descriptions.Item>
-          <Descriptions.Item label="ตำแหน่ง"><Tag color="#2db7f5">{__ViewPosition(profile?.current?.positionId || "")}</Tag></Descriptions.Item>
-          <Descriptions.Item label="Package"><Tag color="#2db7f5">{__ViewPackage(profile?.current?.packages || 0)}</Tag></Descriptions.Item>
+          <Descriptions.Item label="ตำแหน่ง"><Tag color="#2db7f5">{ __ViewPosition(profile.current.positionIds) }</Tag></Descriptions.Item>
+          <Descriptions.Item label="Package"><Tag color="#2db7f5">{ __ViewPackage(profile?.current?.packages || 0) }</Tag></Descriptions.Item>
         
           {/* CloseOutlined 
           
