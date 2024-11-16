@@ -39,11 +39,12 @@ const LoginForm: FC = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  const [onLogin, resultLogin] = useMutation<LoginData>(mutationLogin, {
+  const [onLogin] = useMutation<LoginData>(mutationLogin, {
     context: { headers: getHeaders(location) },
     onCompleted: async (data: LoginData) => {
       const { status, data: profile, sessionId } = data.login;
       if (status) {
+        console.log("onLogin :", profile)
         setCookie('usida', sessionId);
         dispatch(updateProfile({ profile }));
         navigate("/");

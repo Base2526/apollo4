@@ -305,6 +305,27 @@ const modelExists =()=>{
 
   Model.Member.find({}, async(err, result)=> {
     if (result.length > 0) {
+
+      try {
+        // Update all members where positionIds is empty or not set
+        const result = await Model.Member.updateMany(
+          { 'current.positionIds': { $exists: false } }, // Check if positionIds doesn't exist
+          {
+            $set: {
+              'current.positionIds': [{
+                version: 1,
+                positionId: mongoose.Types.ObjectId('6721098ce9dccb02aab4cb3e'), // Default positionId
+                updatedAt: new Date(),
+              }]
+            }
+          }
+        );
+        // console.log(result)
+        console.log(`${result.ok, result.nModified} documents updated.`);
+      } catch (error) {
+        console.error('Error updating old data:', error);
+      }
+
     } else {  
       let newMember = new Model.Member(init_admin);
       await newMember.save();
@@ -454,18 +475,37 @@ const modelExists =()=>{
     } else {
       let newOrder = new Model.Order({     
                                         current : { 
+                                          type_plan: 1,
                                           products: [
                                             {
-                                              // productId: new mongoose.Types.ObjectId(),
                                               product: {
+                                                // current:{
+                                                //   ownerId: new mongoose.Types.ObjectId(),
+                                                //   name: 'name',
+                                                // }
                                                 _id: new mongoose.Types.ObjectId(),
+                                                ownerId: new mongoose.Types.ObjectId(),
+                                                name: 'test',
                                               },
+                                              // product: {
+                                              //   _id: new mongoose.Types.ObjectId(),
+                                              // },
                                               quantities: 1
                                             }
                                           ], 
                                           owner: { 
                                             _id: new mongoose.Types.ObjectId(),
                                             positionId: new mongoose.Types.ObjectId(),
+                                            // // current: {
+                                            //   id: new mongoose.Types.ObjectId(),
+                                            //   username: 'test',
+                                            //   password: '1234',
+                                            //   email: 'test@local.local',
+                                            //   tel: '0000000000',
+                                            //   displayName: 'test',
+                                            //   idCard: '0000',
+                                            // // }
+                                           
                                           }, 
                                           status: 1
                                         }

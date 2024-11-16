@@ -13,7 +13,7 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     publicPath: '/',
   },
-  // devtool: 'eval-source-map',  // Enable eval-source-map for better debugging in production
+  devtool: 'eval-source-map',  // Enable eval-source-map for better debugging in production
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.png', '.jpg', '.svg', '.css', '.less', '.json'],
     alias: {

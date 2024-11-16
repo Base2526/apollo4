@@ -8,7 +8,7 @@ import { DownOutlined, UserOutlined } from '@ant-design/icons';
 import { useSelector } from 'react-redux';
 
 import { queryMembers, query_positions } from "@/apollo/gqlQuery"
-import { getHeaders } from "@/utils"
+import { getHeaders, getPositionId } from "@/utils"
 
 const { REACT_APP_HOST_GRAPHAL }  = process.env
 
@@ -70,8 +70,9 @@ const columns = (navigate: ReturnType<typeof useNavigate>, positions: positionIn
     },
     {
         title: 'ตำแหน่ง',
-        dataIndex: ['current', 'positionId'],
-        render: (positionId: number) =>{
+        dataIndex: ['current', 'positionIds'],
+        render: (positionIds: any[]) =>{
+            let positionId = getPositionId(positionIds);
             let position = _.find(positions, (p)=>p._id?.toString() === positionId?.toString())
             return <Tag color="#2db7f5">{position?.name}</Tag>
         }

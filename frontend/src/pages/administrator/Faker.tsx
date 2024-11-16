@@ -362,9 +362,11 @@ const Faker: React.FC = () => {
             return files; // Return the array of files
         };
 
-        const ___product_type = [1, 2, 3, 4];
+        const ___product_type = [1, 2];
         const ___package = [1, 2 ,3];
         const ___discount_bm = [1, 2 ,3, 4, 5];
+
+        const ___vat_type = [0,1,2]
 
         const generate_img=(leth: number) =>{
             let imgs:any[] = []
@@ -388,7 +390,7 @@ const Faker: React.FC = () => {
             return;
         }
 
-        for ( var i = 0; i < 200; i++ ) {
+        for ( var i = 0; i < 10; i++ ) {
 
             const fileCount = Math.floor(Math.random() * 8) + 1; // Define the number of files you want to generate
             const images = await createMultiplePngFiles(fileCount); // Call the function to create multiple files
@@ -420,10 +422,13 @@ const Faker: React.FC = () => {
                 quantity: parseInt(faker.commerce.price()),
                 price_front: Math.floor(Math.random() * (100 - 1 + 1)) + 1 ,
 
+                product_type: [___product_type[Math.floor(Math.random() * ___product_type.length)]],
+                option_front: [___product_type[Math.floor(Math.random() * ___product_type.length)]],
                 package_front: [___package[Math.floor(Math.random() * ___package.length)]],
+                option_back: [___product_type[Math.floor(Math.random() * ___product_type.length)]],
                 package_back: [___package[Math.floor(Math.random() * ___package.length)]],
 
-                product_type: [___product_type[Math.floor(Math.random() * ___product_type.length)]],
+            
                 price_discount_bm: Math.floor(Math.random() * (5 - 1 + 1)) + 1 ,
                 price_discount_bs: Math.floor(Math.random() * (100 - 1 + 1)) + 1 ,
                 price_discount_from_children:  Math.floor(Math.random() * (100 - 1 + 1)) + 1 ,
@@ -431,6 +436,8 @@ const Faker: React.FC = () => {
                 all_sale:  Math.floor(Math.random() * (100 - 1 + 1)) + 1 ,
 
                 price_delivery: Math.floor(Math.random() * (100 - 1 + 1)) + 1 ,
+
+                vat: ___vat_type[Math.floor(Math.random() * ___vat_type.length)],
             }
 
             console.log("input :", input)

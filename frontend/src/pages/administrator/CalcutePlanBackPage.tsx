@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Select, Button, message } from 'antd';
+import { Select, Button, message, Tree, TreeProps, } from 'antd';
 import { useQuery, useMutation } from "@apollo/client";
 import _ from "lodash";
+import moment from "moment";
+import { DataNode as RcTreeDataNode } from 'rc-tree/lib/interface'; 
+import {  UsergroupAddOutlined, 
+  UserOutlined, 
+  ReloadOutlined, 
+  NodeExpandOutlined, 
+  NodeCollapseOutlined } from '@ant-design/icons';
+
 import { queryMembers, mutation_calcute_plan_back } from "@/apollo/gqlQuery";
 import { getHeaders } from "@/utils";
 
@@ -36,6 +44,133 @@ const getMonthsInRange = (startYear: number, endYear: number): MonthRange[] => {
   return dateRanges;
 };
 
+interface DataNode extends RcTreeDataNode {
+  title: string;
+  level: number
+  owner?: {
+    current?: {
+      displayName?: string;
+    };
+  };
+  node?: {
+    current?: {
+      status?: number;
+    };
+    _id?: string;
+    updatedAt?: string;
+    
+  };
+  children: [];
+}
+
+const countNodes = (nodes: DataNode[]): number => {
+  return _.sumBy(nodes, (node) => {
+    return 1 + countNodes(node.children);
+  });
+};
+
+interface LockAccount {
+  lock: boolean;
+  date: string;
+}
+
+interface OwnerCurrent {
+  lockAccount: LockAccount;
+  parentId: string;
+  packages: number;
+  roles: number[];
+  isActive: number;
+  position: string;
+  positionId: string;
+  positionIds: [
+    {
+      version: number,
+      positionId: string,
+      updatedAt: string
+    }
+  ];
+  username: string;
+  idCard: string;
+  email: string;
+  tel: string;
+  password: string;
+  displayName: string;
+  lastAccess: string;
+}
+
+interface Owner {
+  current: OwnerCurrent;
+  _id: string;
+  history: any[];
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+interface NodeCurrent {
+  parentNodeId: string;
+  isParent: boolean;
+  status: number;
+  suggester: string | null;
+  node_children: any[];
+  updatedAt: string | null;
+  ownerId: string;
+  number: number;
+}
+
+interface Node {
+  current: NodeCurrent;
+  _id: string;
+  history: any[];
+  __v: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Child {
+  title: string;
+  key: string;
+  node: Node;
+  ownerId: string;
+  owner: Owner;
+  level: number;
+  children: Child[] | null;
+}
+
+interface TreeNode {
+  title: string;
+  key: string;
+  node: Node;
+  ownerId: string;
+  owner: Owner;
+  level: number;
+  children: Child[] | null;
+}
+
+
+const flattenTreeUnique = (
+  nodes: TreeNode[]
+): { key: string; ownerId: string }[] => {
+  const result: { key: string; ownerId: string }[] = [];
+  const nameSet = new Set<string>(); // To track unique names
+
+  const traverse = (nodes: TreeNode[]) => {
+    nodes.forEach((node) => {
+      if (!nameSet.has(node.ownerId)) {
+        nameSet.add(node.ownerId);
+        result.push({ key: node.key, ownerId: node.ownerId });
+      }
+      if (node.children) {
+        traverse(node.children);
+      }
+    });
+  };
+
+  traverse(nodes);
+  return result;
+};
+
+
 const CalcutePlanBackPage: React.FC = (props) => {
   const [startYear, setStartYear] = useState<number>(2024);
   const [endYear, setEndYear] = useState<number>(2027);
@@ -46,13 +181,27 @@ const CalcutePlanBackPage: React.FC = (props) => {
 
   const [users, setUsers] = useState<any[]>();
 
+  const [data, setData] = useState<DataNode[]>([]);
+  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
+
   const [onCalcutePlanBack] = useMutation(mutation_calcute_plan_back, {
     context: { headers: getHeaders(location) },
     update: (cache, { data: { calcute_plan_back } }) => {
       console.log("calcute_plan_back :", calcute_plan_back);
+
+      let { status, data} = calcute_plan_back;
+      if(status){
+        // setData(data)
+        // const result = flattenTreeUnique(data);
+
+        console.log("data :", data)
+        // console.log("output 2 :", JSON.stringify(result, null, 2))
+      }
+
+      setLoading(false)
     },
     onCompleted(data) {
-      console.log("calcute_plan_back onCompleted :", data);
+      // console.log("calcute_plan_back onCompleted :", data);
       // let { status } = data.profile
       // if(status){
       //   message.success('Update profile success!');
@@ -117,10 +266,63 @@ const CalcutePlanBackPage: React.FC = (props) => {
       console.log(`Selected start date: ${startDate}`);
       console.log(`Selected end date: ${endDate}`);
 
+      setLoading(true)
       onCalcutePlanBack({ variables: { input: { startDate, endDate,  userId: selectedUser } } });
     
     }
     // message.success(`Selected month: ${selectedMonth}, Year range: ${startYear}-${endYear}, User: ${selectedUser}`);
+  };
+
+  const onSelect = (selectedKeys: React.Key[], info: any) => {
+    console.log('selected', selectedKeys, info);
+  };
+
+  const onExpand = (expandedKeysValue: React.Key[]) => {
+    setExpandedKeys(expandedKeysValue); // Update the expanded keys state
+  };
+
+  const expandAll = () => {
+    const allKeys = getAllKeys(data); // Get all keys of the tree nodes
+    setExpandedKeys(allKeys);
+  };
+
+  const collapseAll = () => {
+    setExpandedKeys([]); // Collapse all nodes by setting an empty array
+  };
+
+  const getAllKeys = (nodes: DataNode[]): React.Key[] => {
+    let keys: React.Key[] = [];
+    nodes.forEach((node) => {
+      keys.push(node.key);
+      if (node.children) {
+        keys = keys.concat(getAllKeys(node.children as DataNode[]));
+      }
+    });
+    return keys;
+  };
+
+  const titleRender: TreeProps['titleRender'] = (nodeData: RcTreeDataNode) => {
+    const customNodeData = nodeData as DataNode; // Type assertion
+      
+    // console.log("customNodeData :", customNodeData);
+    const title  = customNodeData.title;
+    const ownerDisplayName = customNodeData.owner?.current?.displayName || 'Unnamed';
+    const nodeStatus = customNodeData.node?.current?.status === 1 ? 'green' : 'red';
+    const nodeId = customNodeData.node?._id;
+    const formattedDate = customNodeData.node?.updatedAt
+      ? moment(new Date(customNodeData.node.updatedAt)).format('MMMM Do YYYY, h:mm:ss a')
+      : '';
+  
+    return (
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        {customNodeData?.children?.length ? <UsergroupAddOutlined /> : <UserOutlined />}
+        <span style={{ marginLeft: 8 }}>
+          <span style={{ color: nodeStatus }}>
+          {ownerDisplayName} | {nodeId} { /* | {formattedDate} | {title} */ } | { customNodeData.level }
+          </span>
+        </span>
+      </div>
+    );
   };
 
   return (
@@ -144,7 +346,7 @@ const CalcutePlanBackPage: React.FC = (props) => {
         style={{ width: 200 }} 
         onChange={(value) => setSelectedUser(value)}
       >
-        {users.map((user) => (
+        {users.sort((a, b) =>a.current.displayName.localeCompare(b.current.displayName) ).map((user) => (
           <Option key={user._id} value={user._id}>
             {user?.current?.displayName}
           </Option>
@@ -156,9 +358,20 @@ const CalcutePlanBackPage: React.FC = (props) => {
         type="primary" 
         style={{ width: 200 }} 
         disabled={!selectedMonth || !selectedUser} 
-        onClick={handleSubmit}>
+        onClick={handleSubmit}
+        loading={loading}>
         คำนวณรายได้
       </Button>
+
+      <Tree
+        showIcon={true}
+        showLine={true}
+        expandedKeys={expandedKeys}
+        onExpand={onExpand}
+        onSelect={onSelect}
+        treeData={data}
+        titleRender={titleRender}
+      />
     </div>
   );
 };

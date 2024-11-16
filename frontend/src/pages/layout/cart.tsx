@@ -14,7 +14,8 @@ import type { Notice } from '@/interface/layout/notice.interface';
 import type { UserState } from '@/interface/user/user';
 
 import { DefaultRootState } from '@/interface/DefaultRootState';
-import { clearAllCart } from "@/stores/user.store"
+import { /*clearAllCart,*/ clearAllCart_plan_front, clearAllCart_plan_back } from "@/stores/user.store"
+import { useAppContext } from '@/AppContext';
 
 const { REACT_APP_HOST_GRAPHAL } = process.env;
 
@@ -30,7 +31,9 @@ const CartComponent: FC = () => {
   const { noticeCount } = useSelector((state: {user: UserState}) => state.user);
   const { formatMessage } = useLocale();
 
-  const { carts } = useSelector((state : DefaultRootState) => state.user);
+  const { homeFilter } = useAppContext();
+
+  const { cart_plan_front, cart_plan_back } = useSelector((state : DefaultRootState) => state.user);
 
   const noticeListFilter = <T extends Notice['type']>(type: T) => {
     return noticeList.filter(notice => notice.type === type) as Notice<T>[];
@@ -50,54 +53,130 @@ const CartComponent: FC = () => {
     getNotice();
   }, []);
 
+  const ___badge = () => {
+    switch(homeFilter.filter.product_type){
+      case 1: {
+        return  <Badge count={cart_plan_front?.length} overflowCount={999}>
+                  <span 
+                    className="notice" 
+                    id="notice-center">
+                    <ShoppingCartOutlined disabled={cart_plan_front.length === 0} style={{ opacity: cart_plan_front.length === 0 ? 0.5 : 1 }} />
+                  </span>
+                </Badge>
+      }
+      case 2: {
+        return  <Badge count={cart_plan_back?.length} overflowCount={999}>
+                  <span 
+                    className="notice" 
+                    id="notice-center">
+                    <ShoppingCartOutlined disabled={cart_plan_back.length === 0} style={{ opacity: cart_plan_back.length === 0 ? 0.5 : 1 }} />
+                  </span>
+                </Badge>
+      }
+    }
+  }
+  
+  const ___cart = () =>{
+    switch(homeFilter.filter.product_type){
+      case 1: {
+        return  <TabPane
+                  // tab={`${formatMessage({ id: 'app.notice.messages', })}(${noticeListFilter('notification').length})`}
+                  tab={`List product (${cart_plan_front?.length}) แผนหน้า`}
+                  key="1">
+                  <List
+                    style={{ maxHeight: '300px', overflowY: 'auto' }} 
+                    dataSource={cart_plan_front}
+                    renderItem={item => (
+                      <List.Item onClick={()=> navigate(`/view?v=${item._id}`, { state: { _id: item._id } }) }>
+                        <List.Item.Meta
+                          avatar={<Avatar src={ item.current.images?.length > 0 ? `http://${REACT_APP_HOST_GRAPHAL}/${item.current.images[0]?.url }`: "" } />}
+                          title={<a >{item.current.name}</a>}
+                          description={item.current.detail}
+                        />
+                      </List.Item>
+                    )}
+                  />
+                  {
+                    cart_plan_front.length === 0 
+                    ? <></>
+                    : <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px' }}>
+                        <Button 
+                          type="primary" 
+                          danger 
+                          ghost 
+                          disabled={_.isEmpty(cart_plan_front) ? true : false}
+                          onClick={() => {
+                            dispatch(clearAllCart_plan_front());
+                            message.success('Clear all success!');
+                            setVisible(false)
+                          }}>
+                          Clear all
+                        </Button>
+                        <Button type="primary" onClick={() => { 
+                          navigate("/cart"); 
+                          setVisible(false); 
+                        }}>
+                          See in cart
+                        </Button>
+                      </div>
+                  }
+                  
+                </TabPane>
+      }
+
+      case 2: {
+        return  <TabPane
+                  // tab={`${formatMessage({ id: 'app.notice.messages', })}(${noticeListFilter('notification').length})`}
+                  tab={`List product (${cart_plan_back?.length}) แผนหลัง`}
+                  key="1">
+                  <List
+                    style={{ maxHeight: '300px', overflowY: 'auto' }} 
+                    dataSource={cart_plan_back}
+                    renderItem={item => (
+                      <List.Item onClick={()=> navigate(`/view?v=${item._id}`, { state: { _id: item._id } }) }>
+                        <List.Item.Meta
+                          avatar={<Avatar src={ item.current.images?.length > 0 ? `http://${REACT_APP_HOST_GRAPHAL}/${item.current.images[0]?.url }`: "" } />}
+                          title={<a >{item.current.name}</a>}
+                          description={item.current.detail}
+                        />
+                      </List.Item>
+                    )}
+                  />
+                  {
+                    cart_plan_back.length === 0 
+                    ? <></>
+                    : <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px' }}>
+                        <Button 
+                          type="primary" 
+                          danger 
+                          ghost 
+                          disabled={_.isEmpty(cart_plan_back) ? true : false}
+                          onClick={() => {
+                            dispatch(clearAllCart_plan_back());
+                            message.success('Clear all success!');
+                            setVisible(false)
+                          }}>
+                          Clear all
+                        </Button>
+                        <Button type="primary" onClick={() => { 
+                          navigate("/cart"); 
+                          setVisible(false); 
+                        }}>
+                          See in cart
+                        </Button>
+                      </div>
+                  }
+                  
+                </TabPane>
+      }
+    }
+  }
+
   const tabs = (
     <div>
       <Spin tip="Loading..." indicator={antIcon} spinning={loading}>
         <Tabs defaultActiveKey="1">
-          <TabPane
-            // tab={`${formatMessage({ id: 'app.notice.messages', })}(${noticeListFilter('notification').length})`}
-            tab={`List product (${carts?.length})`}
-            key="1"
-          >
-            <List
-              style={{ maxHeight: '300px', overflowY: 'auto' }} 
-              dataSource={carts}
-              renderItem={item => (
-                <List.Item onClick={()=> navigate(`/view?v=${item._id}`, { state: { _id: item._id } }) }>
-                  <List.Item.Meta
-                    avatar={<Avatar src={ item.current.images?.length > 0 ? `http://${REACT_APP_HOST_GRAPHAL}/${item.current.images[0]?.url }`: "" } />}
-                    title={<a >{item.current.name}</a>}
-                    description={item.current.detail}
-                  />
-                </List.Item>
-              )}
-            />
-            {
-              carts.length === 0 
-              ? <></>
-              : <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px' }}>
-                  <Button 
-                    type="primary" 
-                    danger 
-                    ghost 
-                    disabled={_.isEmpty(carts) ? true : false}
-                    onClick={() => {
-                      dispatch(clearAllCart());
-                      message.success('Clear all success!');
-                      setVisible(false)
-                    }}>
-                    Clear all
-                  </Button>
-                  <Button type="primary" onClick={() => { 
-                    navigate("/cart"); 
-                    setVisible(false); 
-                  }}>
-                    See in cart
-                  </Button>
-                </div>
-            }
-            
-          </TabPane>
+          {___cart()}
         </Tabs>
       </Spin>
     </div>
@@ -112,19 +191,7 @@ const CartComponent: FC = () => {
       open={visible}
       onOpenChange={v => setVisible(v)}
       overlayStyle={{ width: 336 }} >
-      <Tooltip
-        title={formatMessage({
-          id: 'gloabal.tips.theme.cartTooltip',
-        })}
-      >
-        <Badge count={carts?.length} overflowCount={999}>
-          <span 
-            className="notice" 
-            id="notice-center">
-            <ShoppingCartOutlined disabled={carts.length === 0} style={{ opacity: carts.length === 0 ? 0.5 : 1 }} />
-          </span>
-        </Badge>
-      </Tooltip>
+      <Tooltip title={formatMessage({ id: 'gloabal.tips.theme.cartTooltip' })}> { ___badge() } </Tooltip>
     </Popover>
   );
 };

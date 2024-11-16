@@ -106,6 +106,7 @@ export const userConnected = gql`subscription userConnected($input: JSON) { user
 export const mutationTest_upload = gql`mutation test_upload($input: JSON) { test_upload(input: $input) }`;
 
 export const mutation_profile = gql`mutation profile($input: JSON) { profile(input: $input) }`;
+export const mutation_profile_update_position = gql`mutation profile_update_position($input: JSON) { profile_update_position(input: $input) }`;
 
 export const faker_agent        = gql`mutation faker_agent($input: JSON) { faker_agent(input: $input) }`;
 export const faker_insurance    = gql`mutation faker_insurance($input: JSON) { faker_insurance(input: $input) }`;
@@ -142,3 +143,5 @@ export const mutation_bills_xml2js = gql`mutation bills_xml2js($input: JSON) { b
 export const mutation_address_delivery = gql`mutation address_delivery($input: JSON) { address_delivery(input: $input) }`;
 
 export const mutation_calcute_plan_back = gql`mutation calcute_plan_back($input: JSON) { calcute_plan_back(input: $input) }`;
+
+export const mutation_calcute_ov = gql`mutation calcute_ov($input: JSON) { calcute_ov(input: $input) }`;

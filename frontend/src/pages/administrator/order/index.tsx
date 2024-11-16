@@ -67,140 +67,76 @@ const columns = ( navigate: ReturnType<typeof useNavigate>,
   //     );
   //   }
   // },
-  {
-    title: 'Total',
-    // dataIndex: 'productDetails',
-    render: (values: any) => {
-      console.log('Total :', values)
+  // {
+  //   title: 'Total',
+  //   // dataIndex: 'productDetails',
+  //   render: (values: any) => {
+  //     console.log('Total :', values)
 
-      /*
-      const sumAllPrice = (values: any) =>{
-        let { productDetails, owner } = values
-        let sum_price = 0;
-        _.map(productDetails, (cart)=>{
-          let position = _.find(positions, (p)=>p._id?.toString() === owner.current?.positionId?.toString())
-          let quantities =  cart.current.quantities === undefined ? 1 : cart.current.quantities
+  //     const sumAllPrice = (values: any) =>{
+  //       let { products, owner } = values.current
+  //       let sum_price = 0;
+  //       // console.log("sumAllPrice @000 ", products, owner, values)
+  //       _.map(products, (cart)=>{
+  //         let position = _.find(positions, (p)=>p._id?.toString() === owner?.positionId?.toString())
+  //         let quantities =  cart.quantities === undefined ? 1 : cart.quantities
 
-          // console.log("position @001:", position?.name, quantities, cart.current.price, cart.current.price_discount_bm)
+  //         // console.log("sumAllPrice position @001:", position?.name, quantities, cart.product.price, cart.product.price_discount_bm)
           
-          switch(position?.name?.toLocaleUpperCase()){
-            case "BM":{
+  //         switch(position?.name?.toLocaleUpperCase()){
+  //           case "BM":{
 
-              sum_price +=((quantities * parseFloat(cart.current.price)) * (100-cart.current.price_discount_bm)/100 );
-              break;
-            }
-            // BS, BG, BD, BP, MA, MB, MC, MD, ME, MF, MG, MH, MI, MJ, MK, ML, MM, MN, MO, MP, MQ, MR, MS
-            case "BS":
-            case "BG":
-            case "BD":
-            case "BP":
-            case "MA":
-            case "MB":
-            case "MC":
-            case "MD":
-            case "ME":
-            case "MF":
-            case "MG":
-            case "MH":
-            case "MI":
-            case "MJ":
-            case "MK":
-            case "ML":
-            case "MM":
-            case "MN":
-            case "MO":
-            case "MP":
-            case "MG":
-            case "MR":
-            case "MS":{
-              sum_price +=((quantities * parseFloat(cart.current.price)) * (100-(cart.current.price_discount_bs + position.percent ))/100 );
-              break;
-            }
-          }
-        })    
-        return sum_price;
-      }
+  //             sum_price +=((quantities * parseFloat(cart.product.price)) * (100-cart.product.price_discount_bm)/100 );
+  //             break;
+  //           }
+  //           // BS, BG, BD, BP, MA, MB, MC, MD, ME, MF, MG, MH, MI, MJ, MK, ML, MM, MN, MO, MP, MQ, MR, MS
+  //           case "BS":
+  //           case "BG":
+  //           case "BD":
+  //           case "BP":
+  //           case "MA":
+  //           case "MB":
+  //           case "MC":
+  //           case "MD":
+  //           case "ME":
+  //           case "MF":
+  //           case "MG":
+  //           case "MH":
+  //           case "MI":
+  //           case "MJ":
+  //           case "MK":
+  //           case "ML":
+  //           case "MM":
+  //           case "MN":
+  //           case "MO":
+  //           case "MP":
+  //           case "MG":
+  //           case "MR":
+  //           case "MS":{
+  //             sum_price +=((quantities * parseFloat(cart.product.price)) * (100-(cart.product.price_discount_bs + position.percent ))/100 );
+  //             break;
+  //           }
+  //         }
+  //       })    
+  //       return sum_price;
+  //     }
 
-      const sumAllDelivery = (values: any) =>{
-        let { productDetails } = values
-        let sum_price = 0;
-        _.map(productDetails, (cart)=>{
-          sum_price +=cart?.current?.price_delivery;
-        })
+  //     const sumAllDelivery = (values: any) =>{
+  //       let { products } = values.current
+  //       let sum_price = 0;
+  //       _.map(products, (cart)=>{
+  //         sum_price +=cart?.product.price_delivery;
+  //       })
 
-        return sum_price;
-      }
+  //       return sum_price;
+  //     }
 
-      let prices = Math.ceil(sumAllPrice(values))
-      let delivery = sumAllDelivery(values)
+  //     let prices = Math.ceil(sumAllPrice(values))
+  //     let delivery = sumAllDelivery(values)
 
-      return <Typography>{ prices }+{ delivery }(ค่าขนส่ง) = { prices + delivery }</Typography>
-      */
-
-      const sumAllPrice = (values: any) =>{
-        let { products, owner } = values.current
-        let sum_price = 0;
-        // console.log("sumAllPrice @000 ", products, owner, values)
-        _.map(products, (cart)=>{
-          let position = _.find(positions, (p)=>p._id?.toString() === owner?.positionId?.toString())
-          let quantities =  cart.quantities === undefined ? 1 : cart.quantities
-
-          // console.log("sumAllPrice position @001:", position?.name, quantities, cart.product.price, cart.product.price_discount_bm)
-          
-          switch(position?.name?.toLocaleUpperCase()){
-            case "BM":{
-
-              sum_price +=((quantities * parseFloat(cart.product.price)) * (100-cart.product.price_discount_bm)/100 );
-              break;
-            }
-            // BS, BG, BD, BP, MA, MB, MC, MD, ME, MF, MG, MH, MI, MJ, MK, ML, MM, MN, MO, MP, MQ, MR, MS
-            case "BS":
-            case "BG":
-            case "BD":
-            case "BP":
-            case "MA":
-            case "MB":
-            case "MC":
-            case "MD":
-            case "ME":
-            case "MF":
-            case "MG":
-            case "MH":
-            case "MI":
-            case "MJ":
-            case "MK":
-            case "ML":
-            case "MM":
-            case "MN":
-            case "MO":
-            case "MP":
-            case "MG":
-            case "MR":
-            case "MS":{
-              sum_price +=((quantities * parseFloat(cart.product.price)) * (100-(cart.product.price_discount_bs + position.percent ))/100 );
-              break;
-            }
-          }
-        })    
-        return sum_price;
-      }
-
-      const sumAllDelivery = (values: any) =>{
-        let { products } = values.current
-        let sum_price = 0;
-        _.map(products, (cart)=>{
-          sum_price +=cart?.product.price_delivery;
-        })
-
-        return sum_price;
-      }
-
-      let prices = Math.ceil(sumAllPrice(values))
-      let delivery = sumAllDelivery(values)
-
-      return <Typography>{ prices }+{ delivery }(ค่าขนส่ง) = { prices + delivery }</Typography>
-    }
-  },  
+  //     return <Typography>{ prices }+{ delivery }(ค่าขนส่ง) = { prices + delivery }</Typography>
+  //   }
+  // },  
   // {
   //   title: 'Status',
   //   dataIndex: ['current', 'status'],
@@ -234,17 +170,27 @@ const columns = ( navigate: ReturnType<typeof useNavigate>,
   //       return <></>
   //     }
   // },
-  // {
-  // title: 'Approver',
-  // // dataIndex: ['current', 'status'],
-  // render: (item: OrderItem) => {
-  //     // console.log("item :", item)
-  //     if(item.editer && item.editer.current !== undefined){
-  //       return <Tag color="#2db7f5" key={status}>{item.editer.current.displayName}</Tag>
-  //     }
-  //     return <></>
-  //   }
-  // },
+  {
+  title: 'สถานะ',
+  dataIndex: ['current', 'status'],
+  render: (status: number) => {
+      console.log("status :", status)
+      switch(status){
+        case 1: {
+          return <Tag color="#2db7f5" key={status}>{"WAITING"}</Tag> 
+        }
+        case 2: {
+          return <Tag color="green" key={status}>{"COMPLETE"}</Tag> 
+        }
+        case 3: {
+          return <Tag color="red" key={status}>{"CANCEL"}</Tag> 
+        }
+        case 4: {
+          return <Tag color="red" key={status}>{"DELETE"}</Tag> 
+        }
+      }
+    }
+  },
   {
     title: 'Created at',
     dataIndex: 'createdAt',
@@ -329,18 +275,20 @@ const OrderList: React.FC = (props) => {
     if (!loadingPositions && !_.isEmpty(dataPositions?.positions)) {
       const { status, data } = dataPositions.positions;
       if (status) {
-        console.log("setPositions :", data)
         setPositions(data);
       }
     }
   }, [dataPositions, loadingPositions]);
 
-  const { loading: loadingOrders, data: dataOrders, error: errorOrders, refetch: refetchOrders } = useQuery(guery_orders, {
-    context: { headers: getHeaders(location) },
-    fetchPolicy: 'no-cache',
-    nextFetchPolicy: 'network-only',
-    notifyOnNetworkStatusChange: false,
-  });
+  const { loading: loadingOrders, 
+          data: dataOrders, 
+          error: errorOrders, 
+          refetch: refetchOrders } = useQuery(guery_orders, {
+                                                              context: { headers: getHeaders(location) },
+                                                              fetchPolicy: 'no-cache',
+                                                              nextFetchPolicy: 'network-only',
+                                                              notifyOnNetworkStatusChange: false,
+                                                            });
 
   if (errorOrders) {
     handlerError(props, errorOrders);

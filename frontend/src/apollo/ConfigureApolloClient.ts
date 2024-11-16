@@ -18,6 +18,8 @@ const createWsLink = () => {
     connectionParams: {
       // Include any additional parameters needed for authentication
     },
+    lazy: true, // Start connecting only when a subscription is initiated
+    retryAttempts: 10, // Maximum number of reconnection attempts
     on: {
       connected: () => console.log('WebSocket connected'),
       closed: () => {
@@ -26,6 +28,7 @@ const createWsLink = () => {
       },
       error: (error) => console.error('WebSocket error', error),
     },
+    shouldRetry: () => true, // Enable automatic retries on disconnection
   });
 
   let retries = 0;

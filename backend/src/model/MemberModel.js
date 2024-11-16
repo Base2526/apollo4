@@ -9,6 +9,15 @@ const historySchema = new Schema({
     updatedAt: Date
 });
 
+const positionIdSchema = new Schema({
+    version: Number,
+    positionId: {
+        type: Schema.Types.ObjectId, 
+        default: mongoose.Types.ObjectId('6721098ce9dccb02aab4cb3e'),
+        required: true,
+    },
+    updatedAt: Date
+});
 
 const memberSchema = new Schema({
     current: {
@@ -89,6 +98,15 @@ const memberSchema = new Schema({
             default: mongoose.Types.ObjectId('6721098ce9dccb02aab4cb3e'),
             required: true,
         },
+        positionIds:[ {
+            type: positionIdSchema,
+            default: () => ({
+              version: 1,
+              positionId: mongoose.Types.ObjectId('6721098ce9dccb02aab4cb3e'), // default positionId
+              updatedAt: new Date(),
+            }),
+            required: true,
+        }],
         address_delivery:{
             name: { type: String },
             phone: { type: String },
@@ -100,6 +118,19 @@ const memberSchema = new Schema({
 {
     timestamps: true
 })
+
+// Add pre-save hook here
+// memberSchema.pre('save', function(next) {
+//     console.log("Add pre-save hook here ")
+//     if (!this.positionIds || this.positionIds.length === 0) {
+//         this.positionIds = [{
+//             version: 1,
+//             positionId: mongoose.Types.ObjectId('6721098ce9dccb02aab4cb3e'),
+//             updatedAt: new Date(),
+//         }];
+//     }
+//     next();
+// });
 
 // export default mongoose.model('member', memberSchema,'member')
 

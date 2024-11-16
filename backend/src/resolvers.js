@@ -19,6 +19,8 @@ import * as Utils from "./utils"
 import connection from './mongo'
 
 import { createXMLData } from './utils/xmlGenerator'; 
+
+import { getPositions, findPositionIds_levelLess } from "./utils/positionsCache"
 const mongoose = require('mongoose');
 
 export default {
@@ -1576,13 +1578,13 @@ export default {
       if( role !== Constants.ADMINISTRATOR && role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
       let members =  await Model.Member.aggregate([
-                                                    {
-                                                      $addFields: {
-                                                        'current.positionId': {
-                                                          $ifNull: ['$current.positionId', mongoose.Types.ObjectId('6721098ce9dccb02aab4cb3e')]
-                                                        }
-                                                      }
-                                                    },
+                                                    // {
+                                                    //   $addFields: {
+                                                    //     'current.positionId': {
+                                                    //       $ifNull: ['$current.positionId', mongoose.Types.ObjectId('6721098ce9dccb02aab4cb3e')]
+                                                    //     }
+                                                    //   }
+                                                    // },
                                                     {
                                                       $lookup: {
                                                         localField: "_id",
@@ -1761,13 +1763,13 @@ export default {
       let role = Utils.checkRole(current_user)
       if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
+      console.log("products :", current_user.current.packages)
+
       if( role === Constants.ADMINISTRATOR ){
         let products = await Model.Product.aggregate([
                                                       {
                                                         $addFields: {
-                                                          ownerId: "$current.ownerId",  // Bring the nested field to the top level
-                                                          // editerId: "$current.editer",   // Bring editerId to the top level
-                                                          // productId: "$current.productIds.productId"
+                                                          ownerId: "$current.ownerId",
                                                         }
                                                       },
                                                       {
@@ -1793,19 +1795,39 @@ export default {
       }
 
       let products = await Model.Product.aggregate([
+                                                    { $addFields: { ownerId: "$current.ownerId" } },
                                                     {
-                                                      $addFields: {
-                                                        ownerId: "$current.ownerId"
+                                                      // $match: {
+                                                      //   $or: [
+                                                      //     { 'current.package_front': { $in: [current_user.current.packages] } },
+                                                      //     { 'current.package_back': { $in: [current_user.current.packages] } }
+                                                      //   ]
+                                                      // }
+                                                      
+                                                      // ต้องมีการ check box 1 or 2 or 1 and 2 ถึงเราจะ check package_front, package_back 
+                                                      $match: {
+                                                        $or: [
+                                                            {
+                                                                // Case: product_type contains 1
+                                                                'current.product_type': 1,
+                                                                'current.package_front': { $in: [current_user.current.packages] }
+                                                            },
+                                                            {
+                                                                // Case: product_type contains 2
+                                                                'current.product_type': 2,
+                                                                'current.package_back': { $in: [current_user.current.packages] }
+                                                            },
+                                                            {
+                                                                // Case: product_type contains both 1 and 2
+                                                                'current.product_type': { $all: [1, 2] },
+                                                                $or: [
+                                                                    { 'current.package_front': { $in: [current_user.current.packages] } },
+                                                                    { 'current.package_back': { $in: [current_user.current.packages] } }
+                                                                ]
+                                                            }
+                                                        ]
                                                       }
                                                     },
-                                                    // {
-                                                    //   $match: {
-                                                    //     $or: [
-                                                    //       { 'current.package_front': { $in: [current_user.current.packages] } },
-                                                    //       { 'current.package_back': { $in: [current_user.current.packages] } }
-                                                    //     ]
-                                                    //   }
-                                                    // },
                                                     {
                                                       $lookup: {
                                                         localField: "ownerId",
@@ -2019,17 +2041,17 @@ export default {
       let role = Utils.checkRole(current_user)
       if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
         let purchases = await Model.Order.aggregate([
-                                                  // {
-                                                  //   $match: {
-                                                  //     "current.ownerId": current_user._id  // Replace xxxxx with the actual OwnerId value you're looking for
-                                                  //   }
-                                                  // },
                                                   {
-                                                    $addFields: {
-                                                      // ownerId: "$current.ownerId",  // Bring the nested field to the top level
-                                                      productId: "$current.productIds.productId"
+                                                    $match: {
+                                                      "current.owner._id": current_user._id  // Replace xxxxx with the actual OwnerId value you're looking for
                                                     }
                                                   },
+                                                  // {
+                                                  //   $addFields: {
+                                                  //     // ownerId: "$current.ownerId",  // Bring the nested field to the top level
+                                                  //     productId: "$current.productIds.productId"
+                                                  //   }
+                                                  // },
                                                   /*{
                                                     $lookup: {
                                                       localField: "ownerId",
@@ -2045,14 +2067,14 @@ export default {
                                                     }
                                                   },*/
                                                   // Lookup to fetch the product details from the "Product" collection based on productIds array
-                                                  {
-                                                    $lookup: {
-                                                      from: "product", // the collection you're referencing (Product collection)
-                                                      localField: "productId", // field in the Orders collection (array of ObjectId)
-                                                      foreignField: "_id", // field in the Product collection
-                                                      as: "productDetails" // field to store the resulting product details
-                                                    }
-                                                  },
+                                                  // {
+                                                  //   $lookup: {
+                                                  //     from: "product", // the collection you're referencing (Product collection)
+                                                  //     localField: "productId", // field in the Orders collection (array of ObjectId)
+                                                  //     foreignField: "_id", // field in the Product collection
+                                                  //     as: "productDetails" // field to store the resulting product details
+                                                  //   }
+                                                  // },
                                                 ]);                                      
       return {
         status: true,
@@ -5008,6 +5030,53 @@ export default {
           break;
         }
       }
+      return {
+        status: true,
+        // data: user,
+        executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+      } 
+    },
+    async profile_update_position(parent, args, context, info) {
+      let start = Date.now()
+      let { input } = args
+      let { req } = context
+
+      console.log("@1 profile_update_position :", input)
+
+      let { current_user } =  await Utils.checkAuth(req);
+
+      let { _id, positionId } = input
+
+      const session = await mongoose.startSession();
+      session.startTransaction();
+      try {
+        const currentMember   = await Model.Member.findById(_id).session(session);
+        const latestVersion = currentMember?.current.positionIds.reduce((max, pos) => Math.max(max, pos.version), 0) || 0;
+        // Prepare the new positionId entry with incremented version
+        const newPositionId = {
+          version: latestVersion + 1,
+          positionId: mongoose.Types.ObjectId(positionId),  // Update with appropriate ID if necessary
+          updatedAt: new Date(),
+        };
+
+        await Model.Member.updateOne(
+                          { _id  },
+                          {
+                            $set: { 'history': Utils.createRevision(currentMember) },
+                            $push: { 'current.positionIds': newPositionId },
+                          },
+                          { session }
+                        );
+        await session.commitTransaction();
+      }catch(error){
+        console.log("error @@@@@@@1 :", error)
+        await session.abortTransaction();
+    
+        throw new AppError(Constants.ERROR, error)
+      }finally {
+        session.endSession();
+        console.log("finally @@@@@@@1 :")
+      }  
 
       return {
         status: true,
@@ -5441,33 +5510,13 @@ export default {
       if( role !==Constants.ADMINISTRATOR &&
           role !==Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
           
-      // console.log("order : ", input)
+      console.log("order : ", input)
 
       switch(input.mode){
         case 'added':{
           const session = await mongoose.startSession();
           session.startTransaction();
           try {
-            /*
-            const promises =  _.map(input.productIds, async (vi) => {
-                                let { productId, quantities } = vi;
-                                const document = await Model.Product.findOne({ _id: mongoose.Types.ObjectId(productId) });
-                          
-                                if (document) {
-                                  if (quantities > document.current.quantity) {
-                                    throw new AppError(Constants.ERROR, "Quantity not enough");
-                                  }
-                                  await Model.Product.updateOne(
-                                    { _id: mongoose.Types.ObjectId(productId) },
-                                    { $inc: { 'current.quantity': -quantities } },
-                                    { session }
-                                  );
-                                }
-                              });
-        
-            // Wait for all promises to resolve
-            await Promise.all(promises);
-            */
             const promises = _.map(input.products, async (vi) => {
               let { productId, quantities } = vi;
             
@@ -5488,17 +5537,7 @@ export default {
                   { session }
                 );
             
-                let newProduct = {
-                  _id: product._id,
-                  price: product.current.price,
-                  price_sell: product.current.price_sell,
-                  price_discount_bm: product.current.price_discount_bm,
-                  price_discount_bs: product.current.price_discount_bs,
-                  price_discount_from_children: product.current.price_discount_from_children,
-                  price_discount_from_office: product.current.price_discount_from_office,
-                  all_sale: product.current.all_sale,
-                  price_delivery: product.current.price_delivery,
-                }
+                let newProduct =  { _id: product._id, ...product.current }
 
                 // Return the product and quantities
                 return { product: newProduct, quantities };
@@ -5514,16 +5553,14 @@ export default {
             // Filter out null results (if any documents were not found)
             const validResults = results.filter(result => result !== null);
 
-            let current  = { products: validResults, 
-                             owner: { 
-                                      _id: current_user._id,  
-                                      positionId: current_user.current.positionId 
-                                    } ,
-                             status: 1 }
+            let positionId = Utils.getPositionId(current_user.current.positionIds)
+
+            let current  = {  type_plan: input.type_plan,
+                              products: validResults, 
+                              owner: { _id: current_user._id, positionId },
+                              status: 1 }
 
             await Model.Order.insertMany([{ current }], { session });
-
-            // throw new AppError(Constants.ERROR, "error")
   
             // Commit the transaction
             await session.commitTransaction();
@@ -5536,22 +5573,21 @@ export default {
             session.endSession();
             console.log("finally @@@@@@@1 :")
           } 
+
           break;
         }
-
         case 'edited':{
           const session = await mongoose.startSession();
           session.startTransaction();
           try {
-
-            // cancel, complete order
+            // 2: cancel, 3: complete order
             switch( input.type ){
-              case 2:
+              
               case 3:{
                 let promises = []; 
-                if(!_.isEmpty(input.attachFile)){
-                  for (let i = 0; i < input.attachFile.length; i++) {
-                    const { createReadStream, filename, encoding, mimetype } = (await input.attachFile[i]).file //await input.files[i];
+                if(!_.isEmpty(input.images)){
+                  for (let i = 0; i < input.images.length; i++) {
+                    const { createReadStream, filename, encoding, mimetype } = (await input.images[i]).file //await input.files[i];
           
                     const stream = createReadStream();
                     const assetUniqName = Utils.fileRenamer(filename);
@@ -5579,9 +5615,8 @@ export default {
                   }
                 }
                 let attachFile = await Promise.all(promises);
-                console.log("save images :", attachFile)
                 
-                let history = await Model.Order.findOne({ _id: mongoose.Types.ObjectId(input._id) })
+                let history = await Model.Order.findOne({ _id: mongoose.Types.ObjectId(input._id) }).session(session);
     
                 const filter = { _id: input._id }
                 const update = {
@@ -5595,37 +5630,41 @@ export default {
                 };
                 await Model.Order.updateOne( filter , update, { session });
 
+                // products, positions, profile
                 if(input.type === 2){
                   // เช็ดยอดเพือปรับตำแหน่ง
- 
-                  const owner = await Model.Member.findById(history.current.ownerId).session(session);
-                  const orderProducts =  history.current.products
-                  const ids = orderProducts.map(item => mongoose.Types.ObjectId(item.productId));
-                   
-                  const productsData = await Model.Product.find({ _id: { $in: ids } })
+                  let { owner, products } = history.current                  
+                  // let positions = await Model.Position.find({});
+                  // let ownerN    = await Model.Member.findById(owner._id).session(session);
 
-                  let sumPrice =  _.sumBy(productsData, (prod)=>{
-                    let quant = _.find(orderProducts, (value)=>value.productId.toString() === prod._id.toString())
-                    return (quant.quantities * prod.current.price_sell)  * (100-5)/100
-                  })
+                  let sumPrice = Utils.summaryPriceDiscount(products, owner.positionId);//  Math.ceil(Utils.summaryPriceDiscount(products, owner.positionId) + Utils.___tax_at_pay5(products, positions, owner.positionId) + Utils.summaryDelivery(products))
+                  console.log( "เช็ดยอดเพือปรับตำแหน่ง :", sumPrice, owner)
 
-                  /*
-                  {"_id":"6721098ce9dccb02aab4cb3e","level":0,"name":"BM","percent":0,"budget":0 },
-                  {"_id":"6721098ce9dccb02aab4cb3f","level":1,"name":"BS","percent":0,"budget":5000 },
-                  {"_id":"6721098ce9dccb02aab4cb40","level":2,"name":"BG","percent":0.5,"budget":10000 },
-                  {"_id":"6721098ce9dccb02aab4cb41","level":3,"name":"BD","percent":1,"budget":50000 },
-                  {"_id":"6721098ce9dccb02aab4cb42","level":4,"name":"BP","percent":2,"budget":200000 },
-                  */
-   
+                  let is_publish = false;
                   if(sumPrice >= 5000 && sumPrice <= 9999){
                     // BS
                     const codes = ['6721098ce9dccb02aab4cb3f', '6721098ce9dccb02aab4cb40', '6721098ce9dccb02aab4cb41', '6721098ce9dccb02aab4cb42'];
-                    const check_includes =  _.includes(codes, owner.current.positionId)
+                    const check_includes =  _.includes(codes, owner.positionId.toString())
 
                     if(!check_includes){
+                      is_publish = true;
+
+                      const currentMember   = await Model.Member.findById(owner._id).session(session);
+                      const latestVersion = currentMember?.current.positionIds.reduce((max, pos) => Math.max(max, pos.version), 0) || 0;
+
+                      // Prepare the new positionId entry with incremented version
+                      const newPositionId = {
+                        version: latestVersion + 1,
+                        positionId: mongoose.Types.ObjectId('6721098ce9dccb02aab4cb3f'),  // Update with appropriate ID if necessary
+                        updatedAt: new Date(),
+                      };
+
                       await Model.Member.updateOne(
                         { _id: owner._id },
-                        {  "current.positionId": "6721098ce9dccb02aab4cb3f" },
+                        // {  "current.positionId": mongoose.Types.ObjectId("6721098ce9dccb02aab4cb3f") },
+                        {
+                          $push: { 'current.positionIds': newPositionId },
+                        },
                         { session }
                       );
                     }
@@ -5634,12 +5673,27 @@ export default {
                   }else if(sumPrice >= 10000 && sumPrice <= 49999){
                     // BG 
                     const codes = ['6721098ce9dccb02aab4cb40', '6721098ce9dccb02aab4cb41', '6721098ce9dccb02aab4cb42'];
-                    const check_includes =  _.includes(codes, owner.current.positionId)
+                    const check_includes =  _.includes(codes, owner.positionId.toString())
 
                     if(!check_includes){
+                      is_publish = true;
+
+                      const currentMember   = await Model.Member.findById(owner._id).session(session);
+                      const latestVersion = currentMember?.current.positionIds.reduce((max, pos) => Math.max(max, pos.version), 0) || 0;
+
+                      // Prepare the new positionId entry with incremented version
+                      const newPositionId = {
+                        version: latestVersion + 1,
+                        positionId: mongoose.Types.ObjectId('6721098ce9dccb02aab4cb40'),  // Update with appropriate ID if necessary
+                        updatedAt: new Date(),
+                      };
+
                       await Model.Member.updateOne(
                         { _id: owner._id },
-                        { "current.positionId": "6721098ce9dccb02aab4cb40" },
+                        // { "current.positionId": mongoose.Types.ObjectId("6721098ce9dccb02aab4cb40") },
+                        {
+                          $push: { 'current.positionIds': newPositionId },
+                        },
                         { session }
                       );
                     }
@@ -5648,52 +5702,79 @@ export default {
                   }else if(sumPrice >= 50000 && sumPrice <= 199999){
                     // BD
                     const codes = ['6721098ce9dccb02aab4cb41', '6721098ce9dccb02aab4cb42'];
-                    const check_includes =  _.includes(codes, owner.current.positionId)
+                    const check_includes =  _.includes(codes, owner.positionId.toString())
 
                     if(!check_includes){
+                      is_publish = true;
+
+                      const currentMember   = await Model.Member.findById(owner._id).session(session);
+                      const latestVersion = currentMember?.current.positionIds.reduce((max, pos) => Math.max(max, pos.version), 0) || 0;
+
+                      // Prepare the new positionId entry with incremented version
+                      const newPositionId = {
+                        version: latestVersion + 1,
+                        positionId: mongoose.Types.ObjectId('6721098ce9dccb02aab4cb41'),  // Update with appropriate ID if necessary
+                        updatedAt: new Date(),
+                      };
+
                       await Model.Member.updateOne(
                         { _id: owner._id },
-                        { "current.position": "6721098ce9dccb02aab4cb41" },
+                        // { "current.positionId": mongoose.Types.ObjectId("6721098ce9dccb02aab4cb41") },
+                        {
+                          $push: { 'current.positionIds': newPositionId },
+                        },
                         { session }
                       );
                     }
-                    
                     console.log("@@@@@: BD")
                   }else if(sumPrice >= 200000){
                     // BP
                     const codes = ['6721098ce9dccb02aab4cb42'];
-                    const check_includes =  _.includes(codes, owner.current.positionId)
+                    const check_includes =  _.includes(codes, owner.positionId.toString())
 
                     if(!check_includes){
+                      is_publish = true;
+
+                      const currentMember   = await Model.Member.findById(owner._id).session(session);
+                      const latestVersion = currentMember?.current.positionIds.reduce((max, pos) => Math.max(max, pos.version), 0) || 0;
+
+                      // Prepare the new positionId entry with incremented version
+                      const newPositionId = {
+                        version: latestVersion + 1,
+                        positionId: mongoose.Types.ObjectId('6721098ce9dccb02aab4cb41'),  // Update with appropriate ID if necessary
+                        updatedAt: new Date(),
+                      };
+
                       await Model.Member.updateOne(
                         { _id: owner._id },
-                        { "current.position": "6721098ce9dccb02aab4cb42" },
+                        // { "current.positionId": mongoose.Types.ObjectId("6721098ce9dccb02aab4cb42") },
+                        {
+                          $push: { 'current.positionIds': newPositionId },
+                        },
                         { session }
                       );
                     }
-
                     console.log("@@@@@: BP")
+                  }
+
+                  if(is_publish){
+                    const updatedProfile = await Model.Member.findById(history.current.owner._id).session(session); // Attach session to the query
+                    console.log("@@@@@: ", updatedProfile, history.current.owner._id)
+                    pubsub.publish("USER_CONNECTED", {
+                      userConnected: {
+                        mutation: "UPDATED_PROFILE",
+                        data: updatedProfile,
+                      }
+                    });
                   }
                 }
 
                 // Commit the transaction
                 await session.commitTransaction();
 
-                // pubsub.publish('USER_CONNECTED', { userConnected: 'A user connected' });
-
-                const updatedProfile = await Model.Member.findById(history.current.ownerId).session(session); // Attach session to the query
-                console.log("@@@@@: ", updatedProfile)
-                pubsub.publish("USER_CONNECTED", {
-                  userConnected: {
-                    mutation: "UPDATED_PROFILE",
-                    data: updatedProfile,
-                  }
-                });
-
-                // throw new AppError(Constants.ERROR)
-
                 break;
               }
+              case 2:
               case 4:{
                 let history = await Model.Order.findOne({ _id: mongoose.Types.ObjectId(input._id) })
                 const filter = { _id: input._id }
@@ -5945,18 +6026,59 @@ export default {
       const session = await mongoose.startSession();
       session.startTransaction()
       try{
-
-        let node_uid = await Model.Node.findOne({'current.ownerId':  mongoose.Types.ObjectId(input.userId)})
+        // จะได้ Node แรก ของ owerId คนนี้
+        let node_uid = await Model.Node.findOne({ 
+                                                  'current.ownerId':  mongoose.Types.ObjectId(input.userId),
+                                                  'current.isParent': true 
+                                                })   
 
         console.log("calcute_plan_back input:", input, node_uid)
         if(node_uid){
-          let result_calculate_plan_back =  await Utils.calculate_plan_back(node_uid._id, input.startDate, input.endDate)
+          let owner   = await Model.Member.findById(input.userId);
 
-          console.log("result_calculate_plan_back :", result_calculate_plan_back)
+          // Check Member ที่เราต้องการเช็ดตำแหน่งอะไร
+          switch(owner.current.positionId.toString()){
+            // กรณี owner มีตำแหน่ง BM
+            case "6721098ce9dccb02aab4cb3e":{
+              console.log(`@@@@@ Fast start (2) - start`);
+              await Utils.calculate_fast_start(input);
+              console.log(`@@@@@ Fast start (2) - end`);
+
+              console.log("@@@@ BM");
+              break;
+            }
+            // กรณี owner มีตำแหน่ง BS
+            case "6721098ce9dccb02aab4cb3f":{
+              console.log("@@@@ BS");
+              break;
+            }
+            // BG
+            case "6721098ce9dccb02aab4cb40":{
+              console.log("@@@@ BG");
+              break;
+            }
+            // BD
+            case "6721098ce9dccb02aab4cb41":{
+              console.log("@@@@ BD");
+              break;
+            }
+            // BP
+            case "6721098ce9dccb02aab4cb42":{
+              console.log("@@@@ BP");
+              break;
+            }
+          }
+
+          console.log(`@@@@@ ค่าแนะนํา (3) - start`);
+          await Utils.calculate_suggester(input);
+          console.log(`@@@@@ ค่าแนะนํา (3) - end`);
+
+          
+          await Utils.calculate_ov(input);
+          
 
           return {
             status: true,
-            data: result_calculate_plan_back,
             executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
           }   
         }
@@ -5975,6 +6097,142 @@ export default {
         session.endSession();
       }  
     },
+
+    // async calcute_ov(parent, args, context, info) {
+    //   let start = Date.now()
+    //   let { req } = context
+    //   let { input } = args
+      
+    //   let { current_user } =  await Utils.checkAuth(req);
+    //   let role = Utils.checkRole(current_user)
+    //   if( role !== Constants.ADMINISTRATOR && 
+    //       role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+
+    //   const session = await mongoose.startSession();
+    //   session.startTransaction()
+    //   try{
+        
+    //     // จะได้ Node แรก ของ owerId คนนี้
+    //     let node_uid = await Model.Node.findOne({ 
+    //                                               'current.ownerId':  mongoose.Types.ObjectId(input.userId),
+    //                                               'current.isParent': true 
+    //                                             })   
+
+    //     console.log("calcute_plan_back input:", input, node_uid)
+    //     if(node_uid){
+    //       let owner   = await Model.Member.findById(input.userId);
+    //       const process = async(parentId = null, level = 1, limitLevel=1) => {
+    //         const nodes = await Model.Node.find({ 'current.parentNodeId': parentId });
+    //         return await Promise.all(nodes.map(async (node) => {
+    //           let nextLevel = level + 1;
+    //           if (nextLevel >= limitLevel) {
+    //             // Do not build children if the max level is reached
+    //             return {
+    //                 title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
+    //                 key: node._id.toString(),
+    //                 node,
+    //                 ownerId: node.current.ownerId,
+    //                 owner: await Model.Member.findById(node.current.ownerId),
+    //                 level: nextLevel,
+    //                 children: null, // No children if max level is reached
+    //             };
+    //           } else {
+    //             // Continue building the tree recursively if max level is not reached
+    //             let children = await process( node._id, nextLevel, limitLevel );
+    //             return {
+    //               title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
+    //               key: node._id.toString(),
+    //               node,
+    //               ownerId: node.current.ownerId,
+    //               owner: await Model.Member.findById(node.current.ownerId),
+    //               level: nextLevel,
+    //               children: children.length ? children : null,
+    //             };
+    //           }
+    //         }));
+    //       }
+
+    //       const flattenTreeUnique = (nodes) => {
+    //         const result = [];
+    //         const ownerIdSet = new Set(); // To track unique ownerIds as strings
+    //         const traverse = (nodes) => {
+    //           nodes.forEach((node) => {
+    //             // Convert ownerId to a string for Set comparison
+    //             const ownerIdStr = node.ownerId.toString();
+    //             if (!ownerIdSet.has(ownerIdStr)) {
+    //                 ownerIdSet.add(ownerIdStr);
+    //                 result.push({ key: node.key, ownerId: node.ownerId });
+    //             }
+    //             if (node.children) {
+    //               traverse(node.children);
+    //             }
+    //           });
+    //         };
+          
+    //         traverse(nodes);
+    //         return result;
+    //       };
+
+    //       // แสดงโครงสร้างเพือให้ง่ายกับการ ตรวจสอบ
+    //       // Function to recursively extract key structure 
+    //       // Get only field key to display
+    //       // Example console.log(`Resulting tree structure:`, JSON.stringify(getKeyStructure(processValue), null, 2));
+    //       const getKeyStructure = (nodes) => {
+    //         return nodes.map(node => {
+    //             const result = { key: node.key };
+    //             if (node.children) {
+    //                 result.children = getKeyStructure(node.children);
+    //             }
+    //             return result;
+    //         });
+    //       };
+
+    //       const near_childrens = async(owner, nodeId) =>{
+    //         ///////////  1. ต้องหาลูกติดตัวทั้งหมด  ////////////
+    //         // เราจะหาลูกติดตัว limitLevel =  package + 1;
+    //         let limitLevel = owner.current.packages + 1;
+
+    //         const level = 1;
+    //         let processValue =  await process(nodeId, level, limitLevel)
+
+    //         // เป็นการ id ทั้งหมด ที่ไม่ซํ้า
+    //         let flatten = flattenTreeUnique(processValue)
+            
+    //         // ตอนดึงโครงสร้างมาจะได้ลูกทั้งหมด + ownerid เราต้อง filter ownerId ออก
+    //         let ids     = _.map(flatten.filter(i=>i.ownerId.toString() !== owner._id.toString() ), i=>mongoose.Types.ObjectId( i.ownerId))
+
+    //         // let displayNames = await Utils.getDisplayNamesByIds(ids)
+    //         // console.log(`Step 1. (@@@@ BM) Name: ${ owner.current.displayName  }, มีลูกติดตัวทั้งหมด(${ displayNames.length }): ${ displayNames }`)
+
+    //         return ids
+    //         ///////////  1. ต้องหาลูกติดตัวทั้งหมด  //////////// 
+    //       }
+
+    //       console.log(`@@@@@ ค่า OV (4) - start`)
+    //       let ids  = await near_childrens(owner, node_uid._id)
+          
+    //       let displayNames = await Utils.getDisplayNamesByIds(ids)
+    //       console.log(`Step 1. (@@@@ BM) Name: ${ owner.current.displayName  }, มีลูกติดตัวทั้งหมด(${ displayNames.length }): ${ displayNames }`)
+
+    //       console.log(`@@@@@ ค่า OV (4) - start`)
+          
+    //     }
+
+    //     // await session.commitTransaction();
+    //     return {
+    //       status: true,
+    //       input,
+    //       executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+    //     }      
+    //   } catch(error){
+    //     await session.abortTransaction();
+    //     console.log(`init #error ${error}`)
+
+    //     throw new AppError(Constants.ERROR, error)
+    //   }finally {
+    //     session.endSession();
+    //   }  
+    // },
   },
   Subscription:{
     // me: {
@@ -6224,20 +6482,22 @@ export default {
       subscribe: withFilter((parent, args, context, info) => {
           return pubsub.asyncIterator(["USER_CONNECTED"])
         }, async (payload, variables, context, info) => {
-          console.log("userConnected subscribe :", payload, variables)
-
+          
           let { input } = variables
           let { mutation, data } = payload.userConnected
+
+          console.log("@@@1 userConnected subscribe :", payload, variables)
+
           switch(mutation){
             case "UPDATED_PROFILE":{
-              if(input._id === data._id){
+              if(input._id.toString() === data._id.toString()){
                 return true;
               }
               break;
             }
           }
 
-          return true;
+          return false;
         }
       ),
       onDisconnect: () => {

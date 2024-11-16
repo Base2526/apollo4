@@ -1,18 +1,25 @@
 import "./index.less"
 
-import React, { useState, useEffect } from 'react';
-import { Input, Select, List, Pagination, message, Skeleton, Button } from 'antd';
+import React, { useState, useEffect, } from 'react';
+import { Input, Select, List, Pagination, message, Skeleton, Button, Radio, RadioChangeEvent } from 'antd';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import _ from "lodash"
 import { useQuery } from '@apollo/client';
 
-import { addCart, removeCart } from '@/stores/user.store';
+import { addCart, 
+        removeCart, 
+        add_cart_plan_front, 
+        removeCart_plan_front,
+        add_cart_plan_back,
+        removeCart_plan_back } from '@/stores/user.store';
 import HomeCard from "@/pages/home/HomeCard"
 import { ProductItem } from "@/interface/user/user"
 import { guery_products } from '@/apollo/gqlQuery';
 import { getHeaders } from '@/utils';
 import handlerError from '@/utils/handlerError';
+
+import { useAppContext } from '@/AppContext';
 
 const { Option } = Select;
 const { Search } = Input;
@@ -20,16 +27,20 @@ const { Search } = Input;
 const ProductList: React.FC = (props) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const { homeFilter, updateProductType, updateOption } = useAppContext();
+
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<ProductItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50); 
 
-  const [selectedFilters, setSelectedFilters] = useState<number[]>([]);
+  const [selectedRadioFilter, setSelectedRadioFilter] = useState<number>(homeFilter.filter.product_type);
+  const [selectedFilters, setSelectedFilters] = useState<number[]>(homeFilter.filter.option);
 
   const { loading: loadingProducts, data: dataProducts, error: errorProducts, refetch: refetchProduct } = useQuery(guery_products, {
     context: { headers: getHeaders(location) },
-    fetchPolicy: 'cache-first',
+    fetchPolicy: 'no-cache',
     nextFetchPolicy: 'network-only',
     notifyOnNetworkStatusChange: false,
   });
@@ -45,43 +56,79 @@ const ProductList: React.FC = (props) => {
       if (dataProducts.products.status) {
         _.map(dataProducts.products.data, (e) => {
           setProducts((prevItems) => Array.isArray(prevItems) ? [...prevItems, e] : [e]);
-          setFilteredProducts((prevItems) => Array.isArray(prevItems) ? [...prevItems, e] : [e]);
+          setFilteredProducts((prevItems) =>{
+            if(Array.isArray(prevItems)){
+              // return [...prevItems, e]
+
+              switch (selectedRadioFilter) {
+                case 1: // แผนหน้า
+                  return _.includes(e.current.product_type, 1) ? [...prevItems, e] : prevItems;
+                case 2: // แผนหลัง
+                  return _.includes(e.current.product_type, 2) ? [...prevItems, e] : prevItems;
+                default:
+                  return [];
+              }
+            }else{
+              // return [e]
+
+              switch (selectedRadioFilter) {
+                case 1: // แผนหน้า
+                  return _.includes(e.current.product_type, 1) ? [e] : [];
+                case 2: // แผนหลัง
+                  return _.includes(e.current.product_type, 2) ? [e] : [];;
+                default:
+                  return [];
+              }
+            }
+          });
         });
       }
     }
   }, [dataProducts, loadingProducts]);
 
-  // useEffect(()=>{
-  //   console.log("selectedFilter: ", selectedFilter)
-  // }, [selectedFilter])
-
   useEffect(() => {
     if (selectedFilters.length === 0) {
-      setFilteredProducts(products); // Show all products if no filter is selected
-    } else {
-      const filtered = products.filter((product) =>
-        selectedFilters.some((filter) => {
-          switch (filter) {
-            case 1:
-              return !_.isEmpty(product.current.package_front);
-            case 2:
-              return !_.isEmpty(product.current.package_back);
-            case 3:
-              return product.current.product_type.includes(1);
-            case 4:
-              return product.current.product_type.includes(4);
-            default:
-              return false;
-          }
-        })
-      );
+      const filtered = products.filter((product) => {
+        switch (selectedRadioFilter) {
+          case 1: // แผนหน้า
+            return _.includes(product.current.product_type, 1);
+          case 2: // แผนหลัง
+            return _.includes(product.current.product_type, 2);
+          default:
+            return false;
+        }
+      });
       setFilteredProducts(filtered);
-      // console.log("setFilteredProducts :", filtered)
+    }else{
+      const filtered = products.filter((product) => {
+        switch (selectedRadioFilter) {
+          case 1: // แผนหน้า
+            return _.includes(product.current.product_type, 1);
+          case 2: // แผนหลัง
+            return _.includes(product.current.product_type, 2);
+          default:
+            return false;
+        }
+      });
+
+      setFilteredProducts(filtered.filter((filter) =>
+        {
+          switch (selectedRadioFilter) {
+            // แผนหน้า
+            case 1: {
+              return selectedFilters.every((element) => filter.current.option_front.includes(element));
+            }
+            // แผนหลัง
+            case 2: {
+              return selectedFilters.every((element) => filter.current.option_back.includes(element));// 
+            }
+          }
+        }
+      ));
     }
-    setCurrentPage(1); // Reset to the first page when filtering
+    setCurrentPage(1);
   }, [selectedFilters, products]);
   
-
   const handleSearch = (value: string) => {
     const searchValue = value.toLowerCase();
     const filtered = products.filter(product =>
@@ -92,36 +139,41 @@ const ProductList: React.FC = (props) => {
     setCurrentPage(1); // Reset to the first page when searching
   };
 
-  // const handleFilterChange = (value: number) => {
-  //   setSelectedFilter(value); // Save selected filter
-  //   const filtered = products.filter((product) => {
-  //     switch (value) {
-  //       case 1:
-  //         return !_.isEmpty(product.current.package_front);
-  //       case 2:
-  //         return !_.isEmpty(product.current.package_back);
-  //       case 3:
-  //         return product.current.product_type.includes(1);
-  //       case 4:
-  //         return product.current.product_type.includes(4);
-  //       default:
-  //         return true;
-  //     }
-  //   });
-  //   setFilteredProducts(filtered);
-  //   setCurrentPage(1);
-  // };
+  const handleRadioChange = (e: RadioChangeEvent) => {
+    const selectedValue = e.target.value;
+    setSelectedRadioFilter(selectedValue);
+    setSelectedFilters([])
+
+    updateProductType(selectedValue)
+    updateOption([])
+
+    // Filter products based on selected radio option
+    const filtered = products.filter((product) => {
+      switch (selectedValue) {
+        case 1: // แผนหน้า
+          return _.includes(product.current.product_type, 1);
+        case 2: // แผนหลัง
+          return _.includes(product.current.product_type, 2);
+        default:
+          return true;
+      }
+    });
+
+    setFilteredProducts(filtered);
+    setCurrentPage(1);
+  };
 
   const handleFilterChange = (value: number) => {
-    setSelectedFilters((prevFilters) =>
-      prevFilters.includes(value)
-        ? prevFilters.filter((filter) => filter !== value)
-        : [...prevFilters, value]
-    );
+    setSelectedFilters((prevFilters) =>{
+      let newOptions = prevFilters.includes(value) ? prevFilters.filter((filter) => filter !== value): [...prevFilters, value];
+      updateOption(newOptions)
+      return newOptions;
+    });
   };
 
   // Function to handle page number and page size changes
   const handlePaginationChange = (page: number, pageSize: number) => {
+    
     setCurrentPage(page);
     setPageSize(pageSize);
   };
@@ -140,6 +192,12 @@ const ProductList: React.FC = (props) => {
           style={{width: 300}}/>
       </div>
       <div style={{display: 'flex', flexDirection:'row', marginBottom: '10px'}}>
+        {/*  แผนหน้า, แผนหลัง  */}
+        {/* Radio buttons for แผนหน้า and แผนหลัง */}
+        <Radio.Group onChange={handleRadioChange} value={selectedRadioFilter}>
+          <Radio value={1}>แผนหน้า</Radio>
+          <Radio value={2}>แผนหลัง</Radio>
+        </Radio.Group>
         <Button
           style={{
             borderRadius: 0,
@@ -148,7 +206,7 @@ const ProductList: React.FC = (props) => {
           }}
           onClick={() => handleFilterChange(1)}
         >
-          แผนหน้า
+          เอกสิทธิพิเศษ
         </Button>
         <Button
           style={{
@@ -158,30 +216,9 @@ const ProductList: React.FC = (props) => {
           }}
           onClick={() => handleFilterChange(2)}
         >
-          แผนหลัง
-        </Button>
-        <Button
-          style={{
-            borderRadius: 0,
-            backgroundColor: selectedFilters.includes(3) ? '#1890ff' : undefined,
-            color: selectedFilters.includes(3) ? '#fff' : undefined
-          }}
-          onClick={() => handleFilterChange(3)}
-        >
-          เอกสิทธิพิเศษ
-        </Button>
-        <Button
-          style={{
-            borderRadius: 0,
-            backgroundColor: selectedFilters.includes(4) ? '#1890ff' : undefined,
-            color: selectedFilters.includes(4) ? '#fff' : undefined
-          }}
-          onClick={() => handleFilterChange(4)}
-        >
           Power ship
         </Button>
       </div>
-
       <Skeleton loading={loadingProducts} active>
         <List
           grid={{ gutter: 16, column: 5 }}
@@ -190,15 +227,22 @@ const ProductList: React.FC = (props) => {
             <List.Item  className={`list-item-product-card`}>
               <HomeCard
                 product= {item}
+                productType={homeFilter.filter.product_type}
                 onClick={()=>{
                   navigate(`/view?v=${item._id}`, { state: { _id: item._id } });
                 }}
                 onAddToCart={()=>{
-                  dispatch(addCart(item));
+                  dispatch( homeFilter.filter.product_type === 1 
+                            ? add_cart_plan_front(item) 
+                            : add_cart_plan_back(item)
+                          )
                   message.success('Add to cart!');
                 }}
                 onDeleteForCart={()=>{
-                  dispatch(removeCart(item._id));
+                  dispatch( homeFilter.filter.product_type === 1 
+                            ? removeCart_plan_front(item._id) 
+                            : removeCart_plan_back(item._id)
+                          )
                   message.warning('Delete from cart!');
                 }}
                 onBuy={()=>{
@@ -209,7 +253,6 @@ const ProductList: React.FC = (props) => {
           )}
         />
       </Skeleton>
-
       { 
         filteredProducts.length > 20 &&
         <Pagination

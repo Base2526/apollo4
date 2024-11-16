@@ -7,39 +7,28 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useQuery, useMutation } from '@apollo/client';
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import { DefaultRootState } from '@/interface/DefaultRootState';
-import { removeCart, clearAllCart, updateCartQuantities } from '@/stores/user.store';
-import { ProductItem } from "@/interface/user/user";
-import { query_positions, mutation_order } from '@/apollo/gqlQuery';
-import { getHeaders } from '@/utils';
+import { removeCart_plan_front, removeCart_plan_back, updateQuantities_front, updateQuantities_back } from '@/stores/user.store';
+import { ProductItem, PositionInterface } from "@/interface/user/user";
+import { query_positions } from '@/apollo/gqlQuery';
+import { getHeaders, getPositionId } from '@/utils';
 import handlerError from '@/utils/handlerError';
-
 import AddressModalForm from "@/pages/cart/AddressModalForm"
-
-interface positionInterface {
-  _id: string;
-  level: number;
-  name: string;
-  percent: number;
-  budget: number;
-}
+import { useAppContext } from '@/AppContext';
 
 const { REACT_APP_HOST_GRAPHAL } = process.env;
 const Cart: React.FC = (props) => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const { carts, profile } = useSelector((state: DefaultRootState) => state.user);
-
+  const { profile, cart_plan_front, cart_plan_back } = useSelector((state: DefaultRootState) => state.user);
   const [isModalVisible, setIsModalVisible]  = useState(false)
-
-  console.log("Cart :", carts, profile)
+  const { homeFilter } = useAppContext();
   const [loading, setLoading] = useState(false);
-
-  const [positions, setPositions] = useState<positionInterface[]>([]);
+  const [positions, setPositions] = useState<PositionInterface[]>([]);
 
   const { loading: loadingPositions, data: dataPositions } = useQuery(query_positions, {
       context: { headers: getHeaders(location) },
-      fetchPolicy: 'cache-first',
+      fetchPolicy: 'no-cache',
       nextFetchPolicy: 'network-only'
   });
 
@@ -52,26 +41,34 @@ const Cart: React.FC = (props) => {
       }
   }, [dataPositions, loadingPositions]);
 
-  // const [onOrder] = useMutation(mutation_order, {
-  //   context: { headers: getHeaders(location) },
-  //   update: (cache, { data: { order } }) => {
-  //     dispatch(clearAllCart());
-  //     setLoading(false);
-  //     message.success('Order placed successfully!');
-  //     navigate("/");
-  //   },
-  //   onError: (error) => {
-  //     setLoading(false);
-  //     handlerError(props, error);
-  //   }
-  // });
+  useEffect(()=>{
+    switch( homeFilter.filter.product_type ){
+      case 1: {
+        if(cart_plan_front.length === 0){
+          navigate("/");
+        }
+        break;
+      }
+
+      case 2: {
+        if(cart_plan_back.length === 0){
+          navigate("/");
+        }
+        break;
+      }
+    }
+  }, [ cart_plan_front, cart_plan_back ])
 
   const onView = (_id: string) => {
     navigate(`/view?v=${_id}`, { state: { _id } });
   };
 
   const onDelete = (_id: string) => {
-    dispatch(removeCart(_id));
+    dispatch(
+      homeFilter.filter.product_type === 1 
+      ? removeCart_plan_front(_id)
+      : removeCart_plan_back(_id)
+    )
     message.warning('Deleted from cart!');
   };
 
@@ -80,7 +77,11 @@ const Cart: React.FC = (props) => {
       message.warning('Quantity cannot be less than 1');
       return;
     }
-    dispatch(updateCartQuantities({id, quantities}));
+    dispatch(
+      homeFilter.filter.product_type === 1 
+      ? updateQuantities_front({id, quantities})
+      : updateQuantities_back({id, quantities})
+    )
   };
 
   const onCheckout = () => {
@@ -93,8 +94,10 @@ const Cart: React.FC = (props) => {
 
   const sumAllPrice = () =>{
     let sum_price = 0;
-    _.map(carts, (cart)=>{
-      let position = _.find(positions, (p)=>p._id?.toString() === profile.current?.positionId?.toString())
+
+    _.map(homeFilter.filter.product_type  === 1 ? cart_plan_front :cart_plan_back , (cart)=>{
+      let positionId = getPositionId(profile.current.positionIds)
+      let position = _.find(positions, (p)=>p._id?.toString() === positionId.toString())
       switch(position?.name?.toLocaleUpperCase()){
         case "BM":{
           sum_price +=((cart.current.quantities * parseFloat(cart.current.price_sell)) * (100-cart.current.price_discount_bm)/100 );
@@ -137,34 +140,31 @@ const Cart: React.FC = (props) => {
     <Card style={{ marginBottom: '20px' }}>
       <List
         itemLayout="horizontal"
-        dataSource={carts}
+        dataSource={
+          homeFilter.filter.product_type === 1 
+          ? cart_plan_front
+          : cart_plan_back
+        }
         header={
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px' }}>
-            <div style={{ fontSize: 20 }}>{`รายการสินค้า (${carts.length})`}</div>
+            <div style={{ fontSize: 20 }}>{`รายการสินค้า ${ homeFilter.filter.product_type === 1 ? 'แผนหน้า' : 'แผนหลัง'} (${  homeFilter.filter.product_type === 1 
+                                                            ? cart_plan_front.length
+                                                            : cart_plan_back.length
+                                                          })`}</div>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <div style={{ marginRight: 8, fontSize:20 }}>
                 {`ยอดทั้งหมด(หลังหัก % ค่าตำแหน่ง): ${ Math.ceil(sumAllPrice()) } บาท`}
               </div>
-              {/* <Button type="default" onClick={()=>{
-                setIsModalVisible(true)
-              }} >
-                {`ที่อยู่จัดส่ง`}
-              </Button> */}
               <Button 
                 type="primary" 
-                // disabled={ !profile.current?.address_delivery }
                 onClick={onCheckout} 
-                // onClick={()=>{ navigate("/checkout") }}
                 loading={loading}>
-                {`ชำระเงิน (${carts.length})`}
+                {`ชำระเงิน (${homeFilter.filter.product_type === 1 ? cart_plan_front.length : cart_plan_back.length })`}
               </Button>
             </div>
           </div>
         }
         renderItem={(item: ProductItem, index: number) => {
-          // let items = item.current.images
-
-          // console.log("index :", index)
 
           const items = _.map(item.current.images, v=> `http://${REACT_APP_HOST_GRAPHAL}/${v.url}`);
           return  <List.Item

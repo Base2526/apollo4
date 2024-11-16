@@ -73,14 +73,67 @@ const columns = (navigate: ReturnType<typeof useNavigate>, onDelete: (item: Prod
     },
     {
         title: 'ประเภทสินค้า',
-        dataIndex: ['current', 'product_type'],
-        render: (product_type: number[]) =>{
+        dataIndex: 'current' /*['current', 'product_type']*/ ,
+        render: ( current: any /*product_type: number[]*/ ) =>{
+            console.log("ประเภทสินค้า :", current)
+            let { product_type, option_front, package_front, option_back, package_back } = current
+
             return _.map(product_type, (v, index)=>{
                 switch(v){
-                    case 1:return <Tag key={index} color="#2db7f5">เอกสิทธิพิเศษ</Tag>
-                    case 2:return <Tag key={index} color="#2db7f5">แผนหน้า</Tag>
-                    case 3:return <Tag key={index} color="#2db7f5">แผนหลัง</Tag>
-                    case 4:return <Tag key={index} color="#2db7f5">Power ship</Tag>
+                    // case 1:return <Tag key={index} color="#2db7f5"></Tag>
+                    case 1:{
+                        return  <div>
+                                    <Tag key={index} color="#2db7f5">แผนหน้า</Tag>
+                                    <div>
+                                    {
+                                        _.map( _.sortBy(option_front), (v, index)=>{
+                                            switch(v){
+                                                case 1:return <Tag key={index} >เอกสิทธิพิเศษ</Tag>
+                                                case 2:return <Tag key={index} >Power ship</Tag>
+                                            }
+                                        })
+                                    }
+                                    </div>
+                                    <div>
+                                    {
+                                        _.map( _.sortBy(package_front), (v, index)=>{
+                                            switch(v){
+                                                case 1:return <Tag key={index} >1</Tag>
+                                                case 2:return <Tag key={index} >8</Tag>
+                                                case 3:return <Tag key={index} >56</Tag>
+                                            }
+                                        })
+                                    }
+                                    </div>
+                                </div> 
+                    }
+                    case 2:{
+                        return  <div>
+                                    <Tag key={index} color="#2db7f5">แผนหลัง</Tag>
+                                    <div>
+                                    {
+                                        _.map( _.sortBy(option_back), (v, index)=>{
+                                            switch(v){
+                                                case 1:return <Tag key={index} >เอกสิทธิพิเศษ</Tag>
+                                                case 2:return <Tag key={index} >Power ship</Tag>
+                                            }
+                                        })
+                                    }
+                                    </div>
+                                    <div>
+                                    {
+                                        _.map( _.sortBy(package_back), (v, index)=>{
+                                            switch(v){
+                                                case 1:return <Tag key={index} >1</Tag>
+                                                case 2:return <Tag key={index} >8</Tag>
+                                                case 3:return <Tag key={index} >56</Tag>
+                                            }
+                                        })
+                                    }
+                                    </div>
+                                </div>
+                    }
+                    // case 4:return <Tag key={index} color="#2db7f5">Power ship</Tag>
                 }
             } )
         } ,
@@ -199,7 +252,7 @@ const ProductList: React.FC = (props) => {
 
     const { loading: loadingProducts, data: dataProducts, error: errorProducts, refetch: refetchProduct } = useQuery(guery_products, {
         context: { headers: getHeaders(location) },
-        fetchPolicy: 'cache-first',
+        fetchPolicy: 'no-cache',
         nextFetchPolicy: 'network-only',
         notifyOnNetworkStatusChange: false,
     });

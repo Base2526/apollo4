@@ -877,6 +877,7 @@ export default gql`
     test_addmember(input: MemberInput): JSON
     test_addmlm(input: MLMInput): JSON
     profile(input: JSON): JSON
+    profile_update_position(input: JSON): JSON
     test_upload(input: JSON): JSON
 
     faker_agent(input: JSON): JSON
@@ -896,6 +897,8 @@ export default gql`
     address_delivery(input:JSON): JSON
 
     calcute_plan_back(input:JSON): JSON
+
+    calcute_ov(input:JSON): JSON
   }
 
   type Subscription {

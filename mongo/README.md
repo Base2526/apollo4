@@ -243,3 +243,16 @@ docker exec -it xxx mongoimport --db insurance --collection node --file /data/db
 #   pwd: "",
 #   roles: [{ role: "readWrite", db: "" }]
 # })
+
+
+
+# dropIndexes
+# remove indexes by collection
+use your_database_name; // Replace with your database name
+db.your_collection_name.dropIndexes(); // Replace with your collection name
+
+# remove indexes all collection
+use your_database_name; // Replace with your database name
+db.getCollectionNames().forEach(function(collection) {
+    db[collection].dropIndexes();
+});

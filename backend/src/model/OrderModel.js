@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 
+import { productSchema as ProductSchema } from "./ProductModel";
+// import { memberSchema as MemberSchema } from "./MemberModel";
 import { fileSchema as file } from "./FileModel";
 
 const Schema = mongoose.Schema
@@ -10,21 +12,13 @@ const historySchema = new Schema({
     updatedAt: Date
 });
 
-const productSchema = new Schema({
-    // productId: { type: Schema.Types.ObjectId, required:[true, "Product-ID is a required field"]},
+const productType = new Schema({
     product: { 
         _id: {
             type: Schema.Types.ObjectId, 
             required: true,
         },
-        price: { type: Number , default: 0 },
-        price_sell: { type: Number , default: 0 },
-        price_discount_bm:  { type: Number , default: 0 },
-        price_discount_bs:  { type: Number , default: 0 },
-        price_discount_from_children:  { type: Number , default: 0 },
-        price_discount_from_office:  { type: Number , default: 0 },
-        all_sale:  { type: Number , default: 0 },
-        price_delivery: { type: Number , default: 0 },
+        ...ProductSchema.obj.current
     },
     quantities: { 
                     type: Number,
@@ -35,7 +29,13 @@ const productSchema = new Schema({
 
 const orderSchema = new Schema({
     current: {
-        products: { type: [productSchema], required:[true, "Products is a required field"]},
+        type_plan: {    type: Number, 
+                        enum: [1, 2], // 1 : แผนหน้า, 2: แผนหลัง
+                        required:[true, "Type plan is a required field"] },
+        products: { 
+                    type: [productType], 
+                    required:[true, "Products is a required field"]
+                },
         owner: { 
             _id: { 
                 type: Schema.Types.ObjectId, 

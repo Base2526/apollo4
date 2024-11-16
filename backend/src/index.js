@@ -23,6 +23,8 @@ import pubsub from './pubsub'
 
 import connection from './mongo'
 
+import { savePositionsIfNotExists } from "./utils/positionsCache.js" 
+
 const logger = require("./utils/logger");
 const { graphqlUploadExpress } = require('graphql-upload');
 
@@ -130,7 +132,6 @@ server.start().then(() => {
     next();
   });
 
-  
   // Apply middleware to the Express app
   app.use('/graphql', expressMiddleware(
                     server , 
@@ -142,10 +143,11 @@ server.start().then(() => {
     res.status(200).send('Okay! >> ' + subscriptionCount.toString());
   });
 
-
   // Create an HTTP server
   const httpServer = app.listen(4000, () => {
     console.log('Server is now running on http://localhost:4000/graphql');
+
+    savePositionsIfNotExists()
   });
 
   // Create a WebSocket server
