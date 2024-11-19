@@ -2296,7 +2296,8 @@ export const summaryPriceDiscount = (products, positionId) =>{
                 // let price = (parseInt(product.price_sell)  * quantities) - discount_position_for_member;
                 // sum_price += price;      
 
-                let price = (parseInt(product.price_sell)  * quantities) - ___discount_position_for_member(positionId, newProduct);                         
+                // let price = (parseInt(product.price_sell)  * quantities) - ___discount_position_for_member(positionId, newProduct);                         
+                let price = parseInt(product.price_sell) * quantities;
                 is_debug && console.log("None :",  price)
                 sum_price += price           
                 break;
@@ -2308,7 +2309,8 @@ export const summaryPriceDiscount = (products, positionId) =>{
                 // let price  =  (parseInt(product.price_sell)  * quantities) - discount_position_for_member;
                 // sum_price += price;
 
-                let price  = (parseInt(product.price_sell)  * quantities) - ___discount_position_for_member_inclue_vat(___price_before_vat(newProduct, tax), positionId, newProduct);                  
+                // let price  = (parseInt(product.price_sell)  * quantities) - ___discount_position_for_member_inclue_vat(___price_before_vat(newProduct, tax), positionId, newProduct);                  
+                let price  = ___price_before_vat(newProduct, tax) ;
                 is_debug && console.log("Include :", price)
                 sum_price += price
                 break;
@@ -2320,7 +2322,8 @@ export const summaryPriceDiscount = (products, positionId) =>{
                 // let price  =  ((parseInt(product.price_sell)  * quantities) + (parseInt(product.price_sell)  * quantities) * (tax/100)) - discount_position_for_member;
                 // sum_price += price;
 
-                let price  = ((parseInt(product.price_sell)  * quantities) + (parseInt(product.price_sell)  * quantities) * (tax/100)) - ___discount_position_for_member(positionId, newProduct);
+                // let price  = ((parseInt(product.price_sell)  * quantities) + (parseInt(product.price_sell)  * quantities) * (tax/100)) - ___discount_position_for_member(positionId, newProduct);
+                let price  = parseInt(product.price_sell) * quantities;
                 is_debug && console.log("Exclude :", price)
                 sum_price += price
                 break;
@@ -2346,7 +2349,9 @@ export const summaryFastStart = (products, positionId) =>{
                 // let price = (parseInt(product.price_sell)  * quantities) - discount_position_for_member;
                 // sum_price += price;      
 
-                let price = (parseInt(product.price_sell)  * quantities) - ___discount_position_for_member(positionId, newProduct);                         
+                // let price = (parseInt(product.price_sell)  * quantities) - ___discount_position_for_member(positionId, newProduct);                         
+                
+                let price = parseInt(product.price_sell) * quantities;
                 console.log(`None price: ${ price }, bm: ${ newProduct.price_discount_bm }, bs: ${ newProduct.price_discount_bs }, calculate :${ (price * ( newProduct.price_discount_bs - newProduct.price_discount_bm ))/100 }`)
                 sum_price +=  (price * ( newProduct.price_discount_bs - newProduct.price_discount_bm ))/100           
                 break;
@@ -2358,7 +2363,9 @@ export const summaryFastStart = (products, positionId) =>{
                 // let price  =  (parseInt(product.price_sell)  * quantities) - discount_position_for_member;
                 // sum_price += price;
 
-                let price  = (parseInt(product.price_sell)  * quantities) - ___discount_position_for_member_inclue_vat(___price_before_vat(newProduct, tax), positionId, newProduct);    
+                // let price  = (parseInt(product.price_sell)  * quantities) - ___discount_position_for_member_inclue_vat(___price_before_vat(newProduct, tax), positionId, newProduct);    
+                
+                let price  = ___price_before_vat(newProduct, tax) ;
                 console.log(`Include price: ${ price }, bm: ${ newProduct.price_discount_bm }, bs: ${ newProduct.price_discount_bs }, calculate :${ (price * ( newProduct.price_discount_bs - newProduct.price_discount_bm ))/100 }`)             
                 sum_price +=  (price * ( newProduct.price_discount_bs - newProduct.price_discount_bm ))/100
                 break;
@@ -2370,10 +2377,10 @@ export const summaryFastStart = (products, positionId) =>{
                 // let price  =  ((parseInt(product.price_sell)  * quantities) + (parseInt(product.price_sell)  * quantities) * (tax/100)) - discount_position_for_member;
                 // sum_price += price;
 
-                let price  = ((parseInt(product.price_sell)  * quantities) + (parseInt(product.price_sell)  * quantities) * (tax/100)) - ___discount_position_for_member(positionId, newProduct);
+                // let price  = ((parseInt(product.price_sell)  * quantities) + (parseInt(product.price_sell)  * quantities) * (tax/100)) - ___discount_position_for_member(positionId, newProduct);
 
+                let price  = parseInt(product.price_sell) * quantities;
                 console.log(`Exclude price: ${ price }, bm: ${ newProduct.price_discount_bm }, bs: ${ newProduct.price_discount_bs }, calculate :${ (price * ( newProduct.price_discount_bs - newProduct.price_discount_bm ))/100 }`)             
-               
                 sum_price +=  (price * ( newProduct.price_discount_bs - newProduct.price_discount_bm ))/100
                 break;
             }
@@ -2395,7 +2402,9 @@ export const summarySuggester = (products, positionId) =>{
         switch(product.vat){
             // None
             case 0:{
-                let price = (parseInt(product.price_sell)  * quantities) - ___discount_position_for_member(positionId, newProduct);                         
+                // let price = (parseInt(product.price_sell)  * quantities) - ___discount_position_for_member(positionId, newProduct);                         
+                
+                let price = parseInt(product.price_sell) * quantities;
                 console.log(`None price: ${ price }, ส่วนลดค่าแนะนำจาการซื้อ/ขายชของลูกทีม ติดตัวเท่านั้น: ${ newProduct.price_discount_from_children }, calculate :${ (price * newProduct.price_discount_from_children )/100 }`)
                 sum_price +=  (price * newProduct.price_discount_from_children )/100           
                 break;
@@ -2403,7 +2412,9 @@ export const summarySuggester = (products, positionId) =>{
 
             // Include
             case 1:{
-                let price  = (parseInt(product.price_sell)  * quantities) - ___discount_position_for_member_inclue_vat(___price_before_vat(newProduct, tax), positionId, newProduct);    
+                // let price  = (parseInt(product.price_sell)  * quantities) - ___discount_position_for_member_inclue_vat(___price_before_vat(newProduct, tax), positionId, newProduct);    
+               
+                let price  = ___price_before_vat(newProduct, tax) ;
                 console.log(`Include price: ${ price }, ส่วนลดค่าแนะนำจาการซื้อ/ขายชของลูกทีม ติดตัวเท่านั้น: ${ newProduct.price_discount_from_children }, calculate :${ (price * newProduct.price_discount_from_children )/100 }`)
                 sum_price +=  (price * newProduct.price_discount_from_children )/100    
                 break;
@@ -2411,7 +2422,9 @@ export const summarySuggester = (products, positionId) =>{
 
             // Exclude
             case 2:{
-                let price  = ((parseInt(product.price_sell)  * quantities) + (parseInt(product.price_sell)  * quantities) * (tax/100)) - ___discount_position_for_member(positionId, newProduct);
+                // let price  = ((parseInt(product.price_sell)  * quantities) + (parseInt(product.price_sell)  * quantities) * (tax/100)) - ___discount_position_for_member(positionId, newProduct);
+               
+                let price  = parseInt(product.price_sell) * quantities;
                 console.log(`Exclude price: ${ price }, ส่วนลดค่าแนะนำจาการซื้อ/ขายชของลูกทีม ติดตัวเท่านั้น: ${ newProduct.price_discount_from_children }, calculate :${ (price * newProduct.price_discount_from_children )/100 }`)
                 sum_price +=  (price * newProduct.price_discount_from_children )/100    
                 break;

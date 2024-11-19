@@ -1578,13 +1578,6 @@ export default {
       if( role !== Constants.ADMINISTRATOR && role !== Constants.AUTHENTICATED ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
       let members =  await Model.Member.aggregate([
-                                                    // {
-                                                    //   $addFields: {
-                                                    //     'current.positionId': {
-                                                    //       $ifNull: ['$current.positionId', mongoose.Types.ObjectId('6721098ce9dccb02aab4cb3e')]
-                                                    //     }
-                                                    //   }
-                                                    // },
                                                     {
                                                       $lookup: {
                                                         localField: "_id",
@@ -6073,10 +6066,8 @@ export default {
           await Utils.calculate_suggester(input);
           console.log(`@@@@@ ค่าแนะนํา (3) - end`);
 
-          
           await Utils.calculate_ov(input);
           
-
           return {
             status: true,
             executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
@@ -6098,141 +6089,91 @@ export default {
       }  
     },
 
-    // async calcute_ov(parent, args, context, info) {
-    //   let start = Date.now()
-    //   let { req } = context
-    //   let { input } = args
+    async calcute_recheck(parent, args, context, info) {
+      let start = Date.now()
+      let { req } = context
+      let { input } = args
       
-    //   let { current_user } =  await Utils.checkAuth(req);
-    //   let role = Utils.checkRole(current_user)
-    //   if( role !== Constants.ADMINISTRATOR && 
-    //       role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
+      console.log("calcute_recheck :", input)
+      let { current_user } =  await Utils.checkAuth(req);
+      let role = Utils.checkRole(current_user)
+      if( role !== Constants.ADMINISTRATOR ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
-    //   const session = await mongoose.startSession();
-    //   session.startTransaction()
-    //   try{
+      const session = await mongoose.startSession();
+      session.startTransaction()
+      try{
+
+        // จะได้ Member โดย sort by positionId level most to less
+        const members = await Model.Member.aggregate([
+          // Unwind the positionIds array
+          { $unwind: '$current.positionIds' },
+  
+          // Join init_position to get level information
+          {
+              $lookup: {
+                  from: 'position', // Name of the init_position collection (adjust if needed)
+                  localField: 'current.positionIds.positionId',
+                  foreignField: '_id',
+                  as: 'positionData',
+              },
+          },
+  
+          // Unwind the positionData array
+          { $unwind: '$positionData' },
+  
+          // Sort by level in descending order
+          { $sort: { 'positionData.level': -1 } },
+  
+          // Group to find the highest level for each member
+          {
+              $group: {
+                  _id: '$_id',
+                  member: { $first: '$$ROOT' }, // Keep the full member document
+                  highestLevel: { $first: '$positionData.level' },
+              },
+          },
+  
+          // Sort members by the highest level
+          { $sort: { highestLevel: -1 } },
+        ]);
+
+        let orders  =  await Model.Order.aggregate([ { $match: { 
+                                                                // 'current.owner._id': { $in: ids },
+                                                                // 'current.owner.positionId': { $ne: mongoose.Types.ObjectId("6721098ce9dccb02aab4cb3e") },
+                                                                'current.type_plan': 2,
+                                                                'current.status': 2,
+                                                                'updatedAt': {
+                                                                  $gte: new Date(input.startDate),
+                                                                  $lte: new Date(input.endDate)
+                                                                }
+                                                      }} 
+                                                    ]); 
+
+        const promises = _.map(orders, async (order) => {
+          const { owner: ownerOrder, products } = order.current;
+          const priceDiscount = Utils.summaryPriceDiscount(products, ownerOrder.positionId);
+
+          console.log(`priceDiscount : ${ priceDiscount }`)
+        })
+        await Promise.all(promises);
+  
         
-    //     // จะได้ Node แรก ของ owerId คนนี้
-    //     let node_uid = await Model.Node.findOne({ 
-    //                                               'current.ownerId':  mongoose.Types.ObjectId(input.userId),
-    //                                               'current.isParent': true 
-    //                                             })   
-
-    //     console.log("calcute_plan_back input:", input, node_uid)
-    //     if(node_uid){
-    //       let owner   = await Model.Member.findById(input.userId);
-    //       const process = async(parentId = null, level = 1, limitLevel=1) => {
-    //         const nodes = await Model.Node.find({ 'current.parentNodeId': parentId });
-    //         return await Promise.all(nodes.map(async (node) => {
-    //           let nextLevel = level + 1;
-    //           if (nextLevel >= limitLevel) {
-    //             // Do not build children if the max level is reached
-    //             return {
-    //                 title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
-    //                 key: node._id.toString(),
-    //                 node,
-    //                 ownerId: node.current.ownerId,
-    //                 owner: await Model.Member.findById(node.current.ownerId),
-    //                 level: nextLevel,
-    //                 children: null, // No children if max level is reached
-    //             };
-    //           } else {
-    //             // Continue building the tree recursively if max level is not reached
-    //             let children = await process( node._id, nextLevel, limitLevel );
-    //             return {
-    //               title: `id: ${node._id.toString()}, parentNodeId: ${node.current.parentNodeId}, ownerId: ${node.current.ownerId}, number: ${node.current.number}, level: ${nextLevel}, isParent: ${node.current.isParent}`,
-    //               key: node._id.toString(),
-    //               node,
-    //               ownerId: node.current.ownerId,
-    //               owner: await Model.Member.findById(node.current.ownerId),
-    //               level: nextLevel,
-    //               children: children.length ? children : null,
-    //             };
-    //           }
-    //         }));
-    //       }
-
-    //       const flattenTreeUnique = (nodes) => {
-    //         const result = [];
-    //         const ownerIdSet = new Set(); // To track unique ownerIds as strings
-    //         const traverse = (nodes) => {
-    //           nodes.forEach((node) => {
-    //             // Convert ownerId to a string for Set comparison
-    //             const ownerIdStr = node.ownerId.toString();
-    //             if (!ownerIdSet.has(ownerIdStr)) {
-    //                 ownerIdSet.add(ownerIdStr);
-    //                 result.push({ key: node.key, ownerId: node.ownerId });
-    //             }
-    //             if (node.children) {
-    //               traverse(node.children);
-    //             }
-    //           });
-    //         };
-          
-    //         traverse(nodes);
-    //         return result;
-    //       };
-
-    //       // แสดงโครงสร้างเพือให้ง่ายกับการ ตรวจสอบ
-    //       // Function to recursively extract key structure 
-    //       // Get only field key to display
-    //       // Example console.log(`Resulting tree structure:`, JSON.stringify(getKeyStructure(processValue), null, 2));
-    //       const getKeyStructure = (nodes) => {
-    //         return nodes.map(node => {
-    //             const result = { key: node.key };
-    //             if (node.children) {
-    //                 result.children = getKeyStructure(node.children);
-    //             }
-    //             return result;
-    //         });
-    //       };
-
-    //       const near_childrens = async(owner, nodeId) =>{
-    //         ///////////  1. ต้องหาลูกติดตัวทั้งหมด  ////////////
-    //         // เราจะหาลูกติดตัว limitLevel =  package + 1;
-    //         let limitLevel = owner.current.packages + 1;
-
-    //         const level = 1;
-    //         let processValue =  await process(nodeId, level, limitLevel)
-
-    //         // เป็นการ id ทั้งหมด ที่ไม่ซํ้า
-    //         let flatten = flattenTreeUnique(processValue)
-            
-    //         // ตอนดึงโครงสร้างมาจะได้ลูกทั้งหมด + ownerid เราต้อง filter ownerId ออก
-    //         let ids     = _.map(flatten.filter(i=>i.ownerId.toString() !== owner._id.toString() ), i=>mongoose.Types.ObjectId( i.ownerId))
-
-    //         // let displayNames = await Utils.getDisplayNamesByIds(ids)
-    //         // console.log(`Step 1. (@@@@ BM) Name: ${ owner.current.displayName  }, มีลูกติดตัวทั้งหมด(${ displayNames.length }): ${ displayNames }`)
-
-    //         return ids
-    //         ///////////  1. ต้องหาลูกติดตัวทั้งหมด  //////////// 
-    //       }
-
-    //       console.log(`@@@@@ ค่า OV (4) - start`)
-    //       let ids  = await near_childrens(owner, node_uid._id)
-          
-    //       let displayNames = await Utils.getDisplayNamesByIds(ids)
-    //       console.log(`Step 1. (@@@@ BM) Name: ${ owner.current.displayName  }, มีลูกติดตัวทั้งหมด(${ displayNames.length }): ${ displayNames }`)
-
-    //       console.log(`@@@@@ ค่า OV (4) - start`)
-          
-    //     }
-
-    //     // await session.commitTransaction();
-    //     return {
-    //       status: true,
-    //       input,
-    //       executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
-    //     }      
-    //   } catch(error){
-    //     await session.abortTransaction();
-    //     console.log(`init #error ${error}`)
-
-    //     throw new AppError(Constants.ERROR, error)
-    //   }finally {
-    //     session.endSession();
-    //   }  
-    // },
+        // await session.commitTransaction();
+        return {
+          status: true,
+          input,
+          members,
+          orders,
+          executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
+        }      
+      } catch(error){
+        await session.abortTransaction();
+        console.log(`init #error ${error}`)
+        throw new AppError(Constants.ERROR, error)
+      }finally {
+        session.endSession();
+      }  
+    },
   },
   Subscription:{
     // me: {

@@ -337,14 +337,14 @@ const ProfilePage: FC = (props) => {
           {
             utils.checkRole(profile) === Constants.ADMINISTRATOR && 
             <>
-              <Descriptions.Item label="คำนวณผลประโยชน์แผนหลัง">
+              {/* <Descriptions.Item label="คำนวณผลประโยชน์แผนหลัง">
                 <Button 
                   type="primary" 
                   style={{ marginRight: '10px' }}
                   onClick={()=>{
                     navigate('/administrator/calcuteplanback')
                   }}>คำนวณผลประโยชน์แผนหลัง</Button>
-              </Descriptions.Item>
+              </Descriptions.Item> */}
 
               {/* <Descriptions.Item label="คำนวณค่าบริหารทีม OV">
                 <Button 

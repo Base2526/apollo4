@@ -898,7 +898,7 @@ export default gql`
 
     calcute_plan_back(input:JSON): JSON
 
-    calcute_ov(input:JSON): JSON
+    calcute_recheck(input:JSON): JSON
   }
 
   type Subscription {

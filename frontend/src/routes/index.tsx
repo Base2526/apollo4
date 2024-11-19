@@ -63,7 +63,7 @@ import CalTreeHistoryListPage from "@/pages/administrator/CalTreeHistoryList"
 import NoticeListPage from "@/pages/administrator/NoticeList"
 
 import CalcutePlanBackPage from "@/pages/administrator/CalcutePlanBackPage"
-// import CalcuteOVPage from "@/pages/administrator/CalcuteOVPage"
+import CalcuteRecheckPage from "@/pages/administrator/CalcuteRecheckPage"
 
 import WrapperRouteComponent from '@/routes/config';
 
@@ -238,17 +238,14 @@ const routeList: RouteObject[] = [
         path: 'administrator/products/view',
         element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<ViewProductPage />} titleId="title.insurance" />,
       },
-
       {
         path: 'administrator/calcuteplanback',
         element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<CalcutePlanBackPage />} titleId="title.insurance" />,
       },
-      // 
-      // {
-      //   path: 'administrator/calcute_ov',
-      //   element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<CalcuteOVPage />} titleId="title.insurance" />,
-      // },
-
+      {
+        path: 'administrator/recheck',
+        element: <WrapperRouteComponent requireAuth={true} isAdmin={true} element={<CalcuteRecheckPage />} titleId="title.insurance" />,
+      },
       {
         path: 'administrator/billlist',
         element: <WrapperRouteComponent requireAuth={true}  element={<BillListPage />} titleId="title.billlist" />,
