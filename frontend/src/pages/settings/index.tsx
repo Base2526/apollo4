@@ -13,7 +13,7 @@ import { useQuery, useMutation } from "@apollo/client";
 
 
 import { getHeaders, getCookie } from "../../utils"
-import { faker_agent, faker_insurance } from "../../apollo/gqlQuery"
+import { mutation_faker_agent, mutation_faker_insurance } from "../../apollo/gqlQuery"
 
 const { Meta } = Card;
 
@@ -26,7 +26,7 @@ interface CardItem {
 const SettingsPage: React.FC = () => {
     const navigate = useNavigate();
 
-    const [onFakerAgent, resultFakerAgent] = useMutation(faker_agent, {
+    const [onFakerAgent, resultFakerAgent] = useMutation(mutation_faker_agent, {
         context: { headers: getHeaders(location) },
         update: (cache, {data: {faker_agent}}) => { 
             console.log("faker_agent ", faker_agent)
@@ -39,7 +39,7 @@ const SettingsPage: React.FC = () => {
         }
     });
 
-    const [onFakerInsurance, resultFakerInsurance] = useMutation(faker_insurance, {
+    const [onFakerInsurance, resultFakerInsurance] = useMutation(mutation_faker_insurance, {
         context: { headers: getHeaders(location) },
         update: (cache, {data: {faker_insurance}}) => { 
             console.log("faker_insurance ", faker_insurance)

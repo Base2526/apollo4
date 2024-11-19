@@ -7,7 +7,7 @@ import _ from "lodash"
 import { DownOutlined, UserOutlined } from '@ant-design/icons';
 import { useSelector } from 'react-redux';
 
-import { queryMembers, query_positions } from "@/apollo/gqlQuery"
+import { query_members, query_positions } from "@/apollo/gqlQuery"
 import { getHeaders, getPositionId } from "@/utils"
 
 const { REACT_APP_HOST_GRAPHAL }  = process.env
@@ -152,7 +152,7 @@ const UserList: React.FC = () => {
 
     const { loading: loadingMembers, 
             data: dataMembers, 
-            error: errorMembers  } =  useQuery( queryMembers, 
+            error: errorMembers  } =  useQuery( query_members, 
                                                 {
                                                     context: { headers: getHeaders(location) },
                                                     fetchPolicy: 'cache-first', 

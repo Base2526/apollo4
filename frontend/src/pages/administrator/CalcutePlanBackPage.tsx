@@ -10,7 +10,7 @@ import {  UsergroupAddOutlined,
   NodeExpandOutlined, 
   NodeCollapseOutlined } from '@ant-design/icons';
 
-import { queryMembers, mutation_calcute_plan_back } from "@/apollo/gqlQuery";
+import { query_members, mutation_calcute_plan_back } from "@/apollo/gqlQuery";
 import { getHeaders } from "@/utils";
 
 import handlerError from '@/utils/handlerError';
@@ -219,7 +219,7 @@ const CalcutePlanBackPage: React.FC = (props) => {
 
   const { loading: loadingMembers, 
     data: dataMembers, 
-    error: errorMembers  } =  useQuery( queryMembers, 
+    error: errorMembers  } =  useQuery( query_members, 
                                         {
                                           context: { headers: getHeaders(location) },
                                           fetchPolicy: 'cache-first', 

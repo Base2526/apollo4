@@ -4,7 +4,7 @@ import { useQuery } from "@apollo/client";
 import _ from "lodash"
 import { useLocation } from "react-router-dom";
 import moment from "moment";
-import { queryDblog } from "../../apollo/gqlQuery"
+import { query_dblog } from "../../apollo/gqlQuery"
 import { getHeaders } from "../../utils"
 import ObjectView from '../../utils/ObjectView';
 
@@ -56,7 +56,7 @@ const Dblog: React.FC = () => {
 
     const { loading: loadingDblog, 
         data: dataDblog, 
-        error: errorDblog  } =  useQuery( queryDblog, {
+        error: errorDblog  } =  useQuery( query_dblog, {
                                             context: { headers: getHeaders(location) },
                                             fetchPolicy: 'cache-first', 
                                             nextFetchPolicy: 'network-only', 

@@ -5,7 +5,7 @@ import { Card, Layout, Form, Input, Button, message, Select, DatePicker, Checkbo
 import { useDispatch, useSelector } from 'react-redux';
 import { useMutation } from "@apollo/client";
 import { useLocation, useNavigate, useParams} from 'react-router-dom';
-import { mutationRegister } from "@/apollo/gqlQuery";
+import { mutation_register } from "@/apollo/gqlQuery";
 import handlerError from "@/utils/handlerError"
 import  { DefaultRootState } from '@/interface/DefaultRootState';
 import { updateProfile } from '@/stores/user.store';
@@ -189,7 +189,7 @@ const RegisterPage: FC = (props) => {
     );
   };
 
-  const [onMutationRegister] = useMutation(mutationRegister, {
+  const [onMutationRegister] = useMutation(mutation_register, {
     context: { headers: getHeaders(location) },
     update: (cache, { data: { register } }) => {
       console.log("RegisterPage :", register);

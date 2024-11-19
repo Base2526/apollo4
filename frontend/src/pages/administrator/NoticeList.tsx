@@ -7,7 +7,7 @@ import _ from "lodash"
 import { DownOutlined } from '@ant-design/icons';
 import { useSelector } from 'react-redux';
 
-import { queryMembers } from "../../apollo/gqlQuery"
+import { query_members } from "../../apollo/gqlQuery"
 import { getHeaders, isValidUrl } from "../../utils"
 
 // import AttackFileField from "../../components/basic/attack-file";
@@ -116,7 +116,7 @@ const NoticeList: React.FC = () => {
 
     const { loading: loadingMembers, 
             data: dataMembers, 
-            error: errorMembers  } =  useQuery(   queryMembers, {
+            error: errorMembers  } =  useQuery( query_members, {
                                                 context: { headers: getHeaders(location) },
                                                 fetchPolicy: 'cache-first', 
                                                 nextFetchPolicy: 'network-only', 

@@ -8,9 +8,9 @@ import { faker } from '@faker-js/faker';
 import { useSelector } from 'react-redux';
 
 import { getHeaders, getCookie } from "@/utils"
-import { queryMembers, faker_agent, 
-        faker_insurance, mutationTest_addmember, 
-        mutationMlm, mutation_product } from "@/apollo/gqlQuery"
+import { query_members, mutation_faker_agent, 
+        mutation_faker_insurance, mutation_test_addmember, 
+        mutation_mlm, mutation_product } from "@/apollo/gqlQuery"
 
 import  { DefaultRootState } from '@/interface/DefaultRootState';
 // import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
@@ -42,7 +42,7 @@ const Faker: React.FC = () => {
 
     const [users, setUsers] = useState<UserType[]>();
 
-    const [onTest_addmember, resultTest_addmember] = useMutation(mutationTest_addmember, {
+    const [onTest_addmember, resultTest_addmember] = useMutation(mutation_test_addmember, {
         context: { headers: getHeaders(location) },
         update: (cache, {data: {test_addmember}}) => { 
             console.log("onTest_addmember ")
@@ -55,7 +55,7 @@ const Faker: React.FC = () => {
         }
     });
 
-    const [onFakerAgent, resultFakerAgent] = useMutation(faker_agent, {
+    const [onFakerAgent, resultFakerAgent] = useMutation(mutation_faker_agent, {
         context: { headers: getHeaders(location) },
         update: (cache, {data: {faker_agent}}) => { 
             console.log("faker_agent ", faker_agent)
@@ -68,7 +68,7 @@ const Faker: React.FC = () => {
         }
     });
 
-    const [onFakerInsurance, resultFakerInsurance] = useMutation(faker_insurance, {
+    const [onFakerInsurance, resultFakerInsurance] = useMutation(mutation_faker_insurance, {
         context: { headers: getHeaders(location) },
         update: (cache, {data: {faker_insurance}}) => { 
             console.log("faker_insurance ", faker_insurance)
@@ -93,7 +93,7 @@ const Faker: React.FC = () => {
         }
     });
 
-    // const [onMlm, resultMlm] = useMutation(mutationMlm, { 
+    // const [onMlm, resultMlm] = useMutation(mutation_mlm, { 
     //     context: { headers: getHeaders(location) },
     //     onCompleted: async(datas)=>{
     //         console.log("onCompleted :", datas)
@@ -115,7 +115,7 @@ const Faker: React.FC = () => {
 
     const { loading: loadingMembers, 
         data: dataMembers, 
-        error: errorMembers  } =  useQuery(   queryMembers, {
+        error: errorMembers  } =  useQuery( query_members, {
                                             context: { headers: getHeaders(location) },
                                             fetchPolicy: 'cache-first', 
                                             nextFetchPolicy: 'network-only', 

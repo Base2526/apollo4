@@ -18,7 +18,7 @@ import  { DefaultRootState } from '@/interface/DefaultRootState';
 import { localeConfig } from '@/locales';
 import RenderRouter from '@/routes';
 import { setGlobalState } from '@/stores/global.store';
-import { userConnected } from "@/apollo/gqlQuery"
+import { user_connected } from "@/apollo/gqlQuery"
 import { updateProfile } from '@/stores/user.store';
 
 const App: FC = () => {
@@ -32,7 +32,7 @@ const App: FC = () => {
     isSubscribed: true
   });
 
-  useSubscription(userConnected,
+  useSubscription(user_connected,
                   { 
                   variables: { input : {_id : profile?._id} },
                   // skip: !subscriptionState.isSubscribed,

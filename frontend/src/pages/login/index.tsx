@@ -9,7 +9,7 @@ import { useDispatch } from 'react-redux';
 import { useMutation } from "@apollo/client";
 import { useTranslation } from 'react-i18next';
 import { updateProfile } from '@/stores/user.store';
-import { mutationLogin } from "@/apollo/gqlQuery";
+import { mutation_login } from "@/apollo/gqlQuery";
 import { setCookie, getHeaders } from "@/utils";
 
 import handlerError from "@/utils/handlerError"
@@ -39,7 +39,7 @@ const LoginForm: FC = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  const [onLogin] = useMutation<LoginData>(mutationLogin, {
+  const [onLogin] = useMutation<LoginData>(mutation_login, {
     context: { headers: getHeaders(location) },
     onCompleted: async (data: LoginData) => {
       const { status, data: profile, sessionId } = data.login;

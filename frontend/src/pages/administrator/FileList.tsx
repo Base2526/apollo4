@@ -5,7 +5,7 @@ import { useQuery, useMutation } from "@apollo/client";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import _ from "lodash"
 
-import { queryFiles, mutationTest_upload } from "../../apollo/gqlQuery"
+import { query_files, mutation_test_upload } from "../../apollo/gqlQuery"
 import { getHeaders } from "../../utils"
 
 import AttackFileField from "../../components/basic/attack-file";
@@ -84,7 +84,7 @@ const FileList: React.FC = () => {
 
     const [files, setFiles] = useState<File[]>([]);
 
-    // const [onMutationTest_upload, resultTest_upload] = useMutation(mutationTest_upload, {
+    // const [onMutationTest_upload, resultTest_upload] = useMutation(mutation_test_upload, {
     //     context: { headers: getHeaders(location) },
     //     update: (cache, {data: {test_upload}}) => {
     //         console.log("update :", test_upload)
@@ -99,7 +99,7 @@ const FileList: React.FC = () => {
 
     const { loading: loadingFiles, 
             data: dataFiles, 
-            error: errorFiles  } =  useQuery( queryFiles, {
+            error: errorFiles  } =  useQuery( query_files, {
                                                 context: { headers: getHeaders(location) },
                                                 fetchPolicy: 'cache-first', 
                                                 nextFetchPolicy: 'network-only', 

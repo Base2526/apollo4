@@ -39,7 +39,7 @@ const schema = makeExecutableSchema({ typeDefs, resolvers });
 const app = express();
 
 let subscriptionCount = [];
-
+const { NODE_ENV, REACT_APP_GRAPHQL_PORT } = process.env
 // Create a logging plugin
 const loggingPlugin = {
   async requestDidStart(requestContext) {
@@ -65,7 +65,7 @@ const loggingPlugin = {
 const server = new ApolloServer({ 
   schema, 
   plugins: [ApolloServerPluginLandingPageLocalDefault(), loggingPlugin],
-  introspection: process.env.NODE_ENV !== 'production', 
+  introspection: NODE_ENV !== 'production', 
   context: ({ req }) => {
     return { req: req.headers };
   },
@@ -143,9 +143,10 @@ server.start().then(() => {
     res.status(200).send('Okay! >> ' + subscriptionCount.toString());
   });
 
+  // REACT_APP_GRAPHQL_PORT
   // Create an HTTP server
   const httpServer = app.listen(4000, () => {
-    console.log('Server is now running on http://localhost:4000/graphql');
+    console.log(`Server is now running on http://localhost:${REACT_APP_GRAPHQL_PORT}/graphql`);
 
     savePositionsIfNotExists()
   });
