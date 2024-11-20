@@ -77,7 +77,7 @@ export const getSession = async(userId, input) => {
 }
 
 export const checkAuth = async(req) => {
-    // console.log("@1 checkAuth :", req)
+    console.log("@1 checkAuth :", req)
     if (req && req["custom-authorization"]) {
         const auth    = req["custom-authorization"];
         const parts   = auth.split(" ");
@@ -822,10 +822,8 @@ export const mlmCal = async(parentId, level) =>{
         Object.values(tree).forEach(root => {
             buildTree(root);
         });
-    
         return Object.values(tree);
     }
-    
     return convertToTreeNode(result) //result
 }
 
@@ -859,7 +857,6 @@ export const logUserAccess = async (mode, ctx) =>{
                     }
                 }
             }
-
             break;
         }
 

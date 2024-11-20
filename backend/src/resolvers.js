@@ -367,7 +367,7 @@ export default {
       let role = Utils.checkRole(current_user)
       if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
-      console.log("products :", current_user.current.packages)
+      // console.log("products :", current_user.current.packages)
 
       if( role === Constants.ADMINISTRATOR ){
         let products = await Model.Product.aggregate([
@@ -822,10 +822,12 @@ export default {
       }
 
       await Model.Member.updateOne({ _id: user?._id }, { "current.lastAccess" : Date.now() });
+
+      let sessionId = await Utils.getSession(user?._id, input);
       return {
         status: true,
-        data: user,
-        sessionId: await Utils.getSession(user?._id, input),
+        data: { ...user._doc, usida: sessionId },
+        sessionId,
         executionTime: `Time to execute = ${ (Date.now() - start) / 1000 } seconds`
       }
     },

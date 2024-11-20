@@ -4,6 +4,11 @@ import { createClient } from 'graphql-ws';
 import { getMainDefinition } from "@apollo/client/utilities";
 import { createUploadLink } from "apollo-upload-client";
 
+import { getCookie } from "@/utils"
+
+  // const { usida } = useSelector((state : DefaultRootState) => state.user);
+import { store } from '@/stores'
+
 const { mode, REACT_APP_HOST_GRAPHAL } = process.env;
 
 // HTTP link for queries and mutations
@@ -12,11 +17,21 @@ const httpLink = createUploadLink({
 });
 
 // Function to create a WebSocket client with reconnection logic
+let wsClient: ReturnType<typeof createClient> | null = null;
 const createWsLink = () => {
-  const wsClient = createClient({
+  wsClient = createClient({
     url: 'ws://' + REACT_APP_HOST_GRAPHAL + "/graphql", // Your Apollo Server WebSocket endpoint
-    connectionParams: {
-      // Include any additional parameters needed for authentication
+    // connectionParams: {
+    //   // Include any additional parameters needed for authentication
+    //   authorization: getCookie('usida') ? `Bearer ${ getCookie('usida') }` : '' ,
+    // },
+    connectionParams: () => {
+      const token = store.getState().user.profile?.usida;
+
+      console.log("@@@@ connectionParams :", token, store.getState().user.profile?.usida)
+      return {
+        authorization: token ? `Bearer ${token}` : '',
+      };
     },
     lazy: true, // Start connecting only when a subscription is initiated
     retryAttempts: 10, // Maximum number of reconnection attempts
@@ -24,11 +39,16 @@ const createWsLink = () => {
       connected: () => console.log('WebSocket connected'),
       closed: () => {
         console.log('WebSocket closed, attempting to reconnect...');
-        connectWithRetry();
+        // connectWithRetry();
       },
-      error: (error) => console.error('WebSocket error', error),
+      error: (error) =>{
+        console.error('WebSocket error', error)
+        // if (error?.message?.includes('401')) {
+        //   console.error('Authentication error. Please re-login.');
+        // }
+      } 
     },
-    shouldRetry: () => true, // Enable automatic retries on disconnection
+    shouldRetry: () => !!store.getState().user.profile?.usida //true, // Enable automatic retries on disconnection
   });
 
   let retries = 0;
@@ -71,6 +91,24 @@ const client = new ApolloClient({
   link: splitLink,
   cache: new InMemoryCache(),
   connectToDevTools: mode === 'development',
+});
+
+// Redux Token Listener
+store.subscribe(() => {
+  const state = store.getState();
+  const token = state.user.profile?.usida;
+
+  // console.log('Redux Token Listener :', token, wsClient);
+  if (!token && wsClient) {
+    // Close WebSocket connection on logout
+    wsClient.dispose();
+    wsClient = null;
+    // console.log('WebSocket connection closed due to logout :', wsClient);
+  } else if (token && !wsClient) {
+    // Reinitialize WebSocket connection when token is available
+    wsLink = createWsLink();
+    // console.log('WebSocket connection reinitialized with new token :', token);
+  }
 });
 
 export default client;
