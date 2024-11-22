@@ -8,10 +8,9 @@ import { useLocale } from '@/locales';
 import { useDispatch } from 'react-redux';
 import { useMutation } from "@apollo/client";
 import { useTranslation } from 'react-i18next';
-import { updateProfile } from '@/stores/user.store';
+import { login } from '@/stores/user.store';
 import { mutation_login } from "@/apollo/gqlQuery";
 import { setCookie, getHeaders } from "@/utils";
-
 import handlerError from "@/utils/handlerError"
 
 const initialValues: LoginParams = {
@@ -46,7 +45,8 @@ const LoginForm: FC = () => {
       if (status) {
         console.log("onLogin :", profile)
         setCookie('usida', sessionId);
-        dispatch(updateProfile({ profile }));
+        dispatch(login({ profile }));
+        
         navigate("/");
       }
 

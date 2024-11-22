@@ -67,7 +67,8 @@ const server = new ApolloServer({
   plugins: [ApolloServerPluginLandingPageLocalDefault(), loggingPlugin],
   introspection: NODE_ENV !== 'production', 
   context: ({ req }) => {
-    return { req: req.headers };
+    console.log('ApolloServer > context :',  req )
+    return { req: req.headers, rt: NODE_ENV };
   },
   formatError: (error) => {
     // Log the error with Winston
@@ -143,6 +144,12 @@ server.start().then(() => {
     res.status(200).send('Okay! >> ' + subscriptionCount.toString());
   });
 
+  app.get('/subscriptions', (req, res) => {
+
+    res.status(200).send('Subscription All : ' + subscriptionCount.join(' '));
+  });
+  // 
+
   // REACT_APP_GRAPHQL_PORT
   // Create an HTTP server
   const httpServer = app.listen(4000, () => {
@@ -168,26 +175,32 @@ server.start().then(() => {
 
         await Utils.logUserAccess(0, ctx);
         
-        console.log("onConnect")
+        console.log("onConnect :", ctx.connectionParams)
       },
       onSubscribe: (ctx, msg) => {
         let {connectionParams, extra} = ctx
-        console.log('Client onSubscribe');
+        // subscriptionCount = [...subscriptionCount, extra.request.headers['sec-websocket-key']]
 
-        subscriptionCount = [...subscriptionCount, extra.request.headers['sec-websocket-key']]
+        // Get the WebSocket key from the headers
+        const websocketKey = extra.request.headers['sec-websocket-key'];
+        if (!subscriptionCount.includes(websocketKey)) {
+          subscriptionCount.push(websocketKey); // Add the key if it doesn't exist
+          console.log(`Added client key: ${websocketKey}`);
+        }
+
+        console.log(`Client onSubscribe : `, subscriptionCount);
       },
       onDisconnect: async(ctx, code, reason) => {
         const { connectionParams, extra } = ctx;
-        console.log('Client disconnected');
+        // console.log('Client disconnected');
 
         // const { connectionParams, extra } = ctx;
         // console.log('Client disconnected :', connectionParams, extra.request.headers);
         await Utils.logUserAccess(1, ctx);
 
-        subscriptionCount = _.filter(subscriptionCount, (el)=> el!==extra.request.headers['sec-websocket-key'])
+        subscriptionCount = _.filter(subscriptionCount, (el)=>el!==extra.request.headers['sec-websocket-key'])
 
-
-        console.log("onDisconnect")
+        console.log(`onDisconnect : ` , subscriptionCount)
       },
     },
     wsServer

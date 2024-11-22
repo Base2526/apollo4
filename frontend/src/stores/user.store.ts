@@ -6,6 +6,8 @@ import { createSlice } from '@reduxjs/toolkit';
 import { getGlobalState } from '@/utils/getGloabal';
 import { ProductItem, Current } from "@/interface/user/user"
 
+import { setCookie }  from "@/utils"
+
 const initialState: UserState = {
   ...getGlobalState(),
   noticeCount: 0,
@@ -25,8 +27,10 @@ const initialState: UserState = {
         positionId: '',
         updatedAt: ''
       }]
-    }
+    },
+    usida: ''
   },
+  usida: '',
 
   carts:[],
 
@@ -52,10 +56,15 @@ const userSlice = createSlice({
 
       Object.assign(state, action.payload);
     },
+    login(state, action: PayloadAction<Partial<UserState>> ){
+      console.log("login :",state, action.payload, action.payload.profile?.usida)
+
+      Object.assign(state, { ...action.payload, logged: true, usida: action.payload.profile?.usida });
+    },
     updateProfile(state, action: PayloadAction<Partial<UserState>> ){
       console.log("updateProfile :",state, action.payload)
 
-      Object.assign(state, { ...action.payload, logged: true });
+      Object.assign(state, { ...action.payload });
     },
     // for cart
     addCart: (state, action: PayloadAction<ProductItem>) => {
@@ -103,10 +112,11 @@ const userSlice = createSlice({
 
     logout: (state) => {
       // Reset the state to initialState by returning it directly
+      setCookie('usida', '');
+      
+
       return initialState;
     },
-
-
 
     //  add Cart plan front actions
     add_cart_plan_front: (state, action: PayloadAction<ProductItem>) => {
@@ -159,6 +169,7 @@ const userSlice = createSlice({
 export const {  setUserItem, 
                 testSetRamdom, 
                 updateProfile, 
+                login,
                 addCart, 
                 removeCart, 
                 clearAllCart, 

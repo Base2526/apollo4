@@ -67,6 +67,7 @@ export interface Current {
 
 export interface ProfileType {
   _id?: string;
+  usida: string;
   current: Current;
   history?: History[]; // Assuming `historySchema` has been defined elsewhere as `History`
 }
@@ -145,6 +146,8 @@ export interface UserState {
 
   /* for profile */
   profile: ProfileType;
+
+  usida: string;
 
   /* for cart */
   carts: ProductItem[];
