@@ -57,9 +57,9 @@ const userSlice = createSlice({
       Object.assign(state, action.payload);
     },
     login(state, action: PayloadAction<Partial<UserState>> ){
-      console.log("login :",state, action.payload)
+      console.log("login :",state, action.payload, action.payload.profile?.usida)
 
-      Object.assign(state, { ...action.payload, logged: true, usida: action.payload.usida });
+      Object.assign(state, { ...action.payload, logged: true, usida: action.payload.profile?.usida });
     },
     updateProfile(state, action: PayloadAction<Partial<UserState>> ){
       console.log("updateProfile :",state, action.payload)

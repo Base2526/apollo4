@@ -77,9 +77,9 @@ export const getSession = async(userId, input) => {
 }
 
 export const checkAuth = async(req) => {
-    console.log("@1 checkAuth :", req)
-    if (req && req["custom-authorization"]) {
-        const auth    = req["custom-authorization"];
+    console.log("@1 checkAuth :", req) // authorization
+    if (req && req["authorization"]) {
+        const auth    = req["authorization"];
         const parts   = auth.split(" ");
         const bearer  = parts[0];
         try{

@@ -4,7 +4,7 @@ import { createClient } from 'graphql-ws';
 import { getMainDefinition } from "@apollo/client/utilities";
 import { createUploadLink } from "apollo-upload-client";
 
-import { getCookie } from "@/utils"
+// import { getCookie } from "@/utils"
 
   // const { usida } = useSelector((state : DefaultRootState) => state.user);
 import { store } from '@/stores'
@@ -26,9 +26,9 @@ const createWsLink = () => {
     //   authorization: getCookie('usida') ? `Bearer ${ getCookie('usida') }` : '' ,
     // },
     connectionParams: () => {
-      const token = store.getState().user.profile?.usida;
+      const token = store.getState().user.usida;
 
-      console.log("@@@@ connectionParams :", token, store.getState().user.profile?.usida)
+      console.log("@@@@ connectionParams :", token, store.getState().user.usida)
       return {
         authorization: token ? `Bearer ${token}` : '',
       };
@@ -48,7 +48,7 @@ const createWsLink = () => {
         // }
       } 
     },
-    shouldRetry: () => !!store.getState().user.profile?.usida //true, // Enable automatic retries on disconnection
+    shouldRetry: () => !!store.getState().user.usida //true, // Enable automatic retries on disconnection
   });
 
   let retries = 0;
@@ -96,9 +96,9 @@ const client = new ApolloClient({
 // Redux Token Listener
 store.subscribe(() => {
   const state = store.getState();
-  const token = state.user.profile?.usida;
+  const token = state.user.usida;
 
-  // console.log('Redux Token Listener :', token, wsClient);
+  console.log('Redux Token Listener :', state.user);
   if (!token && wsClient) {
     // Close WebSocket connection on logout
     wsClient.dispose();

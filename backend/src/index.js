@@ -67,7 +67,8 @@ const server = new ApolloServer({
   plugins: [ApolloServerPluginLandingPageLocalDefault(), loggingPlugin],
   introspection: NODE_ENV !== 'production', 
   context: ({ req }) => {
-    return { req: req.headers };
+    console.log('ApolloServer > context :',  req )
+    return { req: req.headers, rt: NODE_ENV };
   },
   formatError: (error) => {
     // Log the error with Winston

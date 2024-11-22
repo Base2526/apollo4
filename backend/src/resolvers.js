@@ -367,7 +367,7 @@ export default {
       let role = Utils.checkRole(current_user)
       if( role !== Constants.ADMINISTRATOR  && role !== Constants.AUTHENTICATED  ) throw new AppError(Constants.UNAUTHENTICATED, 'permission denied', current_user)
 
-      // console.log("products :", current_user.current.packages)
+      console.log("products :", context )
 
       if( role === Constants.ADMINISTRATOR ){
         let products = await Model.Product.aggregate([
@@ -753,7 +753,9 @@ export default {
       let start = Date.now()
       let {input} = args
 
-      console.log("login :", input, process.env.MONGO_PASSWORD_SECRET, cryptojs.AES.encrypt( input.password, process.env.MONGO_PASSWORD_SECRET).toString())
+
+      console.log("login ( args ):",  args, context)
+      // console.log("login :", input, process.env.MONGO_PASSWORD_SECRET, cryptojs.AES.encrypt( input.password, process.env.MONGO_PASSWORD_SECRET).toString())
 
       /*
       let username = input.username.toLowerCase()
@@ -798,7 +800,7 @@ export default {
       if(Utils.emailValidate().test(username)){
         // { "current.username": input.username?.toLowerCase() }
         user = await Utils.getMember({"current.email": username}, false)
-        console.log("user : ", user)
+        // console.log("user : ", user)
         if( _.isNull(user) ){
           throw new AppError(Constants.USER_NOT_FOUND, 'USER NOT FOUND')
         }
@@ -810,7 +812,7 @@ export default {
         // user = await Utils.getUserFull({email: username})
       }else{
         user = await Utils.getMember({"current.username":username}, false)
-        console.log("user : ", user)
+        // console.log("user : ", user)
         if( _.isNull(user) ){
           throw new AppError(Constants.USER_NOT_FOUND, 'USER NOT FOUND')
         }
